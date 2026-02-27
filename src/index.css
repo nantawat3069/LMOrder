@@ -1,0 +1,211 @@
+@import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap');
+
+/*  แก้ไข Scrollbar: จองพื้นที่ไว้เสมอ (กันหน้ากระตุกสำหรับ PC)  */
+html {
+    /* คำสั่งนี้จะเว้นที่ว่างทางขวาไว้รอเลย เนื้อหาจะไม่ขยับเมื่อ Scrollbar โผล่ */
+    scrollbar-gutter: stable; 
+}
+
+/*  แต่งหน้าตา Scrollbar ให้มินิมอล (เล็กและโค้งมน)  */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+/* รางเลื่อน (Track) */
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+/* ตัวก้อนเลื่อน (Thumb) */
+::-webkit-scrollbar-thumb {
+    background-color: #d1d5db;
+    border-radius: 10px;
+}
+
+/* เมื่อเอาเมาส์ไปชี้ที่ Scrollbar ถึงจะเข้มขึ้น */
+::-webkit-scrollbar-thumb:hover {
+    background-color: #9ca3af;
+}
+
+/* (Firefox) */
+html {
+    scrollbar-width: thin;
+    scrollbar-color: #d1d5db transparent;
+}
+
+:root {
+  --primary-color: #ff7f50;
+  --primary-hover: #ff6b35;
+  --bg-color: #f5f7fa;
+  --text-main: #2d3436;
+  --text-muted: #636e72;
+}
+
+body {
+  margin: 0;
+  font-family: 'Prompt', sans-serif !important;
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  -webkit-font-smoothing: antialiased;
+}
+
+/*  การ์ด  */
+.card {
+  border: none !important;
+  border-radius: 24px !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  background-color: #ffffff;
+}
+
+h1, h2, h3, h4, h5, h6 { color: var(--text-main); font-weight: 600; }
+
+/*  จัดระเบียบปุ่มกด  */
+.btn {
+  border-radius: 12px !important;
+  padding: 10px 24px !important;
+  font-weight: 500 !important;
+  box-shadow: none !important;
+  transition: all 0.2s ease;
+  border: none !important;
+}
+
+.btn-primary { background-color: var(--primary-color) !important; color: white !important; }
+.btn-primary:hover { background-color: var(--primary-hover) !important; transform: translateY(-1px); }
+
+.btn-success { background-color: #2ecc71 !important; color: white !important; }
+.btn-warning { background-color: #f1c40f !important; color: var(--text-main) !important; }
+.btn-danger { background-color: #ff4757 !important; color: white !important; }
+.btn-secondary { background-color: #bdc3c7 !important; color: white !important; }
+
+.btn-outline-danger { 
+    background-color: transparent !important; 
+    border: 2px solid #ff4757 !important; 
+    color: #ff4757 !important; 
+}
+.btn-outline-primary {
+    background-color: transparent !important;
+    border: 2px solid var(--primary-color) !important;
+    color: var(--primary-color) !important;
+}
+
+.btn-outline-primary:hover {
+    background-color: #fff2eb !important;
+    color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+    transform: translateY(-1px);
+}
+
+/*  Input  */
+.form-control, .form-select {
+  border-radius: 12px !important;
+  border: 2px solid #ecf0f1 !important;
+  padding: 12px 16px !important;
+  background-color: #ffffff;
+}
+.form-control:focus, .form-select:focus {
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 0 0 4px rgba(255, 127, 80, 0.1) !important;
+}
+
+a { color: var(--primary-color); text-decoration: none; font-weight: 500; }
+a:hover { color: var(--primary-hover); }
+
+/* เพิ่มใหม่: ปุ่มสไตล์ Soft (สีอ่อนๆ)  */
+
+/* ปุ่มสีฟ้าอ่อน (สำหรับปุ่มเลือกเมนู) */
+.btn-soft-primary {
+  background-color: #e9f2ff !important;
+  color: #0d6efd !important;
+}
+.btn-soft-primary:hover {
+  background-color: #0d6efd !important;
+  color: white !important;
+}
+
+/* ปุ่มสีแดงอ่อน (สำหรับปุ่มย้อนกลับ และ ปุ่มลบจำนวน) */
+.btn-soft-danger {
+  background-color: #ffe9e9 !important;
+  color: #ff4757 !important;
+}
+.btn-soft-danger:hover {
+  background-color: #ff4757 !important;
+  color: white !important;
+}
+
+/* ปุ่ม Outline สีแดง */
+.btn-soft-outline-danger {
+  background-color: transparent !important;
+  border: 2px solid #ff4757 !important;
+  color: #ff4757 !important;
+}
+.btn-soft-outline-danger:hover {
+  background-color: #ffbdbd !important;
+  color: #ff4757 !important;
+}
+
+/* พื้นหลังมืด (Backdrop) */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  backdrop-filter: blur(2px);
+  animation: fadeIn 0.2s ease-out;
+}
+
+/* กล่องข้อความ (Box) */
+.modal-box {
+  background: #ffffff;
+  padding: 30px;
+  border-radius: 24px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+  animation: scaleUp 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Animation */
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes scaleUp { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+/* การตั้งค่า Mobile App Feel  */
+
+/* ปรับพฤติกรรมการสัมผัสทั่วไป (สำหรับทุกคน) */
+html, body {
+    touch-action: manipulation;
+    overscroll-behavior-y: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+/* อนุญาตให้เลือกข้อความได้เฉพาะในช่องกรอกข้อมูล */
+input, textarea {
+    -webkit-user-select: auto;
+    user-select: auto;
+}
+
+/* ส่วนสำคัญ: การจัดการ Scrollbar ในมือถือ (จอเล็กกว่า 768px) */
+@media (max-width: 768px) {
+
+    html {
+        scrollbar-gutter: auto !important; 
+    }
+
+    * {
+        scrollbar-width: none !important; 
+    }
+
+    *::-webkit-scrollbar {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
+    }
+}
