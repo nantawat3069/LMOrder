@@ -17,14 +17,14 @@ function Customer() {
     const [myOrders, setMyOrders] = useState([]);
     const [activeOrdersCount, setActiveOrdersCount] = useState(0);
 
-    // 🔥 New States: Notification & Order Detail Modal
+    // Notification & Order Detail Modal
     
     const [viewingOrder, setViewingOrder] = useState(null);   // เก็บออเดอร์ที่กำลังกดดูรายละเอียด (Popup)
 
-    // 🔥 New State: เก็บที่อยู่ที่บันทึกไว้เพื่อใช้ใน Dropdown
+    // เก็บที่อยู่ที่บันทึกไว้เพื่อใช้ใน Dropdown
     const [savedAddresses, setSavedAddresses] = useState([]);
 
-    // 🔥 เพิ่มบรรทัดนี้: State สำหรับเปิด/ปิด ตะกร้าในมือถือ
+    // เพิ่มบรรทัดนี้ State สำหรับเปิด/ปิด ตะกร้าในมือถือ
     const [showMobileCart, setShowMobileCart] = useState(false);
 
     // Profile & Settings States
@@ -84,9 +84,7 @@ function Customer() {
         }
     }, [activeTab]);
 
-    // ... (วางต่อจาก useEffect เดิมที่มีอยู่) ...
-
-    // 🔥 Real-time Check 1: ถ้าร้านปิดขณะเลือกอยู่ -> ให้เด้งออกทันที
+    // Real-time Check 1: ถ้าร้านปิดขณะเลือกอยู่ -> ให้เด้งออกทันที
     useEffect(() => {
         if (selectedShop && shops.length > 0) {
             const currentShop = shops.find(s => s.id === selectedShop.id);
@@ -98,7 +96,7 @@ function Customer() {
         }
     }, [shops, selectedShop]); // ทำงานทุกครั้งที่รายชื่อร้านอัปเดต (ทุก 3 วิ)
 
-    // 🔥 Real-time Check 2: ถ้ากำลังเลือกเมนูอยู่ แล้วของหมด -> ปิด Popup เมนูทันที
+    // Real-time Check 2: ถ้ากำลังเลือกเมนูอยู่ แล้วของหมด -> ปิด Popup เมนูทันที
     useEffect(() => {
         if (selectedProduct && products.length > 0) {
             const currentProduct = products.find(p => p.id === selectedProduct.id);
@@ -119,7 +117,7 @@ function Customer() {
     //  API Functions 
     const fetchShops = async () => {
         try {
-            const res = await axios.get('http://192.168.1.37/LMOrder/api/customer.php?action=get_shops');
+            const res = await axios.get('http://192.168.1.36/LMOrder/api/customer.php?action=get_shops');
             if (res.data.status === 'success') {
                 const sortedShops = res.data.shops.sort((a, b) => b.is_open - a.is_open);
                 setShops(sortedShops);
@@ -137,14 +135,14 @@ function Customer() {
 
     const updateMenuData = async (shopId) => {
         try {
-            const res = await axios.get(`http://192.168.1.37/LMOrder/api/order.php?action=get_shop_menu&shop_id=${shopId}`);
+            const res = await axios.get(`http://192.168.1.36/LMOrder/api/order.php?action=get_shop_menu&shop_id=${shopId}`);
             if (res.data.status === 'success') setProducts(res.data.products);
         } catch (err) { console.error(err); }
     };
 
     const fetchMyOrders = async (cid) => {
         try {
-            const res = await axios.get(`http://192.168.1.37/LMOrder/api/order.php?action=get_my_orders&customer_id=${cid}`);
+            const res = await axios.get(`http://192.168.1.36/LMOrder/api/order.php?action=get_my_orders&customer_id=${cid}`);
             if (res.data.status === 'success') {
                 setMyOrders(res.data.orders);
                 setActiveOrdersCount(res.data.orders.filter(o => o.status !== 'completed' && o.status !== 'cancelled').length);
@@ -154,7 +152,7 @@ function Customer() {
 
     const fetchAddresses = async (uid) => {
         try {
-            const res = await axios.get(`http://192.168.1.37/LMOrder/api/customer.php?action=get_profile&user_id=${uid}`);
+            const res = await axios.get(`http://192.168.1.36/LMOrder/api/customer.php?action=get_profile&user_id=${uid}`);
             if (res.data.status === 'success') {
                 setSavedAddresses(res.data.addresses);
             }
@@ -163,7 +161,7 @@ function Customer() {
 
     const fetchProfileData = async () => {
         try {
-            const res = await axios.get(`http://192.168.1.37/LMOrder/api/customer.php?action=get_profile&user_id=${user.id}`);
+            const res = await axios.get(`http://192.168.1.36/LMOrder/api/customer.php?action=get_profile&user_id=${user.id}`);
             if (res.data.status === 'success') {
                 const u = res.data.user;
                 setProfileForm({
@@ -202,7 +200,7 @@ function Customer() {
     const handleSaveProfile = async () => {
         confirmAction('บันทึกการตั้งค่า', 'ต้องการยืนยันการแก้ไขข้อมูลหรือไม่?', async () => {
             try {
-                await axios.post('http://192.168.1.37/LMOrder/api/customer.php', {
+                await axios.post('http://192.168.1.36/LMOrder/api/customer.php', {
                     action: 'update_profile',
                     user_id: user.id,
                     fullname: profileForm.fullname,
@@ -225,7 +223,7 @@ function Customer() {
             showAlert('ผิดพลาด', 'ชื่อผู้ใช้งาน (Username) ไม่ตรงกัน'); return;
         }
         confirmAction('ลบบัญชีถาวร', '⚠️ ยืนยันที่จะลบหรือไม่?', async () => {
-            const res = await axios.post('http://192.168.1.37/LMOrder/api/customer.php', {
+            const res = await axios.post('http://192.168.1.36/LMOrder/api/customer.php', {
                 action: 'delete_account',
                 user_id: user.id,
                 username_confirmation: deleteConfirmUsername
@@ -315,7 +313,7 @@ function Customer() {
         
         confirmAction('ยืนยันการสั่งซื้อ', `ยอดรวม ${totalPrice.toLocaleString()} บาท ยืนยันหรือไม่?`, async () => {
             try {
-                const res = await axios.post('http://192.168.1.37/LMOrder/api/order.php', {
+                const res = await axios.post('http://192.168.1.36/LMOrder/api/order.php', {
                     action: 'place_order',
                     customer_id: user.id,
                     shop_id: selectedShop.id,
@@ -333,7 +331,7 @@ function Customer() {
         });
     };
 
-    // 🔥 แก้ไข: ฟังก์ชันยกเลิกออเดอร์ แบบสลับหน้า Pop-up
+    // แก้ไข: ฟังก์ชันยกเลิกออเดอร์ แบบสลับหน้า Pop-up
     const handleCancelOrder = (order) => {
         // 1. ปิดหน้า Pop-up รายละเอียดก่อน (เพื่อไม่ให้ทับกัน)
         setViewingOrder(null);
@@ -357,7 +355,7 @@ function Customer() {
                     // ไม่ต้องเปิด viewingOrder กลับมา เพราะออเดอร์ถูกยกเลิกแล้ว
                 } catch (err) { console.error(err); }
             },
-            // 🔥 กรณีตอบยกเลิก/กากบาท (ให้สลับกลับไปหน้ารายละเอียด)
+            // กรณีตอบยกเลิก/กากบาท (ให้สลับกลับไปหน้ารายละเอียด)
             onCancel: () => {
                 setModal(prev => ({ ...prev, show: false })); // ปิด Modal ยืนยัน
                 setViewingOrder(order); // เปิด Modal รายละเอียดกลับขึ้นมาใหม่
@@ -365,12 +363,12 @@ function Customer() {
         });
     };
 
-    // 🔥 Helper: ปิดแถบแจ้งเตือน (แบบถาวร บันทึกลงฐานข้อมูล)
+    // Helper: ปิดแถบแจ้งเตือน (แบบถาวร บันทึกลงฐานข้อมูล)
     const handleCloseNotif = async (e, orderId) => {
         e.stopPropagation();
         try {
             // ยิง API ไปบอก Server ว่าปิดแจ้งเตือนออเดอร์นี้แล้วนะ
-            await axios.post('http://192.168.1.37/LMOrder/api/order.php', { // อย่าลืมใช้ URL IP เครื่องคุณนะ
+            await axios.post('http://192.168.1.36/LMOrder/api/order.php', { // อย่าลืมใช้ URL IP เครื่องคุณนะ
                 action: 'close_notification',
                 order_id: orderId
             });
@@ -391,7 +389,7 @@ function Customer() {
         }
     };
 
-    // 🔥 Helper: กรองออเดอร์ที่จะแสดงในแถบแจ้งเตือน
+    // Helper: กรองออเดอร์ที่จะแสดงในแถบแจ้งเตือน
     const activeNotifications = myOrders.filter(o => {
         const isFinished = ['completed', 'cancelled'].includes(o.status);
         if (!isFinished) return true; // ถ้ายังไม่เสร็จ ให้โชว์ตลอด
@@ -402,7 +400,7 @@ function Customer() {
     return (
         <div className="container mt-4 pb-5">
             {/* Navbar */}
-            {/* 🔥 แก้ไข: เติม d-none d-md-block เพื่อซ่อนในมือถือ (แสดงเฉพาะในคอม) */}
+            {/* แก้ไข: เติม d-none d-md-block เพื่อซ่อนในมือถือ (แสดงเฉพาะในคอม) */}
             <div className="card shadow-sm p-3 mb-4 sticky-top d-none d-md-block" style={{top: '10px', zIndex: 2000}}>
                 <div className="d-flex flex-wrap justify-content-between align-items-center">
                     <h3 className="mb-0 text-primary">👋 สวัสดีคุณ {user?.fullname}</h3>
@@ -416,12 +414,12 @@ function Customer() {
                     </div>
                 </div>
             </div>
-            {/* 🔥 เพิ่มใหม่: Mobile Header (แสดงชื่อลูกค้าแบบเรียบๆ เฉพาะมือถือ) */}
+            {/* เพิ่มใหม่: Mobile Header (แสดงชื่อลูกค้าแบบเรียบๆ เฉพาะมือถือ) */}
             <div className="d-block d-md-none mb-3 pt-2">
                 <h3 className="mb-0 text-primary fw-bold">👋 สวัสดีคุณ {user?.fullname}</h3>
             </div>
 
-            {/* 🔥 แถบแจ้งเตือนสถานะออเดอร์ (Status Bar) */}
+            {/* แถบแจ้งเตือนสถานะออเดอร์ (Status Bar) */}
             {activeNotifications.length > 0 && (
                 <div className="mb-4">
                     {activeNotifications.map(o => (
@@ -430,7 +428,7 @@ function Customer() {
                                 {/* รูป + ชื่อร้าน */}
                                 <div className="d-flex align-items-center me-3" style={{minWidth: '150px'}}>
                                     {o.shop_image ? 
-                                        <img src={`http://192.168.1.37/LMOrder/uploads/${o.shop_image}`} className="rounded-circle me-2 border" style={{width: '40px', height: '40px', objectFit: 'cover'}} /> 
+                                        <img src={`http://192.168.1.36/LMOrder/uploads/${o.shop_image}`} className="rounded-circle me-2 border" style={{width: '40px', height: '40px', objectFit: 'cover'}} /> 
                                         : <div className="bg-light rounded-circle me-2 d-flex align-items-center justify-content-center border" style={{width: '40px', height: '40px'}}>🏪</div>
                                     }
                                     <strong className="text-truncate" style={{maxWidth: '100px'}}>{o.shop_name}</strong>
@@ -479,7 +477,7 @@ function Customer() {
                                             >
                                                 <div className="card-body text-center p-4">
                                                     {shop.image ? (
-                                                        <img src={`http://192.168.1.37/LMOrder/uploads/${shop.image}`} className="rounded-circle mb-3" style={{width:'80px', height:'80px', objectFit:'cover', filter: shop.is_open == 1 ? 'none' : 'grayscale(100%)'}} />
+                                                        <img src={`http://192.168.1.36/LMOrder/uploads/${shop.image}`} className="rounded-circle mb-3" style={{width:'80px', height:'80px', objectFit:'cover', filter: shop.is_open == 1 ? 'none' : 'grayscale(100%)'}} />
                                                     ) : (
                                                         <div className="bg-light rounded-circle mx-auto d-flex align-items-center justify-content-center mb-3" style={{width:'80px', height:'80px', fontSize:'30px'}}>🏪</div>
                                                     )}
@@ -517,7 +515,7 @@ function Customer() {
                                             <div className="d-flex justify-content-end mb-2"><button onClick={() => setSelectedProduct(null)} className="btn-close"></button></div>
                                             <div className="d-flex align-items-center mb-3">
                                                 {selectedProduct.image ? 
-                                                    <img src={`http://192.168.1.37/LMOrder/uploads/${selectedProduct.image}`} style={{width: '90px', height: '90px', objectFit: 'cover', borderRadius: '12px'}} className="me-3 border" /> 
+                                                    <img src={`http://192.168.1.36/LMOrder/uploads/${selectedProduct.image}`} style={{width: '90px', height: '90px', objectFit: 'cover', borderRadius: '12px'}} className="me-3 border" /> 
                                                     : <div className="bg-light me-3 d-flex align-items-center justify-content-center border" style={{width: '90px', height: '90px', borderRadius: '12px', fontSize: '2rem'}}>🍽️</div>
                                                 }
                                                 <div><h4 className="mb-1">{selectedProduct.name}</h4><h5 className="text-primary mb-0">{calculateCurrentPrice().toLocaleString()} บาท</h5></div>
@@ -552,7 +550,7 @@ function Customer() {
                                                         {p.is_available == 0 && (
                                                             <div className="position-absolute top-50 start-50 translate-middle badge bg-danger border border-white shadow-sm px-3 py-2" style={{zIndex: 10, fontSize: '1.1rem'}}>สินค้าหมด</div>
                                                         )}
-                                                        <img src={p.image ? `http://192.168.1.37/LMOrder/uploads/${p.image}` : "https://placehold.co/100x100"} 
+                                                        <img src={p.image ? `http://192.168.1.36/LMOrder/uploads/${p.image}` : "https://placehold.co/100x100"} 
                                                              style={{width:'70px', height:'70px', objectFit:'cover', borderRadius:'10px', opacity: p.is_available == 0 ? 0.5 : 1}}/>
                                                         <div className="ms-3 flex-grow-1">
                                                             <h6 className="mb-1">{p.name}</h6>
@@ -637,7 +635,7 @@ function Customer() {
                                     <div className="bg-light p-2 rounded mb-2">{o.items.map((item, index) => <div key={index} className="d-flex justify-content-between"><small>{item.product_name} x {item.quantity}</small><small>{parseInt(item.price).toLocaleString()}</small></div>)}</div>
                                     <div className="d-flex justify-content-between align-items-end mt-auto pt-2">
                                         <div><small className="d-block text-muted">ราคารวม</small><h5 className="mb-0">{parseInt(o.total_price).toLocaleString()} บ.</h5></div>
-                                        {/* 🔥 เอาปุ่มยกเลิกตรงนี้ออกตามที่ขอ */}
+                                        {/* เอาปุ่มยกเลิกตรงนี้ออกตามที่ขอ */}
                                     </div>
                                 </div>
                             </div>
@@ -729,7 +727,7 @@ function Customer() {
             {/* Modal PopUp (Alert / Confirm) */}
             
 
-            {/* 🔥 Order Detail Popup (เฉพาะตอนกดเพิ่มเติม) */}
+            {/* Order Detail Popup (เฉพาะตอนกดเพิ่มเติม) */}
             {viewingOrder && (
                 <div className="modal-overlay">
                     <div className="modal-box" style={{maxWidth: '500px'}}>
@@ -761,7 +759,7 @@ function Customer() {
                         {viewingOrder.status === 'pending' ? (
                             <button 
                                 className="btn btn-outline-danger w-100" 
-                                // 🔥 แก้ตรงนี้: ส่ง viewingOrder เข้าไปแทน id อย่างเดียว
+                                // แก้ตรงนี้: ส่ง viewingOrder เข้าไปแทน id อย่างเดียว
                                 onClick={() => handleCancelOrder(viewingOrder)}
                             >
                                 ❌ ยกเลิกออเดอร์นี้
@@ -895,7 +893,7 @@ function Customer() {
             
         {/* ... (โค้ดเนื้อหา Tab ต่างๆ ด้านบน) ... */}
 
-            {/* 🔥 เพิ่มตรงนี้: พื้นที่กันชนสำหรับมือถือ (Spacer) 
+            {/* เพิ่มตรงนี้: พื้นที่กันชนสำหรับมือถือ (Spacer) 
                 ช่วยดันเนื้อหาให้พ้นจากเมนูด้านล่าง (Nav Bar) และแถบตะกร้า
             */}
             <div className="d-block d-md-none" style={{ height: '60px' }}></div>
@@ -909,7 +907,7 @@ function Customer() {
                             {modal.type === 'confirm' && (
                                 <button 
                                     className="btn btn-secondary flex-fill" 
-                                    // 🔥 แก้ตรงนี้: ถ้ามี onCancel ให้ทำตามนั้น (เด้งกลับ) ถ้าไม่มีให้ปิดเฉยๆ
+                                    // แก้ตรงนี้: ถ้ามี onCancel ให้ทำตามนั้น (เด้งกลับ) ถ้าไม่มีให้ปิดเฉยๆ
                                     onClick={() => {
                                         if (modal.onCancel) modal.onCancel();
                                         else closeModal();

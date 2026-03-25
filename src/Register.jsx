@@ -15,7 +15,7 @@ function Register() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const res = await axios.post('http://192.168.1.37/LMOrder/api/auth.php', {
+            const res = await axios.post('http://192.168.1.36/LMOrder/api/auth.php', {
                 action: 'register',
                 ...inputs
             });

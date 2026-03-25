@@ -64,7 +64,7 @@ function Merchant() {
 
     //  Data Fetching 
     const fetchShopData = async (ownerId) => {
-        const res = await axios.get(`http://192.168.1.37/LMOrder/api/shop.php?action=get_shop_data&owner_id=${ownerId}`);
+        const res = await axios.get(`http://192.168.1.36/LMOrder/api/shop.php?action=get_shop_data&owner_id=${ownerId}`);
         if (res.data.status === 'success') {
             setShop(res.data.shop);
             setProducts(res.data.products);
@@ -74,7 +74,7 @@ function Merchant() {
     };
 
     const fetchOrders = async (sid, type) => {
-        const res = await axios.get(`http://192.168.1.37/LMOrder/api/order.php?action=get_shop_orders&shop_id=${sid}&type=${type}`);
+        const res = await axios.get(`http://192.168.1.36/LMOrder/api/order.php?action=get_shop_orders&shop_id=${sid}&type=${type}`);
         if (res.data.status === 'success') {
             if (type === 'active') {
                 const sortedOrders = res.data.orders.sort((a, b) => a.id - b.id);
@@ -88,7 +88,7 @@ function Merchant() {
     // Fetch Profile Data
     const fetchMerchantProfile = async (uid) => {
         try {
-            const res = await axios.get(`http://192.168.1.37/LMOrder/api/shop.php?action=get_merchant_profile&owner_id=${uid}`);
+            const res = await axios.get(`http://192.168.1.36/LMOrder/api/shop.php?action=get_merchant_profile&owner_id=${uid}`);
             if (res.data.status === 'success') {
                 const d = res.data.data;
                 setShopSettings({
@@ -102,7 +102,7 @@ function Merchant() {
                     description: d.description || '',
                     shop_address: d.shop_address || '',
                     shop_image: null,
-                    shop_image_preview: d.shop_image ? `http://192.168.1.37/LMOrder/uploads/${d.shop_image}` : ''
+                    shop_image_preview: d.shop_image ? `http://192.168.1.36/LMOrder/uploads/${d.shop_image}` : ''
                 });
             }
         } catch (err) { console.error(err); }
@@ -115,7 +115,7 @@ function Merchant() {
     };
 
     const updateStatus = async (oid, status) => {
-        await axios.post('http://192.168.1.37/LMOrder/api/order.php', { action: 'update_status', order_id: oid, status: status });
+        await axios.post('http://192.168.1.36/LMOrder/api/order.php', { action: 'update_status', order_id: oid, status: status });
         fetchOrders(shop.id, 'active');
     };
 
@@ -149,7 +149,7 @@ function Merchant() {
             if (newMenu.image) formData.append('image', newMenu.image);
             if (editingProduct) formData.append('product_id', editingProduct.id);
 
-            await axios.post('http://192.168.1.37/LMOrder/api/shop.php', formData);
+            await axios.post('http://192.168.1.36/LMOrder/api/shop.php', formData);
             fetchShopData(user.id);
             resetForm();
             showAlert('สำเร็จ', 'บันทึกข้อมูลเรียบร้อยแล้ว');
@@ -158,20 +158,20 @@ function Merchant() {
 
     const handleDelete = async (pid) => {
         confirmAction('ลบเมนู', 'ต้องการลบเมนูนี้ถาวร ใช่หรือไม่?', async () => {
-            await axios.post('http://192.168.1.37/LMOrder/api/shop.php', { action: 'delete_product', product_id: pid });
+            await axios.post('http://192.168.1.36/LMOrder/api/shop.php', { action: 'delete_product', product_id: pid });
             fetchShopData(user.id);
             resetForm();
         });
     };
 
     const toggleShop = async () => {
-        await axios.post('http://192.168.1.37/LMOrder/api/shop.php', { action: 'toggle_status', shop_id: shop.id, status: shop.is_open == 1 ? 0 : 1 });
+        await axios.post('http://192.168.1.36/LMOrder/api/shop.php', { action: 'toggle_status', shop_id: shop.id, status: shop.is_open == 1 ? 0 : 1 });
         fetchShopData(user.id);
     };
 
     const toggleProductStatus = async (product) => {
         const newStatus = product.is_available == 1 ? 0 : 1;
-        await axios.post('http://192.168.1.37/LMOrder/api/shop.php', { 
+        await axios.post('http://192.168.1.36/LMOrder/api/shop.php', { 
             action: 'toggle_product_status', 
             product_id: product.id, 
             status: newStatus 
@@ -195,7 +195,7 @@ function Merchant() {
             if (shopSettings.shop_image) formData.append('shop_image', shopSettings.shop_image);
 
             try {
-                const res = await axios.post('http://192.168.1.37/LMOrder/api/shop.php', formData);
+                const res = await axios.post('http://192.168.1.36/LMOrder/api/shop.php', formData);
                 if(res.data.status === 'success') {
                     showAlert('สำเร็จ', 'บันทึกข้อมูลเรียบร้อย');
                     fetchMerchantProfile(user.id); // Reload data
@@ -213,7 +213,7 @@ function Merchant() {
             showAlert('ผิดพลาด', 'Username ไม่ตรงกัน'); return;
         }
         confirmAction('ลบบัญชีร้านค้า', '⚠️ คำเตือน: ร้านค้า, เมนู และประวัติทั้งหมดจะถูกลบถาวร!', async () => {
-            const res = await axios.post('http://192.168.1.37/LMOrder/api/shop.php', {
+            const res = await axios.post('http://192.168.1.36/LMOrder/api/shop.php', {
                 action: 'delete_merchant_account',
                 user_id: user.id,
                 username_confirmation: deleteConfirmUsername
@@ -266,7 +266,7 @@ function Merchant() {
                 <div className="d-flex flex-wrap justify-content-between align-items-center">
                     <div className="d-flex align-items-center">
                         {shop.image ? (
-                            <img src={`http://192.168.1.37/LMOrder/uploads/${shop.image}`} className="rounded-circle me-3 border" style={{width:'50px', height:'50px', objectFit:'cover'}} />
+                            <img src={`http://192.168.1.36/LMOrder/uploads/${shop.image}`} className="rounded-circle me-3 border" style={{width:'50px', height:'50px', objectFit:'cover'}} />
                         ) : (
                             <div className="bg-light rounded-circle me-3 d-flex align-items-center justify-content-center" style={{width:'50px', height:'50px'}}>🏠</div>
                         )}
@@ -331,7 +331,7 @@ function Merchant() {
                                              transition: 'background-color 0.3s ease'
                                          }}>
                                         <div style={{position: 'relative'}}>
-                                            <img src={p.image ? `http://192.168.1.37/LMOrder/uploads/${p.image}` : "https://placehold.co/100"} 
+                                            <img src={p.image ? `http://192.168.1.36/LMOrder/uploads/${p.image}` : "https://placehold.co/100"} 
                                                  style={{width: '80px', height: '80px', objectFit: 'cover', borderRadius: '10px', opacity: p.is_available == 0 ? 0.5 : 1, filter: p.is_available == 0 ? 'grayscale(100%)' : 'none'}} 
                                             />
                                             {p.is_available == 0 && <span className="position-absolute top-50 start-50 translate-middle badge bg-danger" style={{fontSize: '0.6rem'}}>หมด</span>}

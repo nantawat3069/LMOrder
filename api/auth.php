@@ -55,7 +55,13 @@ elseif ($action == 'login') {
     if ($result->num_rows === 1) {
         $user = $result->fetch_assoc();
         if (password_verify($password, $user['password'])) {
-            // ดึง shop_id ถ้าร้านค้า
+
+            // เช็คว่าถูกแบนไหม
+            if ($user['is_banned'] == 1) {
+                echo json_encode(["status" => "error", "message" => "บัญชีนี้ถูกระงับการใช้งาน กรุณาติดต่อแอดมิน"]);
+                exit();
+            }
+
             $shop_id = null;
             if ($user['role'] == 'merchant') {
                 $s = $conn->query("SELECT id FROM shops WHERE owner_id = " . $user['id']);
@@ -77,6 +83,45 @@ elseif ($action == 'login') {
         }
     } else {
         echo json_encode(["status" => "error", "message" => "ไม่พบชื่อผู้ใช้นี้"]);
+    } 
+}
+//  สมัครบัญชี Admin 
+elseif ($action == 'register_admin') {
+    $secret_key = $data->secret_key;
+    $username   = $data->username;
+    $password   = password_hash($data->password, PASSWORD_DEFAULT);
+    $fullname   = $data->fullname;
+    $phone      = $data->phone;
+
+    // เช็ค Secret Key
+    if ($secret_key !== 'admin0') {
+        echo json_encode(["status" => "error", "message" => "Secret Key ไม่ถูกต้อง"]);
+        exit();
+    }
+
+    // เช็ค username ซ้ำ
+    $check = $conn->query("SELECT id FROM users WHERE username = '$username'");
+    if ($check->num_rows > 0) {
+        echo json_encode(["status" => "error", "message" => "ชื่อผู้ใช้นี้ถูกใช้ไปแล้ว"]);
+        exit();
+    }
+
+    $stmt = $conn->prepare("INSERT INTO users (username, password, fullname, phone, role, is_banned) VALUES (?, ?, ?, ?, 'admin', 0)");
+    $stmt->bind_param("ssss", $username, $password, $fullname, $phone);
+
+    if ($stmt->execute()) {
+        $new_id = $stmt->insert_id;
+        echo json_encode([
+            "status" => "success",
+            "user" => [
+                "id"       => $new_id,
+                "fullname" => $fullname,
+                "role"     => "admin",
+                "shop_id"  => null
+            ]
+        ]);
+    } else {
+        echo json_encode(["status" => "error", "message" => "Database error"]);
     }
 }
 ?>

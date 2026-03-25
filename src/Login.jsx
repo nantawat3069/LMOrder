@@ -15,14 +15,16 @@ function Login() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const res = await axios.post('http://192.168.1.37/LMOrder/api/auth.php', {
+            const res = await axios.post('http://192.168.1.36/LMOrder/api/auth.php', {
                 action: 'login',
                 ...inputs
             });
 
             if (res.data.status === 'success') {
                 localStorage.setItem('user', JSON.stringify(res.data.user));
-                if(res.data.user.role === 'merchant') {
+                if(res.data.user.role === 'admin') {
+                    navigate('/admin');
+                } else if(res.data.user.role === 'merchant') {
                     navigate('/merchant');
                 } else {
                     navigate('/customer');

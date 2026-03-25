@@ -6,6 +6,8 @@ import Customer from './Customer';
 import ShopMenu from './ShopMenu';
 import MyOrders from './MyOrders';
 import ShopHistory from './ShopHistory';
+import Admin from './Admin';
+import AdminRegister from './AdminRegister';
 function App() {
   return (
     <Routes>
@@ -16,6 +18,8 @@ function App() {
       <Route path="/shop/:id" element={<ShopMenu />} />
       <Route path="/my-orders" element={<MyOrders />} />
       <Route path="/shop-history" element={<ShopHistory />} />
+      <Route path="/admin" element={<Admin />} />     
+      <Route path="/admin-register" element={<AdminRegister />} /> 
     </Routes>
   );
 }

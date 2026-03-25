@@ -16,13 +16,13 @@ function MyOrders() {
     }, []);
 
     const fetchOrders = async (cid) => {
-        const res = await axios.get(`http://192.168.1.37/LMOrder/api/order.php?action=get_my_orders&customer_id=${cid}`);
+        const res = await axios.get(`http://192.168.1.36/LMOrder/api/order.php?action=get_my_orders&customer_id=${cid}`);
         if (res.data.status === 'success') setOrders(res.data.orders);
     };
 
     const handleCancel = async (oid) => {
         if(!confirm("ต้องการยกเลิกออเดอร์นี้ใช่ไหม?")) return;
-        await axios.post('http://192.168.1.37/LMOrder/api/order.php', { action: 'update_status', order_id: oid, status: 'cancelled' });
+        await axios.post('http://192.168.1.36/LMOrder/api/order.php', { action: 'update_status', order_id: oid, status: 'cancelled' });
         fetchOrders(user.id);
     };
 
