@@ -101,8 +101,8 @@ function Admin() {
     const [editForm, setEditForm] = useState(null);
 
     //  Orders (ใน User Detail) 
-    const [orderSearch, setOrderSearch] = useState('');         // ← ตรงนี้
-    const [orderStatusFilter, setOrderStatusFilter] = useState('all'); // ← ตรงนี้
+    const [orderSearch, setOrderSearch] = useState('');
+    const [orderStatusFilter, setOrderStatusFilter] = useState('all');
 
     //  Tickets Tab 
     const [tickets, setTickets] = useState([]);
@@ -112,13 +112,26 @@ function Admin() {
 
     //  Logs Tab 
     const [logs, setLogs] = useState([]);
-    const [logSearch, setLogSearch] = useState('');           // ← เพิ่ม
-    const [logActionFilter, setLogActionFilter] = useState('all'); // ← เพิ่ม
+    const [logSearch, setLogSearch] = useState('');
+    const [logActionFilter, setLogActionFilter] = useState('all');
 
     //  Modal 
     const [modal, setModal] = useState({ show: false, type: 'alert', title: '', message: '', onConfirm: null });
 
-    // 
+    // Ticket View Mode
+    const [ticketViewingUser, setTicketViewingUser] = useState(null); // null = ดูคำร้อง, 'sender'/'target' = ดู profile
+
+    // Notification
+    const [showNotifModal, setShowNotifModal] = useState(false);
+    const [notifForm, setNotifForm] = useState({ category: '', message: '' });
+    const [userNotifs, setUserNotifs] = useState([]);
+    const [showNotifHistory, setShowNotifHistory] = useState(false);
+
+    // Ban Modal
+    const [showBanModal, setShowBanModal] = useState(false);
+    const [banForm, setBanForm] = useState({ category: '', message: '' });
+    const [banTargetUser, setBanTargetUser] = useState(null);
+
     useEffect(() => {
         const stored = localStorage.getItem('user');
         if (!stored) { navigate('/'); return; }
@@ -158,6 +171,13 @@ function Admin() {
             if (userRoleFilter !== 'all') params.append('role', userRoleFilter);
             const res = await axios.get(`${API}/admin.php?${params}`);
             if (res.data.status === 'success') setUsers(res.data.users);
+        } catch (e) { console.error(e); }
+    };
+
+    const fetchUserNotifs = async (uid) => {
+        try {
+            const res = await axios.get(`${API}/admin.php?action=get_notifications&user_id=${uid}`);
+            if (res.data.status === 'success') setUserNotifs(res.data.notifications);
         } catch (e) { console.error(e); }
     };
 
@@ -202,25 +222,59 @@ function Admin() {
         } catch (e) { console.error(e); }
     };
 
-    //  Actions 
+    // เปิด Ban Modal แทน confirm โดยตรง
     const handleToggleBan = (targetUser) => {
-        const isBanning = targetUser.is_banned == 0;
-        const actionText = isBanning ? 'แบน' : 'ปลดแบน';
-        confirmAction(
-            `${actionText}ผู้ใช้`,
-            `ยืนยันที่จะ${actionText} "${targetUser.fullname}" (${targetUser.username}) ใช่หรือไม่?`,
-            async () => {
+        if (targetUser.is_banned == 1) {
+            // ปลดแบน ไม่ต้องเลือก reason
+            confirmAction('ปลดแบนผู้ใช้', `ยืนยันปลดแบน "${targetUser.fullname}" ใช่หรือไม่?`, async () => {
                 await axios.post(`${API}/admin.php`, {
                     action: 'toggle_ban',
                     admin_id: admin.id,
                     target_id: targetUser.id,
-                    ban_status: isBanning ? 1 : 0
+                    ban_status: 0
                 });
-                showAlert('สำเร็จ', `${actionText}ผู้ใช้เรียบร้อยแล้ว`);
+                showAlert('สำเร็จ', 'ปลดแบนผู้ใช้เรียบร้อยแล้ว');
                 fetchUsers();
                 if (userDetail) fetchUserDetail(targetUser.id);
-            }
-        );
+            });
+        } else {
+            // แบน เปิด modal เลือก reason
+            setBanTargetUser(targetUser);
+            setBanForm({ category: '', message: '' });
+            setShowBanModal(true);
+        }
+    };
+
+    const handleConfirmBan = async () => {
+        if (!banForm.category) { showAlert('แจ้งเตือน', 'กรุณาเลือกหมวดหมู่การแบน'); return; }
+        await axios.post(`${API}/admin.php`, {
+            action: 'toggle_ban',
+            admin_id: admin.id,
+            target_id: banTargetUser.id,
+            ban_status: 1,
+            ban_reason: banForm.category,
+            ban_message: banForm.message
+        });
+        setShowBanModal(false);
+        showAlert('สำเร็จ', `แบนผู้ใช้เรียบร้อยแล้ว (${banForm.category})`);
+        fetchUsers();
+        if (userDetail) fetchUserDetail(banTargetUser.id);
+    };
+
+    const handleSendNotification = async () => {
+        if (!notifForm.category) { showAlert('แจ้งเตือน', 'กรุณาเลือกหมวดหมู่'); return; }
+        if (!notifForm.message.trim()) { showAlert('แจ้งเตือน', 'กรุณาพิมพ์ข้อความ'); return; }
+        await axios.post(`${API}/admin.php`, {
+            action: 'send_notification',
+            admin_id: admin.id,
+            user_id: selectedUser.id,
+            category: notifForm.category,
+            message: notifForm.message
+        });
+        setShowNotifModal(false);
+        setNotifForm({ category: '', message: '' });
+        showAlert('สำเร็จ', 'ส่งแจ้งเตือนเรียบร้อยแล้ว');
+        fetchUserNotifs(selectedUser.id);
     };
 
     const handleDeleteUser = (targetUser) => {
@@ -471,7 +525,7 @@ function Admin() {
                                                 </>}
                                             </div>
 
-                                            {/* ปุ่มบันทึก + แบน/ลบ อยู่ด้วยกัน */}
+                                            {/* ปุ่มบันทึก + แบน/ลบ + แจ้งเตือน */}
                                             <div className="d-flex gap-2 flex-wrap mt-3">
                                                 <button className="btn btn-primary" onClick={handleSaveEdit}>
                                                     💾 บันทึกการแก้ไข
@@ -482,12 +536,50 @@ function Admin() {
                                                 >
                                                     {userDetail.user.is_banned == 1 ? '✅ ปลดแบน' : '🔨 แบนผู้ใช้'}
                                                 </button>
-                                                <button
-                                                    className="btn btn-danger"
-                                                    onClick={() => handleDeleteUser(userDetail.user)}
-                                                >
+                                                <button className="btn btn-danger" onClick={() => handleDeleteUser(userDetail.user)}>
                                                     🗑️ ลบบัญชีถาวร
                                                 </button>
+                                                <button
+                                                    className="btn btn-info text-white"
+                                                    onClick={() => {
+                                                        setShowNotifModal(true);
+                                                        setNotifForm({ category: '', message: '' });
+                                                        fetchUserNotifs(selectedUser.id);
+                                                    }}
+                                                >
+                                                    🔔 แจ้งเตือน
+                                                </button>
+                                            </div>
+
+                                            {/* Dropdown ประวัติแจ้งเตือน */}
+                                            <div className="mt-2">
+                                                <button
+                                                    className="btn btn-sm btn-outline-secondary"
+                                                    onClick={() => {
+                                                        setShowNotifHistory(!showNotifHistory);
+                                                        if (!showNotifHistory) fetchUserNotifs(selectedUser.id);
+                                                    }}
+                                                >
+                                                    {showNotifHistory ? '▲ ซ่อนประวัติแจ้งเตือน' : '▼ ดูประวัติแจ้งเตือน'}
+                                                </button>
+                                                {showNotifHistory && (
+                                                    <div className="mt-2 border rounded p-2 bg-light" style={{maxHeight: '200px', overflowY: 'auto'}}>
+                                                        {userNotifs.length === 0 ? (
+                                                            <small className="text-muted">ยังไม่มีประวัติแจ้งเตือน</small>
+                                                        ) : (
+                                                            userNotifs.map((n, i) => (
+                                                                <div key={i} className="border-bottom pb-2 mb-2 small">
+                                                                    <div className="d-flex justify-content-between">
+                                                                        <span className="badge bg-info text-dark">{n.category}</span>
+                                                                        <small className="text-muted">{n.created_at}</small>
+                                                                    </div>
+                                                                    <div className="mt-1">{n.message}</div>
+                                                                    <small className="text-muted">โดย: {n.admin_name}</small>
+                                                                </div>
+                                                            ))
+                                                        )}
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
 
@@ -643,69 +735,161 @@ function Admin() {
                         </div>
                     </div>
 
-                    {/*  รายละเอียดคำร้อง  */}
+                    {/* รายละเอียดคำร้อง / Profile จาก Ticket */}
                     {selectedTicket && (
                         <div className="col-md-7 mb-3">
                             <div className="card p-4 shadow-sm">
-                                <div className="d-flex justify-content-between mb-3">
-                                    <h5 className="mb-0 text-danger">📄 รายละเอียดคำร้อง #{selectedTicket.id}</h5>
-                                    <button className="btn-close" onClick={() => setSelectedTicket(null)} />
+
+                                {/* Header */}
+                                <div className="d-flex justify-content-between align-items-center mb-3">
+                                    {ticketViewingUser ? (
+                                        <div className="d-flex align-items-center gap-2">
+                                            <button className="btn btn-sm btn-outline-secondary" onClick={() => setTicketViewingUser(null)}>
+                                                ← ย้อนกลับ
+                                            </button>
+                                            <h5 className="mb-0 text-danger">👤 โปรไฟล์ผู้ใช้</h5>
+                                        </div>
+                                    ) : (
+                                        <h5 className="mb-0 text-danger">📄 รายละเอียดคำร้อง #{selectedTicket.id}</h5>
+                                    )}
+                                    <button className="btn-close" onClick={() => { setSelectedTicket(null); setTicketViewingUser(null); }} />
                                 </div>
 
-                                <div className="bg-light p-3 rounded mb-3">
-                                    <div className="d-flex gap-2 mb-2 flex-wrap">
-                                        {getTicketTypeBadge(selectedTicket.type)}
-                                        {getTicketStatusBadge(selectedTicket.status)}
-                                    </div>
-                                    <h5>{selectedTicket.subject}</h5>
-                                    <p className="text-muted mb-0">{selectedTicket.message}</p>
-                                    <hr />
-                                    <div className="row small">
-                                        <div className="col-6">
-                                            <strong>ผู้ส่งคำร้อง:</strong><br />
-                                            <span>{selectedTicket.sender_fullname}</span><br />
-                                            <span className="text-muted">@{selectedTicket.sender_username} · {selectedTicket.sender_role}</span><br />
-                                            <button
-                                                className="btn btn-sm btn-outline-primary mt-1"
-                                                onClick={() => {
-                                                    setActiveTab('users');
-                                                    // หา user ในลิสต์แล้วกดเข้าไปดู
-                                                    const found = users.find(u => u.username === selectedTicket.sender_username);
-                                                    if (found) { setSelectedUser(found); fetchUserDetail(found.id); }
-                                                }}
-                                            >
-                                                ดูโปรไฟล์
-                                            </button>
+                                {/* View: รายละเอียดคำร้อง */}
+                                {!ticketViewingUser && (
+                                    <>
+                                        <div className="bg-light p-3 rounded mb-3">
+                                            <div className="d-flex gap-2 mb-2 flex-wrap">
+                                                {getTicketTypeBadge(selectedTicket.type)}
+                                                {getTicketStatusBadge(selectedTicket.status)}
+                                            </div>
+                                            <h5>{selectedTicket.subject}</h5>
+                                            <p className="text-muted mb-0">{selectedTicket.message}</p>
+                                            <hr />
+                                            <div className="row small">
+                                                <div className="col-6">
+                                                    <strong>ผู้ส่งคำร้อง:</strong><br />
+                                                    <span>{selectedTicket.sender_fullname}</span><br />
+                                                    <span className="text-muted">@{selectedTicket.sender_username} · {selectedTicket.sender_role}</span><br />
+                                                    <button
+                                                        className="btn btn-sm btn-outline-primary mt-1"
+                                                        onClick={async () => {
+                                                            // โหลด userDetail ของ sender แล้วเปลี่ยน view
+                                                            const found = users.find(u => u.username === selectedTicket.sender_username);
+                                                            if (found) {
+                                                                setSelectedUser(found);
+                                                                await fetchUserDetail(found.id);
+                                                            }
+                                                            setTicketViewingUser('sender');
+                                                        }}
+                                                    >
+                                                        ดูโปรไฟล์
+                                                    </button>
+                                                </div>
+                                                {selectedTicket.target_username && (
+                                                    <div className="col-6">
+                                                        <strong>ผู้ถูกรายงาน:</strong><br />
+                                                        <span>{selectedTicket.target_fullname}</span><br />
+                                                        <span className="text-muted">@{selectedTicket.target_username}</span><br />
+                                                        <button
+                                                            className="btn btn-sm btn-outline-danger mt-1"
+                                                            onClick={async () => {
+                                                                const found = users.find(u => u.username === selectedTicket.target_username);
+                                                                if (found) {
+                                                                    setSelectedUser(found);
+                                                                    await fetchUserDetail(found.id);
+                                                                }
+                                                                setTicketViewingUser('target');
+                                                            }}
+                                                        >
+                                                            ดูโปรไฟล์
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
-                                        {selectedTicket.target_username && (
-                                            <div className="col-6">
-                                                <strong>ผู้ถูกรายงาน:</strong><br />
-                                                <span>{selectedTicket.target_fullname}</span><br />
-                                                <span className="text-muted">@{selectedTicket.target_username}</span><br />
+
+                                        {/* Action Buttons สำหรับ Ticket */}
+                                        {selectedTicket.status === 'open' || selectedTicket.status === 'in_progress' ? (
+                                            <div className="d-flex gap-2 flex-wrap">
+                                                <button className="btn btn-warning flex-fill" onClick={() => handleUpdateTicket(selectedTicket, 'in_progress')}>🟡 กำลังดำเนินการ</button>
+                                                <button className="btn btn-success flex-fill" onClick={() => handleUpdateTicket(selectedTicket, 'resolved')}>✅ แก้ไขแล้ว</button>
+                                                <button className="btn btn-secondary flex-fill" onClick={() => handleUpdateTicket(selectedTicket, 'rejected')}>⛔ ปฏิเสธ</button>
+                                            </div>
+                                        ) : (
+                                            <div className="alert alert-secondary mb-0">คำร้องนี้ถูกดำเนินการแล้ว</div>
+                                        )}
+                                    </>
+                                )}
+
+                                {/* View: โปรไฟล์ผู้ใช้ (inline ไม่เปลี่ยนแท็บ) */}
+                                {ticketViewingUser && userDetail && editForm && (
+                                    <div style={{ maxHeight: '70vh', overflowY: 'auto' }}>
+                                        {/* Header โปรไฟล์ */}
+                                        <div className="d-flex align-items-center mb-4 p-3 rounded" style={{ background: '#f8f9fa' }}>
+                                            <div className="rounded-circle d-flex align-items-center justify-content-center me-3 text-white"
+                                                style={{ width: 56, height: 56, background: userDetail.user.role === 'merchant' ? '#6c5ce7' : '#0984e3', fontSize: '1.5rem' }}>
+                                                {userDetail.user.role === 'merchant' ? '🏪' : '👤'}
+                                            </div>
+                                            <div>
+                                                <h5 className="mb-1">{userDetail.user.fullname}</h5>
+                                                <div className="d-flex gap-2 flex-wrap">
+                                                    <span className="text-muted small">@{userDetail.user.username}</span>
+                                                    {getRoleBadge(userDetail.user.role)}
+                                                    {userDetail.user.is_banned == 1 && <span className="badge bg-danger">🔨 ถูกแบน</span>}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Edit Form */}
+                                        <div className="mb-3">
+                                            <div className="row">
+                                                <div className="col-6 mb-2">
+                                                    <label className="small text-muted">ชื่อ-นามสกุล</label>
+                                                    <input className="form-control form-control-sm" value={editForm.fullname} onChange={e => setEditForm({ ...editForm, fullname: e.target.value })} />
+                                                </div>
+                                                <div className="col-6 mb-2">
+                                                    <label className="small text-muted">เบอร์โทร</label>
+                                                    <input className="form-control form-control-sm" value={editForm.phone} onChange={e => setEditForm({ ...editForm, phone: e.target.value })} />
+                                                </div>
+                                                {userDetail.user.role === 'merchant' && <>
+                                                    <div className="col-6 mb-2">
+                                                        <label className="small text-muted">ชื่อร้าน</label>
+                                                        <input className="form-control form-control-sm" value={editForm.shop_name} onChange={e => setEditForm({ ...editForm, shop_name: e.target.value })} />
+                                                    </div>
+                                                    <div className="col-6 mb-2">
+                                                        <label className="small text-muted">คำอธิบายร้าน</label>
+                                                        <input className="form-control form-control-sm" value={editForm.description} onChange={e => setEditForm({ ...editForm, description: e.target.value })} />
+                                                    </div>
+                                                </>}
+                                            </div>
+                                            <div className="d-flex gap-2 flex-wrap mt-2">
+                                                <button className="btn btn-sm btn-primary" onClick={handleSaveEdit}>💾 บันทึก</button>
                                                 <button
-                                                    className="btn btn-sm btn-outline-danger mt-1"
-                                                    onClick={() => {
-                                                        setActiveTab('users');
-                                                        const found = users.find(u => u.username === selectedTicket.target_username);
-                                                        if (found) { setSelectedUser(found); fetchUserDetail(found.id); }
-                                                    }}
+                                                    className={`btn btn-sm ${userDetail.user.is_banned == 1 ? 'btn-success' : 'btn-warning'}`}
+                                                    onClick={() => handleToggleBan(userDetail.user)}
                                                 >
-                                                    ดูโปรไฟล์
+                                                    {userDetail.user.is_banned == 1 ? '✅ ปลดแบน' : '🔨 แบน'}
                                                 </button>
+                                                <button className="btn btn-sm btn-danger" onClick={() => handleDeleteUser(userDetail.user)}>🗑️ ลบ</button>
+                                                <button className="btn btn-sm btn-info text-white" onClick={() => { setShowNotifModal(true); fetchUserNotifs(selectedUser.id); }}>🔔 แจ้งเตือน</button>
+                                            </div>
+                                        </div>
+
+                                        {/* Orders ย่อ */}
+                                        {userDetail.orders.length > 0 && (
+                                            <div>
+                                                <h6 className="fw-bold small mb-2">📜 ออเดอร์ล่าสุด</h6>
+                                                {userDetail.orders.slice(0, 5).map((o, i) => (
+                                                    <div key={i} className="d-flex justify-content-between small bg-light p-2 rounded mb-1">
+                                                        <span>#{o.id} · {o.shop_name}</span>
+                                                        <span className="text-primary fw-bold">{parseInt(o.total_price).toLocaleString()} บ.</span>
+                                                        <span className="text-muted">{o.status}</span>
+                                                    </div>
+                                                ))}
                                             </div>
                                         )}
                                     </div>
-                                </div>
-
-                                {/* Action Buttons สำหรับ Ticket */}
-                                {selectedTicket.status === 'open' || selectedTicket.status === 'in_progress' ? (
-                                    <div className="d-flex gap-2 flex-wrap">
-                                        <button className="btn btn-warning flex-fill" onClick={() => handleUpdateTicket(selectedTicket, 'in_progress')}>🟡 กำลังดำเนินการ</button>
-                                        <button className="btn btn-success flex-fill" onClick={() => handleUpdateTicket(selectedTicket, 'resolved')}>✅ แก้ไขแล้ว</button>
-                                        <button className="btn btn-secondary flex-fill" onClick={() => handleUpdateTicket(selectedTicket, 'rejected')}>⛔ ปฏิเสธ</button>
-                                    </div>
-                                ) : (
-                                    <div className="alert alert-secondary mb-0">คำร้องนี้ถูกดำเนินการแล้ว</div>
                                 )}
                             </div>
                         </div>
@@ -714,12 +898,12 @@ function Admin() {
             )}
 
             {/* 
-                TAB: ประวัติ (Admin Logs)
+                TAB ประวัติ (Admin Logs)
              */}
             {activeTab === 'logs' && (
                 <div className="card shadow-sm p-4">
                     <h5 className="mb-4 text-danger">📋 ประวัติการดำเนินการของ Admin</h5>
-                    {/* ← เพิ่มส่วนนี้ */}
+                    {/* เพิ่ม */}
                     <div className="d-flex gap-2 mb-3">
                         <input
                             className="form-control"
@@ -747,7 +931,7 @@ function Admin() {
                             </button>
                         ))}
                     </div>
-                    {/* ← จบส่วนที่เพิ่ม */}
+                    {/* จบ */}
                     {logs.length === 0 ? (
                         <div className="text-center text-muted py-5">ยังไม่มีประวัติ</div>
                     ) : (
@@ -808,7 +992,111 @@ function Admin() {
                 </div>
             )}
 
-            {/*  Modal  */}
+            {/* Popup ส่งแจ้งเตือน */}
+            {showNotifModal && (
+                <div className="modal-overlay">
+                    <div className="modal-box" style={{maxWidth: '480px'}}>
+                        <div className="d-flex justify-content-between align-items-center mb-3">
+                            <h4 className="mb-0 text-info">🔔 ส่งแจ้งเตือนผู้ใช้</h4>
+                            <button className="btn-close" onClick={() => setShowNotifModal(false)} />
+                        </div>
+                        <p className="text-muted small mb-3">ถึง: <strong>{selectedUser?.fullname}</strong> (@{selectedUser?.username})</p>
+
+                        <div className="mb-3">
+                            <label className="form-label fw-bold">หมวดหมู่ <span className="text-danger">*</span></label>
+                            <div className="d-flex flex-wrap gap-2">
+                                {['คำเตือน', 'ข้อมูลทั่วไป', 'ความปลอดภัย', 'เรื่องออเดอร์', 'เรื่องการชำระเงิน', 'ประกาศ'].map(cat => (
+                                    <button
+                                        key={cat}
+                                        className={`btn btn-sm ${notifForm.category === cat ? 'btn-info text-white' : 'btn-outline-secondary'}`}
+                                        onClick={() => setNotifForm({ ...notifForm, category: cat })}
+                                    >
+                                        {cat}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="mb-4">
+                            <label className="form-label fw-bold">ข้อความ <span className="text-danger">*</span></label>
+                            <textarea
+                                className="form-control"
+                                rows="3"
+                                placeholder="พิมพ์ข้อความแจ้งเตือน..."
+                                value={notifForm.message}
+                                onChange={e => setNotifForm({ ...notifForm, message: e.target.value })}
+                            />
+                        </div>
+
+                        {/* ประวัติแจ้งเตือน */}
+                        {userNotifs.length > 0 && (
+                            <div className="mb-3">
+                                <small className="fw-bold text-muted">ประวัติแจ้งเตือนล่าสุด:</small>
+                                <div className="mt-1 border rounded p-2 bg-light" style={{maxHeight: '150px', overflowY: 'auto'}}>
+                                    {userNotifs.map((n, i) => (
+                                        <div key={i} className="border-bottom pb-1 mb-1 small">
+                                            <span className="badge bg-info text-dark me-1">{n.category}</span>
+                                            <span>{n.message}</span>
+                                            <div className="text-muted" style={{fontSize:'0.75rem'}}>{n.created_at}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="d-flex gap-2">
+                            <button className="btn btn-secondary flex-fill" onClick={() => setShowNotifModal(false)}>ยกเลิก</button>
+                            <button className="btn btn-info text-white flex-fill" onClick={handleSendNotification}>📨 ส่งแจ้งเตือน</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Popup แบนผู้ใช้ เลือก reason */}
+            {showBanModal && banTargetUser && (
+                <div className="modal-overlay">
+                    <div className="modal-box" style={{maxWidth: '480px'}}>
+                        <div className="d-flex justify-content-between align-items-center mb-3">
+                            <h4 className="mb-0 text-danger">🔨 แบนผู้ใช้</h4>
+                            <button className="btn-close" onClick={() => setShowBanModal(false)} />
+                        </div>
+                        <p className="text-muted small mb-3">แบน: <strong>{banTargetUser.fullname}</strong> (@{banTargetUser.username})</p>
+
+                        <div className="mb-3">
+                            <label className="form-label fw-bold">หมวดหมู่การแบน <span className="text-danger">*</span></label>
+                            <div className="d-flex flex-wrap gap-2">
+                                {['🚨 ละเมิดกฎชุมชน', '💬 พฤติกรรมไม่เหมาะสม', '🔁 โกงออเดอร์', '🤖 บัญชีปลอม/บอท', '📛 สแปม', '⚖️ ละเมิดข้อกำหนด', '🔞 เนื้อหาไม่เหมาะสม'].map(cat => (
+                                    <button
+                                        key={cat}
+                                        className={`btn btn-sm ${banForm.category === cat ? 'btn-danger' : 'btn-outline-secondary'}`}
+                                        onClick={() => setBanForm({ ...banForm, category: cat })}
+                                    >
+                                        {cat}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="mb-4">
+                            <label className="form-label fw-bold">ข้อความเพิ่มเติม</label>
+                            <textarea
+                                className="form-control"
+                                rows="2"
+                                placeholder="อธิบายเหตุผลเพิ่มเติม (ไม่บังคับ)..."
+                                value={banForm.message}
+                                onChange={e => setBanForm({ ...banForm, message: e.target.value })}
+                            />
+                        </div>
+
+                        <div className="d-flex gap-2">
+                            <button className="btn btn-secondary flex-fill" onClick={() => setShowBanModal(false)}>ยกเลิก</button>
+                            <button className="btn btn-danger flex-fill" onClick={handleConfirmBan}>🔨 ยืนยันแบน</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal */}
             {modal.show && (
                 <div className="modal-overlay">
                     <div className="modal-box">

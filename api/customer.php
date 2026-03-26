@@ -10,7 +10,7 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 //  ดึงข้อมูลร้านค้า 
 if ($method == 'GET' && $action == 'get_shops') {
-    $sql = "SELECT s.*, u.phone 
+    $sql = "SELECT s.*, u.phone, u.id as id_owner
             FROM shops s 
             JOIN users u ON s.owner_id = u.id";
             
@@ -57,7 +57,7 @@ elseif ($method == 'POST' && $action == 'update_profile') {
 
     if (!empty($password)) {
         $sql .= ", password = ?";
-        $params[] = password_hash($password, PASSWORD_DEFAULT); // hash รหัสผ่าน (ถ้าในระบบใช้ hash) หรือใช้ $password ตรงๆ ถ้าไม่ได้ hash
+        $params[] = password_hash($password, PASSWORD_DEFAULT); // hash รหัสผ่าน ถ้าในระบบใช้ hash หรือใช้ $password ตรงๆ ถ้าไม่ได้ hash, พิมพ์เอง งงเอง
         $types .= "s";
     }
     $sql .= " WHERE id = ?";
@@ -85,7 +85,7 @@ elseif ($method == 'POST' && $action == 'update_profile') {
     echo json_encode(["status" => "success"]);
 }
 
-//  (ใหม่) ลบบัญชีถาวร 
+//  ลบบัญชีถาวร 
 elseif ($method == 'POST' && $action == 'delete_account') {
     $user_id = $data->user_id;
     $username_confirmation = $data->username_confirmation;
@@ -102,4 +102,18 @@ elseif ($method == 'POST' && $action == 'delete_account') {
         echo json_encode(["status" => "error", "message" => "ชื่อผู้ใช้งานไม่ถูกต้อง ยืนยันการลบไม่สำเร็จ"]);
     }
 }
+
+// เช็คสถานะแบน
+elseif ($method == 'GET' && $action == 'check_ban') {
+    $user_id = $_GET['user_id'];
+    $res = $conn->query("SELECT is_banned, ban_reason, ban_message, banned_at FROM users WHERE id = '$user_id'");
+    $row = $res->fetch_assoc();
+    echo json_encode([
+        "is_banned"   => $row['is_banned'] ?? 0,
+        "ban_reason"  => $row['ban_reason'] ?? null,
+        "ban_message" => $row['ban_message'] ?? null,
+        "banned_at"   => $row['banned_at'] ?? null
+    ]);
+}
+
 ?>

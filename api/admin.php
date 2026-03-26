@@ -124,18 +124,73 @@ elseif ($method == 'GET' && $action == 'get_user_detail') {
 }
 // แบน / ปลดแบน User
 elseif ($method == 'POST' && $action == 'toggle_ban') {
-    $admin_id = $data->admin_id;
-    $target_id = $data->target_id;
-    $ban_status = $data->ban_status; // 1 = แบน, 0 = ปลดแบน
+    $admin_id   = $data->admin_id;
+    $target_id  = $data->target_id;
+    $ban_status = $data->ban_status;
+    $ban_reason = $conn->real_escape_string($data->ban_reason ?? '');
+    $ban_message= $conn->real_escape_string($data->ban_message ?? '');
 
-    $conn->query("UPDATE users SET is_banned = '$ban_status' WHERE id = '$target_id'");
+    if ($ban_status == 1) {
+        $conn->query("UPDATE users SET is_banned=1, ban_reason='$ban_reason', ban_message='$ban_message', banned_at=NOW() WHERE id='$target_id'");
+    } else {
+        $conn->query("UPDATE users SET is_banned=0, ban_reason=NULL, ban_message=NULL, banned_at=NULL WHERE id='$target_id'");
+    }
 
-    // บันทึก log
     $action_type = $ban_status == 1 ? 'ban' : 'unban';
-    $detail = $ban_status == 1 ? 'Admin สั่งแบนผู้ใช้' : 'Admin ปลดแบนผู้ใช้';
+    $detail = $ban_status == 1 ? "แบนผู้ใช้: $ban_reason" : 'ปลดแบนผู้ใช้';
     $conn->query("INSERT INTO admin_logs (admin_id, action, target_user_id, detail) VALUES ('$admin_id', '$action_type', '$target_id', '$detail')");
 
     echo json_encode(["status" => "success"]);
+}
+
+// ส่งแจ้งเตือนไปยังผู้ใช้
+elseif ($method == 'POST' && $action == 'send_notification') {
+    $admin_id = $data->admin_id;
+    $user_id  = $data->user_id;
+    $category = $conn->real_escape_string($data->category);
+    $message  = $conn->real_escape_string($data->message);
+
+    $conn->query("INSERT INTO notifications (user_id, admin_id, category, message) VALUES ('$user_id', '$admin_id', '$category', '$message')");
+
+    $detail = "แจ้งเตือนผู้ใช้ ID:$user_id หมวด: $category";
+    $conn->query("INSERT INTO admin_logs (admin_id, action, target_user_id, detail) VALUES ('$admin_id', 'edit_user', '$user_id', '$detail')");
+
+    echo json_encode(["status" => "success"]);
+}
+
+// ดึงประวัติแจ้งเตือนของ user คนนั้น admin ดู
+elseif ($method == 'GET' && $action == 'get_notifications') {
+    $user_id = $_GET['user_id'];
+    $sql = "SELECT n.*, u.fullname as admin_name 
+            FROM notifications n 
+            JOIN users u ON n.admin_id = u.id 
+            WHERE n.user_id = '$user_id' 
+            ORDER BY n.created_at DESC";
+    $result = $conn->query($sql);
+    $notifs = [];
+    while ($row = $result->fetch_assoc()) $notifs[] = $row;
+    echo json_encode(["status" => "success", "notifications" => $notifs]);
+}
+
+// ดึงแจ้งเตือนของ user เอง customer/merchant ดู
+elseif ($method == 'GET' && $action == 'get_my_notifications') {
+    $user_id = $_GET['user_id'];
+    $sql = "SELECT * FROM notifications WHERE user_id = '$user_id' ORDER BY created_at DESC";
+    $result = $conn->query($sql);
+    $notifs = [];
+    while ($row = $result->fetch_assoc()) $notifs[] = $row;
+    echo json_encode(["status" => "success", "notifications" => $notifs]);
+}
+
+elseif ($method == 'GET' && $action == 'check_ban') {
+    $user_id = $_GET['user_id'];
+    $res = $conn->query("SELECT is_banned, ban_reason, ban_message FROM users WHERE id = '$user_id'");
+    $row = $res->fetch_assoc();
+    echo json_encode([
+        "is_banned"   => $row['is_banned'] ?? 0,
+        "ban_reason"  => $row['ban_reason'] ?? null,
+        "ban_message" => $row['ban_message'] ?? null
+    ]);
 }
 
 // ลบ User ถาวร
@@ -276,4 +331,30 @@ elseif ($method == 'POST' && $action == 'submit_ticket') {
     if ($stmt->execute()) echo json_encode(["status" => "success"]);
     else echo json_encode(["status" => "error", "message" => $conn->error]);
 }
+
+// ดึงคำร้องอุทธรณ์ล่าสุดของ user เฉพาะ type = request และ subject มีคำว่าอุทธรณ์
+elseif ($method == 'GET' && $action == 'get_my_appeal') {
+    $user_id = $_GET['user_id'];
+    $banned_at = $_GET['banned_at'] ?? null;
+
+    // ถ้ามี banned_at ให้ดึงเฉพาะ ticket ที่สร้างหลังจากถูกแบนครั้งนี้
+    $date_filter = '';
+    if ($banned_at) {
+        $ba = $conn->real_escape_string($banned_at);
+        $date_filter = "AND created_at >= '$ba'";
+    }
+
+    $result = $conn->query("
+        SELECT id, status FROM tickets 
+        WHERE sender_id = '$user_id' 
+        AND type = 'request' 
+        AND subject LIKE '%อุทธรณ์%'
+        $date_filter
+        ORDER BY created_at DESC 
+        LIMIT 1
+    ");
+    $ticket = $result->fetch_assoc();
+    echo json_encode(["status" => "success", "ticket" => $ticket ?: null]);
+}
+
 ?>

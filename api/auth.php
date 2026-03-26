@@ -56,12 +56,6 @@ elseif ($action == 'login') {
         $user = $result->fetch_assoc();
         if (password_verify($password, $user['password'])) {
 
-            // เช็คว่าถูกแบนไหม
-            if ($user['is_banned'] == 1) {
-                echo json_encode(["status" => "error", "message" => "บัญชีนี้ถูกระงับการใช้งาน กรุณาติดต่อแอดมิน"]);
-                exit();
-            }
-
             $shop_id = null;
             if ($user['role'] == 'merchant') {
                 $s = $conn->query("SELECT id FROM shops WHERE owner_id = " . $user['id']);
@@ -75,7 +69,10 @@ elseif ($action == 'login') {
                     "id" => $user['id'],
                     "fullname" => $user['fullname'],
                     "role" => $user['role'],
-                    "shop_id" => $shop_id
+                    "shop_id" => $shop_id,
+                    "is_banned" => $user['is_banned'],
+                    "ban_reason" => $user['ban_reason'] ?? null,
+                    "ban_message" => $user['ban_message'] ?? null
                 ]
             ]);
         } else {

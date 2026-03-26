@@ -50,11 +50,29 @@ function Customer() {
     // General Modal System
     const [modal, setModal] = useState({ show: false, type: 'alert', title: '', message: '', onConfirm: null });
 
+    // Report & Ban States
+    const [showReportModal, setShowReportModal] = useState(false);
+    const [reportForm, setReportForm] = useState({ category: '', message: '' });
+    const [isBanned, setIsBanned] = useState(false);
+    const [banInfo, setBanInfo] = useState({ reason: null, message: null });
+    const [banAppealMessage, setBanAppealMessage] = useState('');
+    const [appealStatus, setAppealStatus] = useState(null);
+    const [appealTicketId, setAppealTicketId] = useState(null);
+
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
         if (!storedUser) { navigate('/'); return; }
         const u = JSON.parse(storedUser);
         setUser(u);
+        // เช็คแบนทันทีตอนเข้า
+        if (u.is_banned == 1) {
+            setIsBanned(true);
+            setBanInfo({ 
+                reason: u.ban_reason || 'ไม่ระบุ', 
+                message: u.ban_message || null 
+            });
+            fetchAppealStatus(u.id, u.banned_at);
+        }
         
         fetchShops();
         fetchMyOrders(u.id);
@@ -96,7 +114,7 @@ function Customer() {
         }
     }, [shops, selectedShop]); // ทำงานทุกครั้งที่รายชื่อร้านอัปเดต (ทุก 3 วิ)
 
-    // Real-time Check 2: ถ้ากำลังเลือกเมนูอยู่ แล้วของหมด -> ปิด Popup เมนูทันที
+    // Real-time Check 2 ถ้ากำลังเลือกเมนูอยู่ แล้วของหมด -> ปิด Popup เมนูทันที
     useEffect(() => {
         if (selectedProduct && products.length > 0) {
             const currentProduct = products.find(p => p.id === selectedProduct.id);
@@ -107,6 +125,36 @@ function Customer() {
             }
         }
     }, [products, selectedProduct]); // ทำงานทุกครั้งที่รายการสินค้าอัปเดต (ทุก 3 วิ)
+
+    // useEffect check_ban
+    useEffect(() => {
+        if (!user) return;
+
+        // เช็คครั้งแรกทันที
+        const checkBan = async () => {
+            try {
+                const res = await axios.get(`http://192.168.1.36/LMOrder/api/customer.php?action=check_ban&user_id=${user.id}`);
+                if (res.data.is_banned == 1) {
+                    setIsBanned(true);
+                    // อัปเดตทุกครั้งเลย ไม่ต้องเช็คก่อน
+                    setBanInfo({ 
+                        reason: res.data.ban_reason || 'ไม่ระบุ', 
+                        message: res.data.ban_message || null 
+                    });
+                    fetchAppealStatus(user.id, res.data.banned_at); // ส่ง banned_at ไปด้วย
+                } else {
+                    setIsBanned(false);
+                    setBanInfo({ reason: null, message: null });
+                    setAppealStatus(null);
+                    setAppealTicketId(null);
+                }
+            } catch (err) { console.error(err); }
+        };
+
+        checkBan();
+        const banInterval = setInterval(checkBan, 5000);
+        return () => clearInterval(banInterval);
+    }, [user]);
 
     // ...
 
@@ -333,7 +381,7 @@ function Customer() {
 
     // แก้ไข: ฟังก์ชันยกเลิกออเดอร์ แบบสลับหน้า Pop-up
     const handleCancelOrder = (order) => {
-        // 1. ปิดหน้า Pop-up รายละเอียดก่อน (เพื่อไม่ให้ทับกัน)
+        // 1. ปิดหน้า Pop-up รายละเอียดก่อน เพื่อไม่ให้ทับกัน
         setViewingOrder(null);
 
         // 2. เปิดหน้า Pop-up ยืนยัน
@@ -342,10 +390,10 @@ function Customer() {
             type: 'confirm',
             title: 'ยกเลิกออเดอร์',
             message: 'คุณต้องการยกเลิกออเดอร์นี้ใช่ไหม?',
-            // กรณีตอบตกลง (ลบจริง)
+            // กรณีตอบตกลง ลบจริง
             onConfirm: async () => {
                 try {
-                    await axios.post(`${API_BASE_URL}/order.php`, { // อย่าลืมใช้ API_BASE_URL หรือ URL เดิมของคุณ
+                    await axios.post(`${API_BASE_URL}/order.php`, {
                         action: 'update_status', 
                         order_id: order.id, 
                         status: 'cancelled' 
@@ -355,7 +403,7 @@ function Customer() {
                     // ไม่ต้องเปิด viewingOrder กลับมา เพราะออเดอร์ถูกยกเลิกแล้ว
                 } catch (err) { console.error(err); }
             },
-            // กรณีตอบยกเลิก/กากบาท (ให้สลับกลับไปหน้ารายละเอียด)
+            // กรณีตอบยกเลิก/กากบาท ให้สลับกลับไปหน้ารายละเอียด
             onCancel: () => {
                 setModal(prev => ({ ...prev, show: false })); // ปิด Modal ยืนยัน
                 setViewingOrder(order); // เปิด Modal รายละเอียดกลับขึ้นมาใหม่
@@ -363,17 +411,69 @@ function Customer() {
         });
     };
 
-    // Helper: ปิดแถบแจ้งเตือน (แบบถาวร บันทึกลงฐานข้อมูล)
+    // Helper ปิดแถบแจ้งเตือน แบบถาวร บันทึกลงฐานข้อมูล
     const handleCloseNotif = async (e, orderId) => {
         e.stopPropagation();
         try {
             // ยิง API ไปบอก Server ว่าปิดแจ้งเตือนออเดอร์นี้แล้วนะ
-            await axios.post('http://192.168.1.36/LMOrder/api/order.php', { // อย่าลืมใช้ URL IP เครื่องคุณนะ
+            await axios.post('http://192.168.1.36/LMOrder/api/order.php', {
                 action: 'close_notification',
                 order_id: orderId
             });
             // ดึงข้อมูลออเดอร์ใหม่ทันที เพื่อให้หน้าจออัปเดต
             fetchMyOrders(user.id);
+        } catch (err) { console.error(err); }
+    };
+
+    // ส่งรายงานร้านค้า
+    const handleSubmitReport = async () => {
+        if (!reportForm.category) { showAlert('แจ้งเตือน', 'กรุณาเลือกหมวดหมู่การรายงาน'); return; }
+        try {
+            await axios.post('http://192.168.1.36/LMOrder/api/admin.php', {
+                action: 'submit_ticket',
+                sender_id: user.id,
+                target_id: selectedShop?.id_owner ?? null,
+                type: 'report',
+                subject: `รายงานร้าน: ${selectedShop?.shop_name} — ${reportForm.category}`,
+                message: reportForm.message || '(ไม่มีข้อความเพิ่มเติม)'
+            });
+            setShowReportModal(false);
+            setReportForm({ category: '', message: '' });
+            showAlert('ส่งรายงานแล้ว', '✅ ส่งรายงานถึงแอดมินเรียบร้อยแล้ว ขอบคุณครับ');
+        } catch (err) { showAlert('ผิดพลาด', 'ไม่สามารถส่งรายงานได้'); }
+    };
+
+    // ดึงสถานะคำร้องอุทธรณ์ล่าสุดของ user
+    const fetchAppealStatus = async (uid, bannedAt = null) => {
+        try {
+            let url = `http://192.168.1.36/LMOrder/api/admin.php?action=get_my_appeal&user_id=${uid}`;
+            if (bannedAt) url += `&banned_at=${encodeURIComponent(bannedAt)}`;
+            const res = await axios.get(url);
+            if (res.data.status === 'success' && res.data.ticket) {
+                setAppealStatus(res.data.ticket.status);
+                setAppealTicketId(res.data.ticket.id);
+            } else {
+                setAppealStatus(null);
+                setAppealTicketId(null);
+            }
+        } catch (err) { console.error(err); }
+    };
+
+    // ส่งคำร้องขออุทธรณ์แบน
+    const handleAppeal = async () => {
+        if (!banAppealMessage.trim()) return;
+        try {
+            await axios.post('http://192.168.1.36/LMOrder/api/admin.php', {
+                action: 'submit_ticket',
+                sender_id: user.id,
+                target_id: null,
+                type: 'request',
+                subject: `ขออุทธรณ์การแบน — ${user.fullname}`,
+                message: banAppealMessage
+            });
+            setBanAppealMessage('');
+            // ดึงสถานะใหม่ทันที ไม่ต้อง showAlert
+            fetchAppealStatus(user.id);
         } catch (err) { console.error(err); }
     };
 
@@ -496,17 +596,25 @@ function Customer() {
                     ) : (
                         <div>
                             <button onClick={() => setSelectedShop(null)} className="btn btn-soft-danger mb-3">&larr; เลือกร้านอื่น</button>
-                            <div className="d-flex flex-wrap align-items-center mb-4 gap-3">
-                                <div className="d-flex align-items-center">
-                                    <h2 className="mb-0 me-3">{selectedShop.shop_name}</h2>
-                                    <span className="badge bg-success">เปิดบริการ</span>
+                            <div className="d-flex flex-wrap align-items-center justify-content-between mb-4 gap-3">
+                                <div className="d-flex flex-wrap align-items-center gap-3">
+                                    <div className="d-flex align-items-center">
+                                        <h2 className="mb-0 me-3">{selectedShop.shop_name}</h2>
+                                        <span className="badge bg-success">เปิดบริการ</span>
+                                    </div>
+                                    <div className="vr d-none d-md-block text-muted" style={{height: '40px'}}></div>
+                                    <div className="d-flex flex-wrap gap-3 text-muted align-items-center" style={{fontSize: '0.95rem'}}>
+                                        {selectedShop.description && <span className="d-flex align-items-center">📢 {selectedShop.description}</span>}
+                                        {selectedShop.address && <span className="d-flex align-items-center">📍 {selectedShop.address}</span>}
+                                        {selectedShop.phone && <span className="d-flex align-items-center">📞 {selectedShop.phone}</span>}
+                                    </div>
                                 </div>
-                                <div className="vr d-none d-md-block text-muted" style={{height: '40px'}}></div>
-                                <div className="d-flex flex-wrap gap-3 text-muted align-items-center" style={{fontSize: '0.95rem'}}>
-                                    {selectedShop.description && <span className="d-flex align-items-center">📢 {selectedShop.description}</span>}
-                                    {selectedShop.address && <span className="d-flex align-items-center">📍 {selectedShop.address}</span>}
-                                    {selectedShop.phone && <span className="d-flex align-items-center">📞 {selectedShop.phone}</span>}
-                                </div>
+                                <button
+                                    className="btn btn-sm btn-outline-danger"
+                                    onClick={() => setShowReportModal(true)}
+                                >
+                                    🚨 รายงานร้านนี้
+                                </button>
                             </div>
                             <div className="row">
                                 <div className="col-md-7 mb-3">
@@ -629,13 +737,56 @@ function Customer() {
                         myOrders.map(o => (
                             <div key={o.id} className="col-md-6 mb-3">
                                 <div className="card p-3 shadow-sm h-100 border-0">
-                                    <div className="d-flex justify-content-between mb-2"><h5 className="mb-0 text-primary">{o.shop_name}</h5><div>{getStatusBadge(o.status)}</div></div>
+                                    <div className="d-flex justify-content-between mb-2">
+                                        <h5 className="mb-0 text-primary">{o.shop_name}</h5>
+                                        <div>{getStatusBadge(o.status)}</div>
+                                    </div>
                                     <small className="text-muted d-block">สั่งเมื่อ: {o.order_time}</small>
                                     <small className="text-muted d-block mb-2">📍 ที่อยู่: {o.address}</small>
-                                    <div className="bg-light p-2 rounded mb-2">{o.items.map((item, index) => <div key={index} className="d-flex justify-content-between"><small>{item.product_name} x {item.quantity}</small><small>{parseInt(item.price).toLocaleString()}</small></div>)}</div>
+                                    <div className="bg-light p-2 rounded mb-2">
+                                        {o.items.map((item, index) => (
+                                            <div key={index} className="d-flex justify-content-between">
+                                                <small>{item.product_name} x {item.quantity}</small>
+                                                <small>{parseInt(item.price).toLocaleString()}</small>
+                                            </div>
+                                        ))}
+                                    </div>
                                     <div className="d-flex justify-content-between align-items-end mt-auto pt-2">
-                                        <div><small className="d-block text-muted">ราคารวม</small><h5 className="mb-0">{parseInt(o.total_price).toLocaleString()} บ.</h5></div>
-                                        {/* เอาปุ่มยกเลิกตรงนี้ออกตามที่ขอ */}
+                                        <div>
+                                            <small className="d-block text-muted">ราคารวม</small>
+                                            <h5 className="mb-0">{parseInt(o.total_price).toLocaleString()} บ.</h5>
+                                        </div>
+                                        {/* ปุ่มขวาล่าง */}
+                                        <div className="d-flex gap-2">
+                                            {/* ปุ่มสั่งอีกครั้ง */}
+                                            <button
+                                                className="btn btn-sm btn-soft-primary"
+                                                onClick={() => {
+                                                    const shop = shops.find(s => s.shop_name === o.shop_name);
+                                                    if (shop && shop.is_open == 1) {
+                                                        fetchShopMenu(shop);
+                                                        setActiveTab('shops');
+                                                    } else {
+                                                        showAlert('ร้านปิด', '⚠️ ร้านค้านี้ปิดให้บริการอยู่ในขณะนี้');
+                                                    }
+                                                }}
+                                            >
+                                                🔄 สั่งอีกครั้ง
+                                            </button>
+                                            {/* ปุ่มรายงาน */}
+                                            <button
+                                                className="btn btn-sm btn-outline-danger"
+                                                onClick={() => {
+                                                    const shop = shops.find(s => s.shop_name === o.shop_name);
+                                                    if (shop) {
+                                                        setSelectedShop(shop);
+                                                        setShowReportModal(true);
+                                                    }
+                                                }}
+                                            >
+                                                🚨 รายงาน
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -727,7 +878,7 @@ function Customer() {
             {/* Modal PopUp (Alert / Confirm) */}
             
 
-            {/* Order Detail Popup (เฉพาะตอนกดเพิ่มเติม) */}
+            {/* Order Detail Popup */}
             {viewingOrder && (
                 <div className="modal-overlay">
                     <div className="modal-box" style={{maxWidth: '500px'}}>
@@ -770,8 +921,139 @@ function Customer() {
                     </div>
                 </div>
             )}
-            {/*  B. Mobile Floating Cart Bar (แถบสรุปยอดลอยตัว)  */}
-            {/* แสดงเฉพาะตอนมีของในตะกร้า + อยู่หน้าร้านค้า + และเป็นหน้าจอมือถือ (d-md-none) */}
+
+            {/* Popup รายงานร้านค้า */}
+            {showReportModal && (
+                <div className="modal-overlay">
+                    <div className="modal-box" style={{maxWidth: '480px'}}>
+                        <div className="d-flex justify-content-between align-items-center mb-3">
+                            <h4 className="mb-0 text-danger">🚨 รายงานร้านค้า</h4>
+                            <button className="btn-close" onClick={() => { setShowReportModal(false); setReportForm({ category: '', message: '' }); }}></button>
+                        </div>
+                        <p className="text-muted small mb-3">ร้าน: <strong>{selectedShop?.shop_name}</strong></p>
+
+                        <div className="mb-3">
+                            <label className="form-label fw-bold">หมวดหมู่การรายงาน <span className="text-danger">*</span></label>
+                            <div className="d-flex flex-wrap gap-2">
+                                {[
+                                    'อาหารไม่ตรงปก',
+                                    'ส่งช้าเกินไป',
+                                    'ราคาไม่โปร่งใส',
+                                    'พฤติกรรมไม่เหมาะสม',
+                                    'สุขอนามัยน่าสงสัย',
+                                    'สินค้าเสียหาย',
+                                    'โกงออเดอร์',
+                                    'อื่นๆ'
+                                ].map(cat => (
+                                    <button
+                                        key={cat}
+                                        className={`btn btn-sm ${reportForm.category === cat ? 'btn-danger' : 'btn-outline-secondary'}`}
+                                        onClick={() => setReportForm({ ...reportForm, category: cat })}
+                                    >
+                                        {cat}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="mb-4">
+                            <label className="form-label fw-bold">รายละเอียดเพิ่มเติม</label>
+                            <textarea
+                                className="form-control"
+                                rows="3"
+                                placeholder="อธิบายเพิ่มเติม (ไม่บังคับ)..."
+                                value={reportForm.message}
+                                onChange={e => setReportForm({ ...reportForm, message: e.target.value })}
+                            />
+                        </div>
+
+                        <div className="d-flex gap-2">
+                            <button className="btn btn-secondary flex-fill" onClick={() => { setShowReportModal(false); setReportForm({ category: '', message: '' }); }}>ยกเลิก</button>
+                            <button className="btn btn-danger flex-fill" onClick={handleSubmitReport}>📨 ส่งรายงาน</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Popup แจ้งโดนแบน */}
+                {isBanned && (
+                    <div className="modal-overlay" style={{zIndex: 99999}}>
+                        <div className="modal-box" style={{maxWidth: '480px'}}>
+                            <div className="text-center mb-3">
+                                <div style={{fontSize: '3rem'}}>🔨</div>
+                                <h3 className="text-danger mb-1">บัญชีถูกระงับ</h3>
+                                <p className="text-muted mb-0">บัญชีของคุณถูกแอดมินระงับการใช้งาน</p>
+                            </div>
+
+                            {/* เหตุผลการแบน — แสดงตลอด ไม่หาย */}
+                            <div className="alert alert-danger py-2 mb-3 text-start">
+                                <strong>เหตุผล:</strong> {banInfo.reason || 'ไม่ระบุ'}
+                                {banInfo.message && <div className="mt-1 small">{banInfo.message}</div>}
+                            </div>
+
+                            {/* สถานะคำร้อง */}
+                            {appealStatus && (
+                                <div className={`alert py-2 mb-3 text-center fw-bold ${
+                                    appealStatus === 'open'        ? 'alert-secondary' :
+                                    appealStatus === 'in_progress' ? 'alert-warning'   :
+                                    appealStatus === 'resolved'    ? 'alert-success'   :
+                                    appealStatus === 'rejected'    ? 'alert-danger'    : 'alert-secondary'
+                                }`}>
+                                    {{
+                                        open:        '⏳ รอแอดมินรับเรื่อง',
+                                        in_progress: '🔄 แอดมินกำลังดำเนินการ',
+                                        resolved:    '✅ คำร้องเสร็จสิ้น',
+                                        rejected:    '❌ คำร้องถูกปฏิเสธ',
+                                    }[appealStatus]}
+                                </div>
+                            )}
+
+                            {/* ฟอร์มส่งคำร้อง — ล็อคถ้า open/in_progress */}
+                            {(appealStatus === null || appealStatus === 'resolved' || appealStatus === 'rejected') ? (
+                                <div className="mb-3">
+                                    <label className="form-label fw-bold">📝 คำร้องขออุทธรณ์</label>
+                                    {appealStatus === 'resolved' && (
+                                        <div className="small text-muted mb-2">คำร้องก่อนหน้าเสร็จสิ้นแล้ว สามารถส่งใหม่ได้</div>
+                                    )}
+                                    {appealStatus === 'rejected' && (
+                                        <div className="small text-muted mb-2">คำร้องก่อนหน้าถูกปฏิเสธ สามารถส่งใหม่ได้</div>
+                                    )}
+                                    <textarea
+                                        className="form-control"
+                                        rows="3"
+                                        placeholder="อธิบายเหตุผลที่ควรได้รับการปลดแบน..."
+                                        value={banAppealMessage}
+                                        onChange={e => setBanAppealMessage(e.target.value)}
+                                    />
+                                </div>
+                            ) : (
+                                <div className="alert alert-light border mb-3 small text-muted text-center">
+                                    🔒 ไม่สามารถส่งคำร้องได้ในขณะนี้<br/>กรุณารอแอดมินพิจารณาคำร้องที่ส่งไปแล้ว
+                                </div>
+                            )}
+
+                            <div className="d-flex gap-2">
+                                <button
+                                    className="btn btn-outline-danger flex-fill"
+                                    onClick={() => { localStorage.removeItem('user'); navigate('/'); }}
+                                >
+                                    🚪 ออกจากระบบ
+                                </button>
+                                {(appealStatus === null || appealStatus === 'resolved' || appealStatus === 'rejected') && (
+                                    <button
+                                        className="btn btn-primary flex-fill"
+                                        disabled={!banAppealMessage.trim()}
+                                        onClick={handleAppeal}
+                                    >
+                                        📨 ส่งคำร้อง
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+            {/* แสดงเฉพาะตอนมีของในตะกร้า + อยู่หน้าร้านค้า + และเป็นหน้าจอมือถือ */}
             {cart.length > 0 && activeTab === 'shops' && selectedShop && (
                 <div className="d-block d-md-none fixed-bottom p-3" style={{zIndex: 1060, bottom: '60px'}}> 
                     {/* bottom: 60px เพื่อให้ลอยอยู่เหนือเมนูบาร์ (A) ไม่ทับกัน */}
