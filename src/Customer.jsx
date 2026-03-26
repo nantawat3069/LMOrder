@@ -59,29 +59,55 @@ function Customer() {
     const [appealStatus, setAppealStatus] = useState(null);
     const [appealTicketId, setAppealTicketId] = useState(null);
 
+    // Notifications
+    const [myNotifications, setMyNotifications] = useState([]);
+    const [unreadCount, setUnreadCount] = useState(0);
+
+    const fetchMyNotifications = async (uid) => {
+        try {
+            const res = await axios.get(`http://192.168.1.36/LMOrder/api/admin.php?action=get_my_notifications&user_id=${uid}`);
+            if (res.data.status === 'success') {
+                setMyNotifications(res.data.notifications);
+                setUnreadCount(res.data.unread_count);
+            }
+        } catch (err) { console.error(err); }
+    };
+
+    const markNotificationsRead = async () => {
+        if (!user || unreadCount === 0) return;
+        try {
+            await axios.post('http://192.168.1.36/LMOrder/api/admin.php', {
+                action: 'mark_notifications_read',
+                user_id: user.id
+            });
+            setUnreadCount(0);
+            setMyNotifications(prev => prev.map(n => ({ ...n, is_read: '1' })));
+        } catch (err) { console.error(err); }
+    };
+
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
         if (!storedUser) { navigate('/'); return; }
         const u = JSON.parse(storedUser);
         setUser(u);
-        // เช็คแบนทันทีตอนเข้า
+
         if (u.is_banned == 1) {
             setIsBanned(true);
-            setBanInfo({ 
-                reason: u.ban_reason || 'ไม่ระบุ', 
-                message: u.ban_message || null 
-            });
+            setBanInfo({ reason: u.ban_reason || 'ไม่ระบุ', message: u.ban_message || null });
             fetchAppealStatus(u.id, u.banned_at);
         }
-        
+
         fetchShops();
         fetchMyOrders(u.id);
         fetchAddresses(u.id);
+        fetchMyNotifications(u.id);
 
-        const globalInterval = setInterval(() => { 
-            fetchMyOrders(u.id); 
-            fetchShops(); 
-        }, 3000);
+        // Real-time ทุก 5 วิ
+        const globalInterval = setInterval(() => {
+            fetchMyOrders(u.id);
+            fetchShops();
+            fetchMyNotifications(u.id);
+        }, 5000);
 
         return () => clearInterval(globalInterval);
     }, []);
@@ -393,7 +419,7 @@ function Customer() {
             // กรณีตอบตกลง ลบจริง
             onConfirm: async () => {
                 try {
-                    await axios.post(`${API_BASE_URL}/order.php`, {
+                    await axios.post('http://192.168.1.36/LMOrder/api/order.php', {
                         action: 'update_status', 
                         order_id: order.id, 
                         status: 'cancelled' 
@@ -508,6 +534,13 @@ function Customer() {
                         <button className={`btn ${activeTab === 'shops' ? 'btn-primary' : 'btn-outline-primary'}`} onClick={() => setActiveTab('shops')}>🏪 ร้านค้า</button>
                         <button className={`btn position-relative ${activeTab === 'orders' ? 'btn-primary' : 'btn-outline-primary'}`} onClick={() => setActiveTab('orders')}>
                             📜 ประวัติ {activeOrdersCount > 0 && <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">{activeOrdersCount}</span>}
+                        </button>
+                        <button
+                            className={`btn position-relative ${activeTab === 'notifications' ? 'btn-primary' : 'btn-outline-primary'}`}
+                            onClick={() => { setActiveTab('notifications'); markNotificationsRead(); }}
+                        >
+                            🔔 แจ้งเตือน
+                            {unreadCount > 0 && <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">{unreadCount}</span>}
                         </button>
                         <button className={`btn ${activeTab === 'settings' ? 'btn-primary' : 'btn-outline-primary'}`} onClick={() => setActiveTab('settings')}>⚙️ ตั้งค่าบัญชี</button>
                         <button className="btn btn-outline-danger" onClick={() => confirmAction('ออกจากระบบ', 'ยืนยัน?', () => { localStorage.removeItem('user'); navigate('/'); })}>ออก</button>
@@ -791,6 +824,69 @@ function Customer() {
                                 </div>
                             </div>
                         ))
+                    )}
+                </div>
+            )}
+
+            {/* TAB: Notifications */}
+            {activeTab === 'notifications' && (
+                <div className="card shadow-sm p-4" style={{maxWidth: '700px', margin: '0 auto'}}>
+                    <h4 className="mb-4">🔔 การแจ้งเตือน</h4>
+
+                    {myNotifications.length === 0 ? (
+                        <div className="text-center text-muted py-5">
+                            <div style={{fontSize: '3rem'}}>🔕</div>
+                            <div className="mt-2">ยังไม่มีการแจ้งเตือน</div>
+                        </div>
+                    ) : (
+                        <div>
+                            {myNotifications.map((n, i) => {
+                                const typeIcon = {
+                                    ban: '🔨',
+                                    unban: '✅',
+                                    ticket_update: '📋',
+                                    admin_message: '📢'
+                                }[n.type] || '🔔';
+
+                                const typeBg = {
+                                    ban: '#fff5f5',
+                                    unban: '#f0fff4',
+                                    ticket_update: '#fffbeb',
+                                    admin_message: '#f0f8ff'
+                                }[n.type] || '#ffffff';
+
+                                const typeBorder = {
+                                    ban: '#fc8181',
+                                    unban: '#68d391',
+                                    ticket_update: '#f6ad55',
+                                    admin_message: '#63b3ed'
+                                }[n.type] || '#e2e8f0';
+
+                                return (
+                                    <div
+                                        key={i}
+                                        className="mb-3 p-3 rounded border"
+                                        style={{
+                                            background: typeBg,
+                                            borderColor: typeBorder,
+                                            borderLeft: `4px solid ${typeBorder}`,
+                                            opacity: n.is_read == '1' ? 0.75 : 1
+                                        }}
+                                    >
+                                        <div className="d-flex justify-content-between align-items-start mb-1">
+                                            <div className="d-flex align-items-center gap-2">
+                                                <span style={{fontSize: '1.2rem'}}>{typeIcon}</span>
+                                                <strong className="small">{n.category}</strong>
+                                                {n.is_read == '0' && <span className="badge bg-danger" style={{fontSize: '0.6rem'}}>ใหม่</span>}
+                                            </div>
+                                            <small className="text-muted">{n.created_at?.split(' ')[0]} {n.created_at?.split(' ')[1]?.substring(0,5)}</small>
+                                        </div>
+                                        <p className="mb-1 small">{n.message}</p>
+                                        {n.admin_name && <small className="text-muted">โดย: {n.admin_name}</small>}
+                                    </div>
+                                );
+                            })}
+                        </div>
                     )}
                 </div>
             )}
@@ -1154,7 +1250,7 @@ function Customer() {
                     </div>
                 </div>
             )}
-            {/*  Mobile Bottom Navigation  */}
+            {/* Mobile Bottom Navigation */}
             <div className="d-block d-md-none fixed-bottom bg-white border-top shadow-lg" style={{zIndex: 1050}}>
                 <div className="d-flex justify-content-around py-2">
                     <button className={`btn border-0 ${activeTab === 'shops' ? 'text-primary' : 'text-muted'}`} onClick={() => setActiveTab('shops')}>
@@ -1165,6 +1261,12 @@ function Customer() {
                         <div style={{fontSize: '1.5rem'}}>📜</div>
                         <small style={{fontSize: '0.7rem'}}>ออเดอร์</small>
                         {activeOrdersCount > 0 && <span className="position-absolute top-0 start-70 translate-middle badge rounded-pill bg-danger" style={{fontSize: '0.6rem'}}>{activeOrdersCount}</span>}
+                    </button>
+                    <button className={`btn border-0 position-relative ${activeTab === 'notifications' ? 'text-primary' : 'text-muted'}`}
+                        onClick={() => { setActiveTab('notifications'); markNotificationsRead(); }}>
+                        <div style={{fontSize: '1.5rem'}}>🔔</div>
+                        <small style={{fontSize: '0.7rem'}}>แจ้งเตือน</small>
+                        {unreadCount > 0 && <span className="position-absolute top-0 start-70 translate-middle badge rounded-pill bg-danger" style={{fontSize: '0.6rem'}}>{unreadCount}</span>}
                     </button>
                     <button className={`btn border-0 ${activeTab === 'settings' ? 'text-primary' : 'text-muted'}`} onClick={() => setActiveTab('settings')}>
                         <div style={{fontSize: '1.5rem'}}>⚙️</div>

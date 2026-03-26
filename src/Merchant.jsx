@@ -33,6 +33,17 @@ function Merchant() {
     });
     const [deleteConfirmUsername, setDeleteConfirmUsername] = useState('');
 
+    // Ban States
+    const [isBanned, setIsBanned] = useState(false);
+    const [banInfo, setBanInfo] = useState({ reason: null, message: null });
+    const [banAppealMessage, setBanAppealMessage] = useState('');
+    const [appealStatus, setAppealStatus] = useState(null);
+    const [appealTicketId, setAppealTicketId] = useState(null);
+
+    // Notifications
+    const [myNotifications, setMyNotifications] = useState([]);
+    const [unreadCount, setUnreadCount] = useState(0);
+
     const [modal, setModal] = useState({ show: false, type: 'alert', title: '', message: '', onConfirm: null });
 
     useEffect(() => {
@@ -41,15 +52,52 @@ function Merchant() {
         const u = JSON.parse(storedUser);
         if (u.role !== 'merchant') { navigate('/customer'); return; }
         setUser(u);
-        
-        fetchShopData(u.id);
 
+        if (u.is_banned == 1) {
+            setIsBanned(true);
+            setBanInfo({ reason: u.ban_reason || 'ไม่ระบุ', message: u.ban_message || null });
+            fetchAppealStatus(u.id, u.banned_at);
+        }
+
+        fetchShopData(u.id);
+        fetchMyNotifications(u.id);
+
+        // Real-time ทุก 5 วิ - ทุกเมนู
         const interval = setInterval(() => {
             const currentUser = JSON.parse(localStorage.getItem('user'));
-            if(currentUser && currentUser.shop_id) fetchOrders(currentUser.shop_id, 'active');
+            if (currentUser?.shop_id) fetchOrders(currentUser.shop_id, 'active');
+            fetchMyNotifications(u.id);
         }, 5000);
         return () => clearInterval(interval);
     }, []);
+
+    // check_ban real-time
+    useEffect(() => {
+        if (!user) return;
+
+        const checkBan = async () => {
+            try {
+                const res = await axios.get(`http://192.168.1.36/LMOrder/api/customer.php?action=check_ban&user_id=${user.id}`);
+                if (res.data.is_banned == 1) {
+                    setIsBanned(true);
+                    setBanInfo({
+                        reason: res.data.ban_reason || 'ไม่ระบุ',
+                        message: res.data.ban_message || null
+                    });
+                    fetchAppealStatus(user.id, res.data.banned_at);
+                } else {
+                    setIsBanned(false);
+                    setBanInfo({ reason: null, message: null });
+                    setAppealStatus(null);
+                    setAppealTicketId(null);
+                }
+            } catch (err) { console.error(err); }
+        };
+
+        checkBan();
+        const banInterval = setInterval(checkBan, 5000);
+        return () => clearInterval(banInterval);
+    }, [user]);
 
     // Fetch Settings when tab changes
     useEffect(() => {
@@ -61,6 +109,59 @@ function Merchant() {
     const showAlert = (title, message) => setModal({ show: true, type: 'alert', title, message, onConfirm: () => setModal({ ...modal, show: false }) });
     const confirmAction = (title, message, action) => setModal({ show: true, type: 'confirm', title, message, onConfirm: () => { action(); setModal({ ...modal, show: false }); } });
     const closeModal = () => setModal({ ...modal, show: false });
+
+    const fetchAppealStatus = async (uid, bannedAt = null) => {
+        try {
+            let url = `http://192.168.1.36/LMOrder/api/admin.php?action=get_my_appeal&user_id=${uid}`;
+            if (bannedAt) url += `&banned_at=${encodeURIComponent(bannedAt)}`;
+            const res = await axios.get(url);
+            if (res.data.status === 'success' && res.data.ticket) {
+                setAppealStatus(res.data.ticket.status);
+                setAppealTicketId(res.data.ticket.id);
+            } else {
+                setAppealStatus(null);
+                setAppealTicketId(null);
+            }
+        } catch (err) { console.error(err); }
+    };
+
+    const handleAppeal = async () => {
+        if (!banAppealMessage.trim()) return;
+        try {
+            await axios.post('http://192.168.1.36/LMOrder/api/admin.php', {
+                action: 'submit_ticket',
+                sender_id: user.id,
+                target_id: null,
+                type: 'request',
+                subject: `ขออุทธรณ์การแบน — ${user.fullname}`,
+                message: banAppealMessage
+            });
+            setBanAppealMessage('');
+            fetchAppealStatus(user.id);
+        } catch (err) { console.error(err); }
+    };
+
+    const fetchMyNotifications = async (uid) => {
+        try {
+            const res = await axios.get(`http://192.168.1.36/LMOrder/api/admin.php?action=get_my_notifications&user_id=${uid}`);
+            if (res.data.status === 'success') {
+                setMyNotifications(res.data.notifications);
+                setUnreadCount(res.data.unread_count);
+            }
+        } catch (err) { console.error(err); }
+    };
+
+    const markNotificationsRead = async () => {
+        if (!user || unreadCount === 0) return;
+        try {
+            await axios.post('http://192.168.1.36/LMOrder/api/admin.php', {
+                action: 'mark_notifications_read',
+                user_id: user.id
+            });
+            setUnreadCount(0);
+            setMyNotifications(prev => prev.map(n => ({ ...n, is_read: '1' })));
+        } catch (err) { console.error(err); }
+    };
 
     //  Data Fetching 
     const fetchShopData = async (ownerId) => {
@@ -276,6 +377,13 @@ function Merchant() {
                         <button className={`btn ${activeTab === 'orders' ? 'btn-primary' : 'btn-outline-primary'}`} onClick={() => handleTabChange('orders')}>🔔 ออเดอร์ ({orders.length})</button>
                         <button className={`btn ${activeTab === 'menu' ? 'btn-primary' : 'btn-outline-primary'}`} onClick={() => handleTabChange('menu')}>🍽️ จัดการเมนู</button>
                         <button className={`btn ${activeTab === 'history' ? 'btn-primary' : 'btn-outline-primary'}`} onClick={() => handleTabChange('history')}>📜 ประวัติ</button>
+                        <button
+                            className={`btn position-relative ${activeTab === 'notifications' ? 'btn-primary' : 'btn-outline-primary'}`}
+                            onClick={() => { handleTabChange('notifications'); markNotificationsRead(); }}
+                        >
+                            🔔 แจ้งเตือน
+                            {unreadCount > 0 && <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">{unreadCount}</span>}
+                        </button>
                         <button className={`btn ${activeTab === 'settings' ? 'btn-primary' : 'btn-outline-primary'}`} onClick={() => handleTabChange('settings')}>⚙️ ตั้งค่าร้าน</button>
                         <button className="btn btn-outline-danger" onClick={() => confirmAction('ออกจากระบบ', 'ยืนยัน?', () => { localStorage.removeItem('user'); navigate('/'); })}>ออก</button>
                     </div>
@@ -428,7 +536,43 @@ function Merchant() {
                 </div>
             )}
 
-            {/* TAB: Settings (New) */}
+            {/* TAB: Notifications */}
+            {activeTab === 'notifications' && (
+                <div className="card shadow-sm p-4" style={{maxWidth: '700px', margin: '0 auto'}}>
+                    <h4 className="mb-4">🔔 การแจ้งเตือน</h4>
+                    {myNotifications.length === 0 ? (
+                        <div className="text-center text-muted py-5">
+                            <div style={{fontSize: '3rem'}}>🔕</div>
+                            <div className="mt-2">ยังไม่มีการแจ้งเตือน</div>
+                        </div>
+                    ) : (
+                        <div>
+                            {myNotifications.map((n, i) => {
+                                const typeIcon = { ban: '🔨', unban: '✅', ticket_update: '📋', admin_message: '📢' }[n.type] || '🔔';
+                                const typeBg = { ban: '#fff5f5', unban: '#f0fff4', ticket_update: '#fffbeb', admin_message: '#f0f8ff' }[n.type] || '#ffffff';
+                                const typeBorder = { ban: '#fc8181', unban: '#68d391', ticket_update: '#f6ad55', admin_message: '#63b3ed' }[n.type] || '#e2e8f0';
+                                return (
+                                    <div key={i} className="mb-3 p-3 rounded border"
+                                        style={{ background: typeBg, borderColor: typeBorder, borderLeft: `4px solid ${typeBorder}`, opacity: n.is_read == '1' ? 0.75 : 1 }}>
+                                        <div className="d-flex justify-content-between align-items-start mb-1">
+                                            <div className="d-flex align-items-center gap-2">
+                                                <span style={{fontSize: '1.2rem'}}>{typeIcon}</span>
+                                                <strong className="small">{n.category}</strong>
+                                                {n.is_read == '0' && <span className="badge bg-danger" style={{fontSize: '0.6rem'}}>ใหม่</span>}
+                                            </div>
+                                            <small className="text-muted">{n.created_at?.split(' ')[0]} {n.created_at?.split(' ')[1]?.substring(0,5)}</small>
+                                        </div>
+                                        <p className="mb-1 small">{n.message}</p>
+                                        {n.admin_name && <small className="text-muted">โดย: {n.admin_name}</small>}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* TAB: Settings */}
             {activeTab === 'settings' && (
                 <div className="card shadow-sm p-4 mx-auto" style={{maxWidth: '800px'}}>
                     <h3 className="mb-4 text-primary">⚙️ ตั้งค่าบัญชีร้านค้า</h3>
@@ -510,6 +654,80 @@ function Merchant() {
                             <input className="form-control" placeholder={`พิมพ์ ${shopSettings.username} ที่นี่`} value={deleteConfirmUsername} onChange={e => setDeleteConfirmUsername(e.target.value)} />
                         </div>
                         <button className="btn btn-danger w-100" disabled={deleteConfirmUsername !== shopSettings.username} onClick={handleDeleteAccount}>ยืนยันลบบัญชีถาวร</button>
+                    </div>
+                </div>
+            )}
+
+            {/* Popup แจ้งโดนแบน */}
+            {isBanned && (
+                <div className="modal-overlay" style={{zIndex: 99999}}>
+                    <div className="modal-box" style={{maxWidth: '480px'}}>
+                        <div className="text-center mb-3">
+                            <div style={{fontSize: '3rem'}}>🔨</div>
+                            <h3 className="text-danger mb-1">บัญชีถูกระงับ</h3>
+                            <p className="text-muted mb-0">บัญชีร้านค้าของคุณถูกแอดมินระงับการใช้งาน</p>
+                        </div>
+
+                        {/* เหตุผลการแบน */}
+                        <div className="alert alert-danger py-2 mb-3 text-start">
+                            <strong>เหตุผล:</strong> {banInfo.reason || 'ไม่ระบุ'}
+                            {banInfo.message && <div className="mt-1 small">{banInfo.message}</div>}
+                        </div>
+
+                        {/* สถานะคำร้อง */}
+                        {appealStatus && (
+                            <div className={`alert py-2 mb-3 text-center fw-bold ${
+                                appealStatus === 'open'        ? 'alert-secondary' :
+                                appealStatus === 'in_progress' ? 'alert-warning'   :
+                                appealStatus === 'resolved'    ? 'alert-success'   :
+                                appealStatus === 'rejected'    ? 'alert-danger'    : 'alert-secondary'
+                            }`}>
+                                {{
+                                    open:        '⏳ รอแอดมินรับเรื่อง',
+                                    in_progress: '🔄 แอดมินกำลังดำเนินการ',
+                                    resolved:    '✅ คำร้องเสร็จสิ้น',
+                                    rejected:    '❌ คำร้องถูกปฏิเสธ',
+                                }[appealStatus]}
+                            </div>
+                        )}
+
+                        {/* ฟอร์มส่งคำร้อง */}
+                        {(appealStatus === null || appealStatus === 'resolved' || appealStatus === 'rejected') ? (
+                            <div className="mb-3">
+                                <label className="form-label fw-bold">📝 คำร้องขออุทธรณ์</label>
+                                {appealStatus === 'resolved' && <div className="small text-muted mb-2">คำร้องก่อนหน้าเสร็จสิ้นแล้ว สามารถส่งใหม่ได้</div>}
+                                {appealStatus === 'rejected' && <div className="small text-muted mb-2">คำร้องก่อนหน้าถูกปฏิเสธ สามารถส่งใหม่ได้</div>}
+                                <textarea
+                                    className="form-control"
+                                    rows="3"
+                                    placeholder="อธิบายเหตุผลที่ควรได้รับการปลดแบน..."
+                                    value={banAppealMessage}
+                                    onChange={e => setBanAppealMessage(e.target.value)}
+                                />
+                            </div>
+                        ) : (
+                            <div className="alert alert-light border mb-3 small text-muted text-center">
+                                🔒 ไม่สามารถส่งคำร้องได้ในขณะนี้<br/>กรุณารอแอดมินพิจารณาคำร้องที่ส่งไปแล้ว
+                            </div>
+                        )}
+
+                        <div className="d-flex gap-2">
+                            <button
+                                className="btn btn-outline-danger flex-fill"
+                                onClick={() => { localStorage.removeItem('user'); navigate('/'); }}
+                            >
+                                🚪 ออกจากระบบ
+                            </button>
+                            {(appealStatus === null || appealStatus === 'resolved' || appealStatus === 'rejected') && (
+                                <button
+                                    className="btn btn-primary flex-fill"
+                                    disabled={!banAppealMessage.trim()}
+                                    onClick={handleAppeal}
+                                >
+                                    📨 ส่งคำร้อง
+                                </button>
+                            )}
+                        </div>
                     </div>
                 </div>
             )}

@@ -132,6 +132,8 @@ function Admin() {
     const [banForm, setBanForm] = useState({ category: '', message: '' });
     const [banTargetUser, setBanTargetUser] = useState(null);
 
+    const [pendingTicketsCount, setPendingTicketsCount] = useState(0);
+
     useEffect(() => {
         const stored = localStorage.getItem('user');
         if (!stored) { navigate('/'); return; }
@@ -139,6 +141,14 @@ function Admin() {
         if (u.role !== 'admin') { navigate('/'); return; }
         setAdmin(u);
         fetchUsers(u);
+        fetchPendingTicketsCount();
+
+        // Real-time ทุก 5 วิ - ทุกเมนู
+        const interval = setInterval(() => {
+            fetchPendingTicketsCount();
+            // real-time 
+        }, 5000);
+        return () => clearInterval(interval);
     }, []);
 
     useEffect(() => {
@@ -162,6 +172,16 @@ function Admin() {
         if (selectedUser) fetchUserDetail(selectedUser.id);
     }, [orderSearch, orderStatusFilter]);
 
+    useEffect(() => {
+        if (!admin) return;
+        const interval = setInterval(() => {
+            if (activeTab === 'users' && selectedUser) fetchUserDetail(selectedUser.id);
+            if (activeTab === 'tickets') fetchTickets();
+            if (activeTab === 'logs') fetchLogs();
+        }, 5000);
+        return () => clearInterval(interval);
+    }, [admin, activeTab, selectedUser]);
+
     //  API helpers 
     const fetchUsers = async (adminUser) => {
         const a = adminUser || admin;
@@ -171,6 +191,13 @@ function Admin() {
             if (userRoleFilter !== 'all') params.append('role', userRoleFilter);
             const res = await axios.get(`${API}/admin.php?${params}`);
             if (res.data.status === 'success') setUsers(res.data.users);
+        } catch (e) { console.error(e); }
+    };
+
+    const fetchPendingTicketsCount = async () => {
+        try {
+            const res = await axios.get(`${API}/admin.php?action=get_pending_tickets_count`);
+            if (res.data.status === 'success') setPendingTicketsCount(res.data.count);
         } catch (e) { console.error(e); }
     };
 
@@ -377,15 +404,20 @@ function Admin() {
                     <div className="d-flex gap-2 flex-wrap">
                         {[
                             { key: 'users', icon: '👥', label: 'ผู้ใช้' },
-                            { key: 'tickets', icon: '📨', label: 'คำร้อง' },
+                            { key: 'tickets', icon: '📨', label: 'คำร้อง', badge: pendingTicketsCount },
                             { key: 'logs', icon: '📋', label: 'ประวัติ' },
                         ].map(tab => (
                             <button
                                 key={tab.key}
-                                className={`btn ${activeTab === tab.key ? 'btn-danger' : 'btn-outline-danger'}`}
+                                className={`btn position-relative ${activeTab === tab.key ? 'btn-danger' : 'btn-outline-danger'}`}
                                 onClick={() => setActiveTab(tab.key)}
                             >
                                 {tab.icon} {tab.label}
+                                {tab.badge > 0 && (
+                                    <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning text-dark">
+                                        {tab.badge}
+                                    </span>
+                                )}
                             </button>
                         ))}
                         <button

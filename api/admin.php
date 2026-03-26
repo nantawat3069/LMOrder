@@ -132,8 +132,13 @@ elseif ($method == 'POST' && $action == 'toggle_ban') {
 
     if ($ban_status == 1) {
         $conn->query("UPDATE users SET is_banned=1, ban_reason='$ban_reason', ban_message='$ban_message', banned_at=NOW() WHERE id='$target_id'");
+        // บันทึก notification แบน
+        $notif_msg = "บัญชีของคุณถูกระงับ เหตุผล: $ban_reason" . ($ban_message ? " — $ban_message" : "");
+        $conn->query("INSERT INTO notifications (user_id, admin_id, category, type, message) VALUES ('$target_id', '$admin_id', 'การแบน', 'ban', '$notif_msg')");
     } else {
         $conn->query("UPDATE users SET is_banned=0, ban_reason=NULL, ban_message=NULL, banned_at=NULL WHERE id='$target_id'");
+        // บันทึก notification ปลดแบน
+        $conn->query("INSERT INTO notifications (user_id, admin_id, category, type, message) VALUES ('$target_id', '$admin_id', 'การปลดแบน', 'unban', 'บัญชีของคุณได้รับการปลดแบนแล้ว สามารถใช้งานได้ตามปกติ')");
     }
 
     $action_type = $ban_status == 1 ? 'ban' : 'unban';
@@ -267,17 +272,65 @@ elseif ($method == 'GET' && $action == 'get_tickets') {
 
 // อัปเดตสถานะ Ticket
 elseif ($method == 'POST' && $action == 'update_ticket') {
-    $admin_id = $data->admin_id;
+    $admin_id  = $data->admin_id;
     $ticket_id = $data->ticket_id;
-    $status = $data->status; // resolved | rejected | in_progress
+    $status    = $data->status;
 
     $conn->query("UPDATE tickets SET status='$status' WHERE id='$ticket_id'");
+
+    // ดึง sender_id และ subject ของ ticket
+    $t_res = $conn->query("SELECT sender_id, subject FROM tickets WHERE id='$ticket_id'");
+    $t = $t_res->fetch_assoc();
+
+    $status_labels = [
+        'in_progress' => 'กำลังดำเนินการ',
+        'resolved'    => 'เสร็จสิ้น',
+        'rejected'    => 'ถูกปฏิเสธ'
+    ];
+    $label = $status_labels[$status] ?? $status;
+    $notif_msg = "คำร้องของคุณ \"{$t['subject']}\" อัปเดตสถานะเป็น: $label";
+    $sender_id = $t['sender_id'];
+    $conn->query("INSERT INTO notifications (user_id, admin_id, category, type, message) VALUES ('$sender_id', '$admin_id', 'อัปเดตคำร้อง', 'ticket_update', '$notif_msg')");
 
     $action_type = ($status === 'resolved') ? 'resolve_ticket' : 'reject_ticket';
     $detail = "อัปเดต Ticket #$ticket_id เป็น $status";
     $conn->query("INSERT INTO admin_logs (admin_id, action, target_user_id, detail) VALUES ('$admin_id', '$action_type', NULL, '$detail')");
 
     echo json_encode(["status" => "success"]);
+}
+
+// ดึง notifications ของ user พร้อม unread count
+elseif ($method == 'GET' && $action == 'get_my_notifications') {
+    $user_id = $_GET['user_id'];
+    $sql = "SELECT n.*, u.fullname as admin_name 
+            FROM notifications n 
+            LEFT JOIN users u ON n.admin_id = u.id 
+            WHERE n.user_id = '$user_id' 
+            ORDER BY n.created_at DESC 
+            LIMIT 50";
+    $result = $conn->query($sql);
+    $notifs = [];
+    while ($row = $result->fetch_assoc()) $notifs[] = $row;
+
+    // นับ unread
+    $unread_res = $conn->query("SELECT COUNT(*) as cnt FROM notifications WHERE user_id='$user_id' AND is_read=0");
+    $unread = $unread_res->fetch_assoc()['cnt'];
+
+    echo json_encode(["status" => "success", "notifications" => $notifs, "unread_count" => (int)$unread]);
+}
+
+// mark all read
+elseif ($method == 'POST' && $action == 'mark_notifications_read') {
+    $user_id = $data->user_id;
+    $conn->query("UPDATE notifications SET is_read=1 WHERE user_id='$user_id'");
+    echo json_encode(["status" => "success"]);
+}
+
+// นับ pending tickets สำหรับ Admin badge
+elseif ($method == 'GET' && $action == 'get_pending_tickets_count') {
+    $result = $conn->query("SELECT COUNT(*) as cnt FROM tickets WHERE status IN ('open','in_progress')");
+    $cnt = $result->fetch_assoc()['cnt'];
+    echo json_encode(["status" => "success", "count" => (int)$cnt]);
 }
 
 // ดึง Admin Logs (ประวัติ)
