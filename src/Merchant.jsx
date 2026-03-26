@@ -59,16 +59,25 @@ function Merchant() {
             fetchAppealStatus(u.id, u.banned_at);
         }
 
-        fetchShopData(u.id);
-        fetchMyNotifications(u.id);
+        // ดึงข้อมูลร้านก่อน แล้วค่อยเริ่ม interval
+        fetchShopData(u.id).then((shopId) => {
+            if (!shopId) return;
 
-        // Real-time ทุก 5 วิ - ทุกเมนู
-        const interval = setInterval(() => {
-            const currentUser = JSON.parse(localStorage.getItem('user'));
-            if (currentUser?.shop_id) fetchOrders(currentUser.shop_id, 'active');
+            // fetch ครั้งแรกทันที
+            fetchOrders(shopId, 'active');
             fetchMyNotifications(u.id);
-        }, 5000);
-        return () => clearInterval(interval);
+
+            // Real-time ทุก 3 วิ
+            const interval = setInterval(() => {
+                fetchOrders(shopId, 'active');
+                fetchMyNotifications(u.id);
+            }, 3000);
+
+            // เก็บ interval id ไว้ใน ref เพื่อ cleanup
+            window._merchantInterval = interval;
+        });
+
+        return () => clearInterval(window._merchantInterval);
     }, []);
 
     // check_ban real-time
@@ -169,9 +178,10 @@ function Merchant() {
         if (res.data.status === 'success') {
             setShop(res.data.shop);
             setProducts(res.data.products);
-            fetchOrders(res.data.shop.id, 'active');
             setUser({ ...JSON.parse(localStorage.getItem('user')), shop_id: res.data.shop.id });
+            return res.data.shop.id; // ← เพิ่ม return
         }
+        return null;
     };
 
     const fetchOrders = async (sid, type) => {
