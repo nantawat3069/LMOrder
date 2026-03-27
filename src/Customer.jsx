@@ -68,6 +68,9 @@ function Customer() {
     const [myNotifications, setMyNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
 
+    // เก็บ URL สลิป
+    const [viewingSlip, setViewingSlip] = useState(null);
+
     const fetchMyNotifications = async (uid) => {
         try {
             const res = await axios.get(`http://192.168.1.36/LMOrder/api/admin.php?action=get_my_notifications&user_id=${uid}`);
@@ -386,8 +389,8 @@ function Customer() {
         });
     };
 
-    // ฟังก์ชันจริงที่ยิง API
-    const doPlaceOrder = async () => {
+    // ฟังก์ชันจริงที่ยิง API สั่งออเดอร์
+    const doPlaceOrder = async (slipFileToUpload = null) => {
         try {
             const res = await axios.post('http://192.168.1.36/LMOrder/api/order.php', {
                 action: 'place_order',
@@ -398,31 +401,40 @@ function Customer() {
                 payment_method: paymentMethod,
                 items: cart
             });
+
             if (res.data.status === 'success') {
+                // ถ้ามีสลิปให้ upload
+                if (slipFileToUpload && res.data.order_id) {
+                    const formData = new FormData();
+                    formData.append('action', 'upload_slip');
+                    formData.append('order_id', res.data.order_id);
+                    formData.append('slip', slipFileToUpload);
+                    await axios.post('http://192.168.1.36/LMOrder/api/order.php', formData);
+                }
+
                 showAlert('สำเร็จ', '✅ สั่งซื้อเรียบร้อย!');
                 setSelectedShop(null);
                 setActiveTab('orders');
                 setSlipFile(null);
                 setSlipPreview('');
+                setShowMobileCart(false);
             }
         } catch (err) { showAlert('Error', 'เกิดข้อผิดพลาด'); }
     };
 
-    // ฟังก์ชันกดยืนยัน - เช็คก่อนว่าต้องแสดง popup ไหม
+    // กดยืนยันสั่งซื้อปกติ (เงินสด / ธนาคารปลายทาง)
     const handlePlaceOrder = async () => {
         if (cart.length === 0) { showAlert('ตะกร้าว่าง', 'กรุณาเลือกสินค้าก่อนครับ'); return; }
         if (!selectedAddressId && !address) { showAlert('ข้อมูลไม่ครบ', 'กรุณาเลือกที่อยู่จัดส่งครับ'); return; }
 
         if (paymentMethod === 'ชำระทันที') {
-            // เปิด Popup แสดงข้อมูลธนาคาร/QR
             setSlipFile(null);
             setSlipPreview('');
             setShowPaymentPopup(true);
             return;
         }
 
-        // เงินสด หรือ ธนาคาร/QR ปลายทาง -> confirm แล้วสั่งเลย
-        confirmAction('ยืนยันการสั่งซื้อ', `ยอดรวม ${totalPrice.toLocaleString()} บาท ยืนยันหรือไม่?`, doPlaceOrder);
+        confirmAction('ยืนยันการสั่งซื้อ', `ยอดรวม ${totalPrice.toLocaleString()} บาท ยืนยันหรือไม่?`, () => doPlaceOrder(null));
     };
 
     // แก้ไข: ฟังก์ชันยกเลิกออเดอร์ แบบสลับหน้า Pop-up
@@ -539,12 +551,11 @@ function Customer() {
         return opts;
     };
 
-    // ส่งสลิป
+    // กดส่งสลิปจาก Popup ชำระทันที
     const handleSubmitSlip = async () => {
         if (!slipFile) { showAlert('แจ้งเตือน', 'กรุณาเลือกรูปสลิปก่อนครับ'); return; }
-        // เดี๋ยวทำ backend ทีหลัง — ตอนนี้แค่ปิด popup และสั่งซื้อเลย
         setShowPaymentPopup(false);
-        await doPlaceOrder();
+        await doPlaceOrder(slipFile);
     };
 
     const getStatusBadge = (status) => {
@@ -837,9 +848,23 @@ function Customer() {
                                         <div>
                                             <small className="d-block text-muted">ราคารวม</small>
                                             <h5 className="mb-0">{parseInt(o.total_price).toLocaleString()} บ.</h5>
+                                            {/* แสดงวิธีชำระ */}
+                                            {o.payment_method && (
+                                                <small className="text-muted">
+                                                    💳 {o.payment_method}
+                                                </small>
+                                            )}
                                         </div>
-                                        {/* ปุ่มขวาล่าง */}
                                         <div className="d-flex gap-2">
+                                            {/* ปุ่มดูสลิป (เฉพาะที่มีสลิป) */}
+                                            {o.slip_image && (
+                                                <button
+                                                    className="btn btn-sm btn-outline-primary"
+                                                    onClick={() => setViewingSlip(`http://192.168.1.36/LMOrder/uploads/${o.slip_image}`)}
+                                                >
+                                                    🧾 ดูสลิป
+                                                </button>
+                                            )}
                                             {/* ปุ่มสั่งอีกครั้ง */}
                                             <button
                                                 className="btn btn-sm btn-soft-primary"
@@ -860,10 +885,7 @@ function Customer() {
                                                 className="btn btn-sm btn-outline-danger"
                                                 onClick={() => {
                                                     const shop = shops.find(s => s.shop_name === o.shop_name);
-                                                    if (shop) {
-                                                        setSelectedShop(shop);
-                                                        setShowReportModal(true);
-                                                    }
+                                                    if (shop) { setSelectedShop(shop); setShowReportModal(true); }
                                                 }}
                                             >
                                                 🚨 รายงาน
@@ -1070,87 +1092,101 @@ function Customer() {
             {/* Popup ชำระทันที */}
             {showPaymentPopup && (
                 <div className="modal-overlay">
-                    <div className="modal-box" style={{maxWidth: '480px'}}>
-                        <div className="d-flex justify-content-between align-items-center mb-3">
-                            <h4 className="mb-0 text-primary">💳 ชำระเงิน</h4>
+                    <div className="modal-box" style={{maxWidth: '460px'}}>
+                        {/* Header */}
+                        <div className="d-flex justify-content-between align-items-center mb-2">
+                            <h5 className="mb-0 text-primary">💳 ชำระเงิน</h5>
                             <button className="btn-close" onClick={() => setShowPaymentPopup(false)}></button>
                         </div>
 
-                        {/* ยอดที่ต้องชำระ */}
-                        <div className="bg-light rounded p-3 mb-3 text-center">
-                            <div className="text-muted small mb-1">ยอดที่ต้องชำระ</div>
-                            <h2 className="text-primary fw-bold mb-0">{totalPrice.toLocaleString()} บาท</h2>
+                        {/* ยอด + ธนาคาร + QR — อยู่แถวเดียวกันถ้ามีทั้งคู่ */}
+                        <div className="d-flex gap-3 align-items-start mb-3">
+                            {/* ฝั่งซ้าย: ยอด + ธนาคาร */}
+                            <div className="flex-grow-1">
+                                <div className="bg-light rounded p-2 text-center mb-2">
+                                    <div className="text-muted" style={{fontSize:'0.75rem'}}>ยอดที่ต้องชำระ</div>
+                                    <h4 className="text-primary fw-bold mb-0">{totalPrice.toLocaleString()} บ.</h4>
+                                </div>
+
+                                {shopHasBank() && (
+                                    <div className="border rounded p-2" style={{fontSize:'1rem'}}>
+                                        <div className="fw-bold mb-1 small">🏦 บัญชีธนาคาร</div>
+                                        <div className="d-flex justify-content-between mb-1">
+                                            <span className="text-muted">ธนาคาร</span>
+                                            <strong>{selectedShop.bank_name}</strong>
+                                        </div>
+                                        <div className="d-flex justify-content-between mb-1">
+                                            <span className="text-muted">เลขบัญชี</span>
+                                            <strong className="text-primary">{selectedShop.bank_account}</strong>
+                                        </div>
+                                        <div className="d-flex justify-content-between">
+                                            <span className="text-muted">ชื่อบัญชี</span>
+                                            <strong>{selectedShop.bank_account_name}</strong>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* ฝั่งขวา: QR Code (ถ้ามี) */}
+                            {shopHasQR() && (
+                                <div className="text-center flex-shrink-0">
+                                    <div className="fw-bold mb-1 small">📱 QR Code</div>
+                                    <img
+                                        src={`http://192.168.1.36/LMOrder/uploads/${selectedShop.qr_code}`}
+                                        alt="QR Code"
+                                        style={{width: '160px', height: '160px', objectFit: 'contain', borderRadius: '8px', border: '1px solid #eee'}}
+                                    />
+                                </div>
+                            )}
                         </div>
 
-                        {/* ข้อมูลธนาคาร */}
-                        {shopHasBank() && (
-                            <div className="border rounded p-3 mb-3">
-                                <h6 className="fw-bold mb-2">🏦 ข้อมูลบัญชีธนาคาร</h6>
-                                <div className="d-flex justify-content-between small mb-1">
-                                    <span className="text-muted">ธนาคาร</span>
-                                    <strong>{selectedShop.bank_name}</strong>
-                                </div>
-                                <div className="d-flex justify-content-between small mb-1">
-                                    <span className="text-muted">เลขบัญชี</span>
-                                    <strong className="text-primary">{selectedShop.bank_account}</strong>
-                                </div>
-                                <div className="d-flex justify-content-between small">
-                                    <span className="text-muted">ชื่อบัญชี</span>
-                                    <strong>{selectedShop.bank_account_name}</strong>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* QR Code */}
-                        {shopHasQR() && (
-                            <div className="text-center mb-3">
-                                <h6 className="fw-bold mb-2">📱 QR Code สำหรับโอนเงิน</h6>
-                                <img
-                                    src={`http://192.168.1.36/LMOrder/uploads/${selectedShop.qr_code}`}
-                                    alt="QR Code"
-                                    style={{maxWidth: '220px', width: '100%', borderRadius: '12px', border: '1px solid #eee'}}
-                                />
-                            </div>
-                        )}
-
-                        <hr />
+                        <hr className="my-2" />
 
                         {/* อัปโหลดสลิป */}
-                        <div className="mb-3">
-                            <label className="form-label fw-bold">📎 แนบสลิปการโอน</label>
+                        <div className="mb-2">
+                            <label className="form-label fw-bold small mb-1">📎 แนบสลิปการโอน</label>
                             <input
                                 type="file"
-                                className="form-control mb-2"
+                                className="form-control form-control-sm mb-2"
                                 accept="image/*"
                                 onChange={e => {
                                     const file = e.target.files[0];
-                                    if (file) {
-                                        setSlipFile(file);
-                                        setSlipPreview(URL.createObjectURL(file));
-                                    }
+                                    if (file) { setSlipFile(file); setSlipPreview(URL.createObjectURL(file)); }
                                 }}
                             />
                             {slipPreview && (
                                 <img
                                     src={slipPreview}
                                     alt="slip preview"
-                                    style={{maxWidth: '100%', maxHeight: '200px', objectFit: 'contain', borderRadius: '8px', border: '1px solid #eee'}}
+                                    style={{maxWidth: '100%', maxHeight: '120px', objectFit: 'contain', borderRadius: '8px', border: '1px solid #eee'}}
                                 />
                             )}
                         </div>
 
-                        <div className="d-flex gap-2">
-                            <button className="btn btn-secondary flex-fill" onClick={() => setShowPaymentPopup(false)}>
-                                ยกเลิก
-                            </button>
-                            <button
-                                className="btn btn-success flex-fill"
-                                disabled={!slipFile}
-                                onClick={handleSubmitSlip}
-                            >
+                        <div className="d-flex gap-2 mt-3">
+                            <button className="btn btn-secondary flex-fill" onClick={() => setShowPaymentPopup(false)}>ยกเลิก</button>
+                            <button className="btn btn-success flex-fill" disabled={!slipFile} onClick={handleSubmitSlip}>
                                 ✅ ส่งสลิปและยืนยัน
                             </button>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Popup ดูสลิป */}
+            {viewingSlip && (
+                <div className="modal-overlay" onClick={() => setViewingSlip(null)}>
+                    <div className="modal-box" style={{maxWidth: '420px'}} onClick={e => e.stopPropagation()}>
+                        <div className="d-flex justify-content-between align-items-center mb-3">
+                            <h5 className="mb-0">🧾 สลิปการโอน</h5>
+                            <button className="btn-close" onClick={() => setViewingSlip(null)}></button>
+                        </div>
+                        <img
+                            src={viewingSlip}
+                            alt="slip"
+                            style={{width: '100%', borderRadius: '12px', border: '1px solid #eee'}}
+                        />
+                        <button className="btn btn-secondary w-100 mt-3" onClick={() => setViewingSlip(null)}>ปิด</button>
                     </div>
                 </div>
             )}

@@ -30,7 +30,7 @@ if ($action == 'place_order') {
             $stmt_item->bind_param("iisdiss", $order_id, $item->id, $item->name, $item->price, $item->qty, $sel_opts, $special_ins);
             $stmt_item->execute();
         }
-        echo json_encode(["status" => "success"]);
+        echo json_encode(["status" => "success", "order_id" => $order_id]);
     } else {
         echo json_encode(["status" => "error", "message" => $conn->error]);
     }
@@ -107,4 +107,21 @@ elseif ($action == 'close_notification') {
     $conn->query("UPDATE orders SET is_closed_notif = 1 WHERE id = '$order_id'");
     echo json_encode(["status" => "success"]);
 }
+
+// อัปโหลดสลิปการโอน
+elseif ($action == 'upload_slip') {
+    $order_id = $_POST['order_id'];
+
+    if (isset($_FILES['slip']) && $_FILES['slip']['error'] == 0) {
+        $ext = pathinfo($_FILES['slip']['name'], PATHINFO_EXTENSION);
+        $slip_name = "slip_" . $order_id . "_" . time() . "." . $ext;
+        move_uploaded_file($_FILES['slip']['tmp_name'], "../uploads/" . $slip_name);
+
+        $conn->query("UPDATE orders SET slip_image = '$slip_name' WHERE id = '$order_id'");
+        echo json_encode(["status" => "success", "slip_image" => $slip_name]);
+    } else {
+        echo json_encode(["status" => "error", "message" => "ไม่พบไฟล์"]);
+    }
+}
+
 ?>

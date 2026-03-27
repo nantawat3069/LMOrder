@@ -40,6 +40,8 @@ function Merchant() {
 
     const [reportCustomerModal, setReportCustomerModal] = useState({ show: false, order: null, category: '', message: '' });
 
+    const [viewingSlipMerchant, setViewingSlipMerchant] = useState(null);
+
     // Ban States
     const [isBanned, setIsBanned] = useState(false);
     const [banInfo, setBanInfo] = useState({ reason: null, message: null });
@@ -555,44 +557,73 @@ function Merchant() {
 
             {/* TAB: History */}
             {activeTab === 'history' && (
-                <div className="table-responsive">
-                    <h4 className="mb-3">📜 ประวัติยอดขาย (ออเดอร์ที่เสร็จสิ้น)</h4>
-                    {history.length === 0 ? <div className="text-center text-muted py-5">ยังไม่มีประวัติการขาย</div> : (
-                        <table className="table table-hover bg-white shadow-sm rounded align-middle">
-                            <thead className="table-light">
-                                <tr>
-                                    <th className="py-3 ps-3">ID</th>
-                                    <th className="py-3">วันที่ / เวลา</th>
-                                    <th className="py-3">ลูกค้า</th>
-                                    <th className="py-3" style={{width: '25%'}}>ที่อยู่จัดส่ง</th>
-                                    <th className="py-3">รายการอาหาร</th>
-                                    <th className="py-3">ยอดรวม</th>
-                                    <th className="py-3">สถานะ</th>
-                                    <th className="py-3 pe-3">รายงาน</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {history.map(o => (
-                                    <tr key={o.id}>
-                                        <td className="ps-3 fw-bold text-muted">#{o.id}</td>
-                                        <td><div className="d-flex flex-column"><span className="fw-medium">{o.order_time.split(' ')[0]}</span><small className="text-muted">{o.order_time.split(' ')[1].substring(0, 5)}</small></div></td>
-                                        <td><div className="fw-bold">{o.customer_name}</div><small className="text-muted">{o.customer_phone}</small></td>
-                                        <td><div style={{ maxWidth: '250px', whiteSpace: 'normal', wordWrap: 'break-word' }}><small className="text-dark">{o.address}</small></div></td>
-                                        <td><RenderOrderOptions items={o.items} /></td>
-                                        <td><h5 className="text-primary mb-0">{parseInt(o.total_price).toLocaleString()} บ.</h5></td>
-                                        <td>{o.status === 'completed' ? <span className="badge bg-success rounded-pill px-3 py-2">✅ สำเร็จ</span> : <span className="badge bg-danger rounded-pill px-3 py-2">❌ ยกเลิก</span>}</td>
-                                        <td className="pe-3">
-                                            <button
-                                                className="btn btn-sm btn-outline-danger"
-                                                onClick={() => setReportCustomerModal({ show: true, order: o, category: '', message: '' })}
-                                            >
-                                                🚨 รายงาน
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                <div>
+                    <h4 className="mb-4">📜 ประวัติยอดขาย (ออเดอร์ที่เสร็จสิ้น)</h4>
+                    {history.length === 0 ? (
+                        <div className="text-center text-muted py-5">ยังไม่มีประวัติการขาย</div>
+                    ) : (
+                        <div className="row">
+                            {history.map(o => (
+                                <div key={o.id} className="col-md-6 col-lg-4 mb-3">
+                                    <div className="card p-3 shadow-sm h-100 border-0">
+                                        {/* Header */}
+                                        <div className="d-flex justify-content-between align-items-start mb-2">
+                                            <div>
+                                                <h6 className="mb-0 fw-bold text-primary">#{o.id}</h6>
+                                                <small className="text-muted">{o.order_time?.split(' ')[0]} {o.order_time?.split(' ')[1]?.substring(0,5)}</small>
+                                            </div>
+                                            {o.status === 'completed'
+                                                ? <span className="badge bg-success rounded-pill px-3 py-2">✅ สำเร็จ</span>
+                                                : <span className="badge bg-danger rounded-pill px-3 py-2">❌ ยกเลิก</span>
+                                            }
+                                        </div>
+
+                                        {/* ลูกค้า */}
+                                        <div className="mb-2">
+                                            <span className="fw-bold">👤 {o.customer_name}</span>
+                                            <small className="text-muted ms-2">{o.customer_phone}</small>
+                                        </div>
+
+                                        {/* ที่อยู่ */}
+                                        <small className="text-muted d-block mb-2">📍 {o.address}</small>
+
+                                        {/* รายการอาหาร */}
+                                        <div className="bg-light p-2 rounded mb-2">
+                                            <RenderOrderOptions items={o.items} />
+                                        </div>
+
+                                        {/* ล่างสุด: ราคา + วิธีชำระ + ปุ่ม */}
+                                        <div className="d-flex justify-content-between align-items-end mt-auto pt-2">
+                                            <div>
+                                                <small className="d-block text-muted">ยอดรวม</small>
+                                                <h5 className="text-primary mb-0">{parseInt(o.total_price).toLocaleString()} บ.</h5>
+                                                {o.payment_method && (
+                                                    <small className="text-muted">💳 {o.payment_method}</small>
+                                                )}
+                                            </div>
+                                            <div className="d-flex gap-2">
+                                                {/* ปุ่มดูสลิป */}
+                                                {o.slip_image && (
+                                                    <button
+                                                        className="btn btn-sm btn-outline-primary"
+                                                        onClick={() => setViewingSlipMerchant(`http://192.168.1.36/LMOrder/uploads/${o.slip_image}`)}
+                                                    >
+                                                        🧾 ดูสลิป
+                                                    </button>
+                                                )}
+                                                {/* ปุ่มรายงาน */}
+                                                <button
+                                                    className="btn btn-sm btn-outline-danger"
+                                                    onClick={() => setReportCustomerModal({ show: true, order: o, category: '', message: '' })}
+                                                >
+                                                    🚨 รายงาน
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
                     )}
                 </div>
             )}
@@ -785,6 +816,20 @@ function Merchant() {
                             <input className="form-control" placeholder={`พิมพ์ ${shopSettings.username} ที่นี่`} value={deleteConfirmUsername} onChange={e => setDeleteConfirmUsername(e.target.value)} />
                         </div>
                         <button className="btn btn-danger w-100" disabled={deleteConfirmUsername !== shopSettings.username} onClick={handleDeleteAccount}>ยืนยันลบบัญชีถาวร</button>
+                    </div>
+                </div>
+            )}
+
+            {/* Popup ดูสลิป */}
+            {viewingSlipMerchant && (
+                <div className="modal-overlay" onClick={() => setViewingSlipMerchant(null)}>
+                    <div className="modal-box" style={{maxWidth: '420px'}} onClick={e => e.stopPropagation()}>
+                        <div className="d-flex justify-content-between align-items-center mb-3">
+                            <h5 className="mb-0">🧾 สลิปการโอน</h5>
+                            <button className="btn-close" onClick={() => setViewingSlipMerchant(null)}></button>
+                        </div>
+                        <img src={viewingSlipMerchant} alt="slip" style={{width: '100%', borderRadius: '12px', border: '1px solid #eee'}} />
+                        <button className="btn btn-secondary w-100 mt-3" onClick={() => setViewingSlipMerchant(null)}>ปิด</button>
                     </div>
                 </div>
             )}
