@@ -21,17 +21,24 @@ function Merchant() {
     const [shopSettings, setShopSettings] = useState({
         user_id: '',
         shop_id: '',
-        username: '', // Read-only
-        password: '', // Change pwd
+        username: '',
+        password: '',
         owner_name: '',
         owner_phone: '',
         shop_name: '',
         description: '',
         shop_address: '',
-        shop_image: null, // File Object
-        shop_image_preview: '' // URL for preview
+        shop_image: null,
+        shop_image_preview: '',
+        bank_name: '',
+        bank_account: '',
+        bank_account_name: '',
+        qr_code: null,
+        qr_code_preview: ''
     });
     const [deleteConfirmUsername, setDeleteConfirmUsername] = useState('');
+
+    const [reportCustomerModal, setReportCustomerModal] = useState({ show: false, order: null, category: '', message: '' });
 
     // Ban States
     const [isBanned, setIsBanned] = useState(false);
@@ -172,6 +179,22 @@ function Merchant() {
         } catch (err) { console.error(err); }
     };
 
+    const handleReportCustomer = async () => {
+        if (!reportCustomerModal.category) { showAlert('แจ้งเตือน', 'กรุณาเลือกหมวดหมู่การรายงาน'); return; }
+        try {
+            await axios.post('http://192.168.1.36/LMOrder/api/admin.php', {
+                action: 'submit_ticket',
+                sender_id: user.id,
+                target_id: reportCustomerModal.order.customer_id,
+                type: 'report',
+                subject: `รายงานลูกค้า: ${reportCustomerModal.order.customer_name} — ${reportCustomerModal.category}`,
+                message: reportCustomerModal.message || '(ไม่มีข้อความเพิ่มเติม)'
+            });
+            setReportCustomerModal({ show: false, order: null, category: '', message: '' });
+            showAlert('ส่งรายงานแล้ว', '✅ ส่งรายงานถึงแอดมินเรียบร้อยแล้ว');
+        } catch (err) { showAlert('ผิดพลาด', 'ไม่สามารถส่งรายงานได้'); }
+    };
+
     //  Data Fetching 
     const fetchShopData = async (ownerId) => {
         const res = await axios.get(`http://192.168.1.36/LMOrder/api/shop.php?action=get_shop_data&owner_id=${ownerId}`);
@@ -213,7 +236,12 @@ function Merchant() {
                     description: d.description || '',
                     shop_address: d.shop_address || '',
                     shop_image: null,
-                    shop_image_preview: d.shop_image ? `http://192.168.1.36/LMOrder/uploads/${d.shop_image}` : ''
+                    shop_image_preview: d.shop_image ? `http://192.168.1.36/LMOrder/uploads/${d.shop_image}` : '',
+                    bank_name: d.bank_name || '',
+                    bank_account: d.bank_account || '',
+                    bank_account_name: d.bank_account_name || '',
+                    qr_code: null,
+                    qr_code_preview: d.qr_code ? `http://192.168.1.36/LMOrder/uploads/${d.qr_code}` : ''
                 });
             }
         } catch (err) { console.error(err); }
@@ -304,7 +332,10 @@ function Merchant() {
             formData.append('description', shopSettings.description);
             formData.append('shop_address', shopSettings.shop_address);
             if (shopSettings.shop_image) formData.append('shop_image', shopSettings.shop_image);
-
+            formData.append('bank_name', shopSettings.bank_name); //ใหม่มะกี้
+            formData.append('bank_account', shopSettings.bank_account);
+            formData.append('bank_account_name', shopSettings.bank_account_name);
+            if (shopSettings.qr_code) formData.append('qr_code', shopSettings.qr_code);
             try {
                 const res = await axios.post('http://192.168.1.36/LMOrder/api/shop.php', formData);
                 if(res.data.status === 'success') {
@@ -344,6 +375,17 @@ function Merchant() {
                 ...shopSettings,
                 shop_image: file,
                 shop_image_preview: URL.createObjectURL(file)
+            });
+        }
+    };
+
+    const handleQrCodeChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setShopSettings({
+                ...shopSettings,
+                qr_code: file,
+                qr_code_preview: URL.createObjectURL(file)
             });
         }
     };
@@ -525,7 +567,8 @@ function Merchant() {
                                     <th className="py-3" style={{width: '25%'}}>ที่อยู่จัดส่ง</th>
                                     <th className="py-3">รายการอาหาร</th>
                                     <th className="py-3">ยอดรวม</th>
-                                    <th className="py-3 pe-3">สถานะ</th>
+                                    <th className="py-3">สถานะ</th>
+                                    <th className="py-3 pe-3">รายงาน</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -537,7 +580,15 @@ function Merchant() {
                                         <td><div style={{ maxWidth: '250px', whiteSpace: 'normal', wordWrap: 'break-word' }}><small className="text-dark">{o.address}</small></div></td>
                                         <td><RenderOrderOptions items={o.items} /></td>
                                         <td><h5 className="text-primary mb-0">{parseInt(o.total_price).toLocaleString()} บ.</h5></td>
-                                        <td className="pe-3">{o.status === 'completed' ? <span className="badge bg-success rounded-pill px-3 py-2">✅ สำเร็จ</span> : <span className="badge bg-danger rounded-pill px-3 py-2">❌ ยกเลิก</span>}</td>
+                                        <td>{o.status === 'completed' ? <span className="badge bg-success rounded-pill px-3 py-2">✅ สำเร็จ</span> : <span className="badge bg-danger rounded-pill px-3 py-2">❌ ยกเลิก</span>}</td>
+                                        <td className="pe-3">
+                                            <button
+                                                className="btn btn-sm btn-outline-danger"
+                                                onClick={() => setReportCustomerModal({ show: true, order: o, category: '', message: '' })}
+                                            >
+                                                🚨 รายงาน
+                                            </button>
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -650,6 +701,76 @@ function Merchant() {
                         <input className="form-control" type="password" placeholder="รหัสผ่านใหม่" value={shopSettings.password} onChange={e => setShopSettings({...shopSettings, password: e.target.value})} />
                     </div>
 
+                    <hr className="my-4"/>
+                    <h5 className="mb-3 text-muted">💳 ข้อมูลการรับชำระเงิน</h5>
+
+                    <div className="row mb-3">
+                        <div className="col-md-4 mb-3">
+                            <label className="form-label fw-bold">ธนาคาร</label>
+                            <select className="form-select" value={shopSettings.bank_name} onChange={e => setShopSettings({...shopSettings, bank_name: e.target.value})}>
+                                <option value="">-- เลือกธนาคาร --</option>
+                                {['กสิกรไทย (KBANK)', 'ไทยพาณิชย์ (SCB)', 'กรุงเทพ (BBL)', 'กรุงไทย (KTB)', 'กรุงศรี (BAY)', 'ทหารไทยธนชาต (TTB)', 'ออมสิน (GSB)', 'ธ.ก.ส. (BAAC)', 'ซีไอเอ็มบีไทย (CIMB)', 'พร้อมเพย์ (PromptPay)'].map(b => (
+                                    <option key={b} value={b}>{b}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="col-md-4 mb-3">
+                            <label className="form-label fw-bold">เลขบัญชี / เบอร์พร้อมเพย์</label>
+                            <input
+                                className="form-control"
+                                placeholder="เช่น 123-4-56789-0"
+                                value={shopSettings.bank_account}
+                                onChange={e => setShopSettings({...shopSettings, bank_account: e.target.value})}
+                            />
+                        </div>
+                        <div className="col-md-4 mb-3">
+                            <label className="form-label fw-bold">ชื่อบัญชี</label>
+                            <input
+                                className="form-control"
+                                placeholder="ชื่อเจ้าของบัญชี"
+                                value={shopSettings.bank_account_name}
+                                onChange={e => setShopSettings({...shopSettings, bank_account_name: e.target.value})}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="mb-3">
+                        <label className="form-label fw-bold">QR Code สำหรับรับเงิน</label>
+                        <div className="d-flex align-items-start gap-4">
+                            {/* Preview รูป QR */}
+                            <div className="border rounded p-2 bg-light text-center" style={{minWidth: '130px'}}>
+                                {shopSettings.qr_code_preview ? (
+                                    <img
+                                        src={shopSettings.qr_code_preview}
+                                        alt="QR Code"
+                                        style={{width: '120px', height: '120px', objectFit: 'contain'}}
+                                    />
+                                ) : (
+                                    <div className="d-flex flex-column align-items-center justify-content-center text-muted" style={{width: '120px', height: '120px'}}>
+                                        <span style={{fontSize: '2.5rem'}}>📷</span>
+                                        <small>ยังไม่มีรูป</small>
+                                    </div>
+                                )}
+                            </div>
+                            {/* ปุ่มอัปโหลด */}
+                            <div>
+                                <label className="btn btn-outline-primary mb-2">
+                                    📁 เลือกรูป QR Code
+                                    <input type="file" hidden accept="image/*" onChange={handleQrCodeChange} />
+                                </label>
+                                <div className="text-muted small">รองรับ JPG, PNG — แนะนำให้ใช้รูปสี่เหลี่ยมจัตุรัส</div>
+                                {shopSettings.qr_code_preview && (
+                                    <button
+                                        className="btn btn-sm btn-outline-danger mt-2"
+                                        onClick={() => setShopSettings({...shopSettings, qr_code: null, qr_code_preview: ''})}
+                                    >
+                                        ✕ ลบรูป QR
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
                     <div className="d-grid gap-2">
                         <button className="btn btn-primary py-2" onClick={handleSaveSettings}>💾 บันทึกการเปลี่ยนแปลง</button>
                     </div>
@@ -664,6 +785,61 @@ function Merchant() {
                             <input className="form-control" placeholder={`พิมพ์ ${shopSettings.username} ที่นี่`} value={deleteConfirmUsername} onChange={e => setDeleteConfirmUsername(e.target.value)} />
                         </div>
                         <button className="btn btn-danger w-100" disabled={deleteConfirmUsername !== shopSettings.username} onClick={handleDeleteAccount}>ยืนยันลบบัญชีถาวร</button>
+                    </div>
+                </div>
+            )}
+
+            {/* Popup รายงานลูกค้า */}
+            {reportCustomerModal.show && (
+                <div className="modal-overlay">
+                    <div className="modal-box" style={{maxWidth: '480px'}}>
+                        <div className="d-flex justify-content-between align-items-center mb-3">
+                            <h4 className="mb-0 text-danger">🚨 รายงานลูกค้า</h4>
+                            <button className="btn-close" onClick={() => setReportCustomerModal({ show: false, order: null, category: '', message: '' })}></button>
+                        </div>
+                        <p className="text-muted small mb-3">
+                            ลูกค้า: <strong>{reportCustomerModal.order?.customer_name}</strong>
+                            <span className="ms-2 text-muted">({reportCustomerModal.order?.customer_phone})</span>
+                            <br/>ออเดอร์: <strong>#{reportCustomerModal.order?.id}</strong>
+                        </p>
+
+                        <div className="mb-3">
+                            <label className="form-label fw-bold">หมวดหมู่การรายงาน <span className="text-danger">*</span></label>
+                            <div className="d-flex flex-wrap gap-2">
+                                {[
+                                    'สแปมออเดอร์',
+                                    'ยกเลิกซ้ำๆ',
+                                    'พฤติกรรมก้าวร้าว',
+                                    'ข้อมูลปลอม',
+                                    'ไม่รับสินค้า',
+                                    'อื่นๆ'
+                                ].map(cat => (
+                                    <button
+                                        key={cat}
+                                        className={`btn btn-sm ${reportCustomerModal.category === cat ? 'btn-danger' : 'btn-outline-secondary'}`}
+                                        onClick={() => setReportCustomerModal({ ...reportCustomerModal, category: cat })}
+                                    >
+                                        {cat}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="mb-4">
+                            <label className="form-label fw-bold">รายละเอียดเพิ่มเติม</label>
+                            <textarea
+                                className="form-control"
+                                rows="3"
+                                placeholder="อธิบายเพิ่มเติม (ไม่บังคับ)..."
+                                value={reportCustomerModal.message}
+                                onChange={e => setReportCustomerModal({ ...reportCustomerModal, message: e.target.value })}
+                            />
+                        </div>
+
+                        <div className="d-flex gap-2">
+                            <button className="btn btn-secondary flex-fill" onClick={() => setReportCustomerModal({ show: false, order: null, category: '', message: '' })}>ยกเลิก</button>
+                            <button className="btn btn-danger flex-fill" onClick={handleReportCustomer}>📨 ส่งรายงาน</button>
+                        </div>
                     </div>
                 </div>
             )}

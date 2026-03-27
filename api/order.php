@@ -74,7 +74,7 @@ elseif ($action == 'get_shop_orders') {
     $shop_id = $_GET['shop_id'];
     $type = $_GET['type'];
     $where_status = ($type == 'history') ? "status IN ('completed', 'cancelled')" : "status NOT IN ('completed', 'cancelled')";
-    $sql = "SELECT o.*, u.fullname as customer_name, u.phone as customer_phone FROM orders o JOIN users u ON o.customer_id = u.id WHERE o.shop_id = '$shop_id' AND $where_status ORDER BY o.id DESC";
+    $sql = "SELECT o.*, u.fullname as customer_name, u.phone as customer_phone, u.id as customer_id FROM orders o JOIN users u ON o.customer_id = u.id WHERE o.shop_id = '$shop_id' AND $where_status ORDER BY o.id DESC";
     $result = $conn->query($sql);
     $orders = [];
     while($row = $result->fetch_assoc()) {

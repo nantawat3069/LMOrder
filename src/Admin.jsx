@@ -857,68 +857,167 @@ function Admin() {
                                 {/* View: โปรไฟล์ผู้ใช้ (inline ไม่เปลี่ยนแท็บ) */}
                                 {ticketViewingUser && userDetail && editForm && (
                                     <div style={{ maxHeight: '70vh', overflowY: 'auto' }}>
-                                        {/* Header โปรไฟล์ */}
+
+                                        {/* Header โปรไฟล์ — เหมือน users tab ทุกอย่าง */}
                                         <div className="d-flex align-items-center mb-4 p-3 rounded" style={{ background: '#f8f9fa' }}>
                                             <div className="rounded-circle d-flex align-items-center justify-content-center me-3 text-white"
-                                                style={{ width: 56, height: 56, background: userDetail.user.role === 'merchant' ? '#6c5ce7' : '#0984e3', fontSize: '1.5rem' }}>
+                                                style={{ width: 64, height: 64, background: userDetail.user.role === 'merchant' ? '#6c5ce7' : '#0984e3', fontSize: '1.8rem' }}>
                                                 {userDetail.user.role === 'merchant' ? '🏪' : '👤'}
                                             </div>
                                             <div>
-                                                <h5 className="mb-1">{userDetail.user.fullname}</h5>
+                                                <h4 className="mb-1">{userDetail.user.fullname}</h4>
                                                 <div className="d-flex gap-2 flex-wrap">
-                                                    <span className="text-muted small">@{userDetail.user.username}</span>
+                                                    <span className="text-muted">@{userDetail.user.username}</span>
                                                     {getRoleBadge(userDetail.user.role)}
                                                     {userDetail.user.is_banned == 1 && <span className="badge bg-danger">🔨 ถูกแบน</span>}
                                                 </div>
+                                                <small className="text-muted">สมัครเมื่อ: {userDetail.user.created_at}</small>
                                             </div>
                                         </div>
 
                                         {/* Edit Form */}
-                                        <div className="mb-3">
+                                        <div className="mb-4">
+                                            <h6 className="fw-bold mb-3">✏️ แก้ไขข้อมูล</h6>
                                             <div className="row">
-                                                <div className="col-6 mb-2">
+                                                <div className="col-md-6 mb-2">
                                                     <label className="small text-muted">ชื่อ-นามสกุล</label>
-                                                    <input className="form-control form-control-sm" value={editForm.fullname} onChange={e => setEditForm({ ...editForm, fullname: e.target.value })} />
+                                                    <input className="form-control" value={editForm.fullname} onChange={e => setEditForm({ ...editForm, fullname: e.target.value })} />
                                                 </div>
-                                                <div className="col-6 mb-2">
+                                                <div className="col-md-6 mb-2">
                                                     <label className="small text-muted">เบอร์โทร</label>
-                                                    <input className="form-control form-control-sm" value={editForm.phone} onChange={e => setEditForm({ ...editForm, phone: e.target.value })} />
+                                                    <input className="form-control" value={editForm.phone} onChange={e => setEditForm({ ...editForm, phone: e.target.value })} />
                                                 </div>
                                                 {userDetail.user.role === 'merchant' && <>
-                                                    <div className="col-6 mb-2">
+                                                    <div className="col-md-6 mb-2">
                                                         <label className="small text-muted">ชื่อร้าน</label>
-                                                        <input className="form-control form-control-sm" value={editForm.shop_name} onChange={e => setEditForm({ ...editForm, shop_name: e.target.value })} />
+                                                        <input className="form-control" value={editForm.shop_name} onChange={e => setEditForm({ ...editForm, shop_name: e.target.value })} />
                                                     </div>
-                                                    <div className="col-6 mb-2">
+                                                    <div className="col-md-6 mb-2">
                                                         <label className="small text-muted">คำอธิบายร้าน</label>
-                                                        <input className="form-control form-control-sm" value={editForm.description} onChange={e => setEditForm({ ...editForm, description: e.target.value })} />
+                                                        <input className="form-control" value={editForm.description} onChange={e => setEditForm({ ...editForm, description: e.target.value })} />
                                                     </div>
                                                 </>}
                                             </div>
-                                            <div className="d-flex gap-2 flex-wrap mt-2">
-                                                <button className="btn btn-sm btn-primary" onClick={handleSaveEdit}>💾 บันทึก</button>
+
+                                            {/* ปุ่มชุดเต็มเหมือน users tab */}
+                                            <div className="d-flex gap-2 flex-wrap mt-3">
+                                                <button className="btn btn-primary" onClick={handleSaveEdit}>💾 บันทึกการแก้ไข</button>
                                                 <button
-                                                    className={`btn btn-sm ${userDetail.user.is_banned == 1 ? 'btn-success' : 'btn-warning'}`}
+                                                    className={`btn ${userDetail.user.is_banned == 1 ? 'btn-success' : 'btn-warning'}`}
                                                     onClick={() => handleToggleBan(userDetail.user)}
                                                 >
-                                                    {userDetail.user.is_banned == 1 ? '✅ ปลดแบน' : '🔨 แบน'}
+                                                    {userDetail.user.is_banned == 1 ? '✅ ปลดแบน' : '🔨 แบนผู้ใช้'}
                                                 </button>
-                                                <button className="btn btn-sm btn-danger" onClick={() => handleDeleteUser(userDetail.user)}>🗑️ ลบ</button>
-                                                <button className="btn btn-sm btn-info text-white" onClick={() => { setShowNotifModal(true); fetchUserNotifs(selectedUser.id); }}>🔔 แจ้งเตือน</button>
+                                                <button className="btn btn-danger" onClick={() => handleDeleteUser(userDetail.user)}>🗑️ ลบบัญชีถาวร</button>
+                                                <button
+                                                    className="btn btn-info text-white"
+                                                    onClick={() => { setShowNotifModal(true); setNotifForm({ category: '', message: '' }); fetchUserNotifs(selectedUser.id); }}
+                                                >
+                                                    🔔 แจ้งเตือน
+                                                </button>
+                                            </div>
+
+                                            {/* Dropdown ประวัติแจ้งเตือน */}
+                                            <div className="mt-2">
+                                                <button
+                                                    className="btn btn-sm btn-outline-secondary"
+                                                    onClick={() => { setShowNotifHistory(!showNotifHistory); if (!showNotifHistory) fetchUserNotifs(selectedUser.id); }}
+                                                >
+                                                    {showNotifHistory ? '▲ ซ่อนประวัติแจ้งเตือน' : '▼ ดูประวัติแจ้งเตือน'}
+                                                </button>
+                                                {showNotifHistory && (
+                                                    <div className="mt-2 border rounded p-2 bg-light" style={{maxHeight: '200px', overflowY: 'auto'}}>
+                                                        {userNotifs.length === 0 ? (
+                                                            <small className="text-muted">ยังไม่มีประวัติแจ้งเตือน</small>
+                                                        ) : (
+                                                            userNotifs.map((n, i) => (
+                                                                <div key={i} className="border-bottom pb-2 mb-2 small">
+                                                                    <div className="d-flex justify-content-between">
+                                                                        <span className="badge bg-info text-dark">{n.category}</span>
+                                                                        <small className="text-muted">{n.created_at}</small>
+                                                                    </div>
+                                                                    <div className="mt-1">{n.message}</div>
+                                                                    <small className="text-muted">โดย: {n.admin_name}</small>
+                                                                </div>
+                                                            ))
+                                                        )}
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
 
-                                        {/* Orders ย่อ */}
-                                        {userDetail.orders.length > 0 && (
-                                            <div>
-                                                <h6 className="fw-bold small mb-2">📜 ออเดอร์ล่าสุด</h6>
-                                                {userDetail.orders.slice(0, 5).map((o, i) => (
-                                                    <div key={i} className="d-flex justify-content-between small bg-light p-2 rounded mb-1">
-                                                        <span>#{o.id} · {o.shop_name}</span>
-                                                        <span className="text-primary fw-bold">{parseInt(o.total_price).toLocaleString()} บ.</span>
-                                                        <span className="text-muted">{o.status}</span>
+                                        {/* Addresses */}
+                                        {userDetail.addresses.length > 0 && (
+                                            <div className="mb-4">
+                                                <h6 className="fw-bold mb-2">📍 ที่อยู่จัดส่ง ({userDetail.addresses.length} รายการ)</h6>
+                                                {userDetail.addresses.map((addr, i) => (
+                                                    <div key={i} className="bg-light p-2 rounded mb-1 small">
+                                                        <strong>{addr.address_text}</strong> · {addr.contact_phone}
                                                     </div>
                                                 ))}
+                                            </div>
+                                        )}
+
+                                        {/* Products (merchant) */}
+                                        {userDetail.products.length > 0 && (
+                                            <div className="mb-4">
+                                                <h6 className="fw-bold mb-2">🍽️ เมนูอาหาร ({userDetail.products.length} รายการ)</h6>
+                                                <div className="d-flex flex-wrap gap-2">
+                                                    {userDetail.products.map((p, i) => (
+                                                        <div key={i} className="badge bg-light text-dark border px-2 py-1">
+                                                            {p.name} · {parseInt(p.price).toLocaleString()} บ.
+                                                            {p.is_available == 0 && <span className="ms-1 text-danger">(ปิด)</span>}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Orders พร้อม search/filter เต็มรูปแบบ */}
+                                        {userDetail.orders !== undefined && (
+                                            <div className="mb-4">
+                                                <h6 className="fw-bold mb-2">📜 ประวัติออเดอร์ทั้งหมด ({userDetail.orders.length} รายการ)</h6>
+                                                <div className="d-flex gap-2 mb-2">
+                                                    <input
+                                                        className="form-control form-control-sm"
+                                                        placeholder="🔍 ค้นหาชื่อร้าน / ชื่อลูกค้า..."
+                                                        value={orderSearch}
+                                                        onChange={e => setOrderSearch(e.target.value)}
+                                                    />
+                                                </div>
+                                                <div className="d-flex gap-1 mb-3 flex-wrap">
+                                                    {['all', 'pending', 'accepted', 'cooking', 'delivering', 'completed', 'cancelled'].map(s => (
+                                                        <button
+                                                            key={s}
+                                                            className={`btn btn-sm ${orderStatusFilter === s ? 'btn-danger' : 'btn-outline-secondary'}`}
+                                                            style={{fontSize: '0.75rem', padding: '2px 8px'}}
+                                                            onClick={() => setOrderStatusFilter(s)}
+                                                        >
+                                                            {{ all: 'ทั้งหมด', pending: 'รอรับ', accepted: 'รับแล้ว', cooking: 'ปรุง', delivering: 'ส่ง', completed: '✅ สำเร็จ', cancelled: '❌ ยกเลิก' }[s]}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                                {userDetail.orders.length === 0 ? (
+                                                    <div className="text-center text-muted small py-3">ไม่พบออเดอร์</div>
+                                                ) : (
+                                                    <table className="table table-sm table-hover align-middle" style={{fontSize: '0.85rem'}}>
+                                                        <thead className="table-light">
+                                                            <tr>
+                                                                <th>#</th>
+                                                                <th>วันที่/เวลา</th>
+                                                                <th>{userDetail.user.role === 'merchant' ? 'ลูกค้า' : 'ร้านค้า'}</th>
+                                                                <th>ราคา</th>
+                                                                <th>สถานะ</th>
+                                                                <th>เพิ่มเติม</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {userDetail.orders.map((o, i) => (
+                                                                <OrderRow key={i} order={o} role={userDetail.user.role} />
+                                                            ))}
+                                                        </tbody>
+                                                    </table>
+                                                )}
                                             </div>
                                         )}
                                     </div>

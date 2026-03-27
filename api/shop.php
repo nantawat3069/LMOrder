@@ -115,7 +115,8 @@ elseif ($method == 'GET' && $action == 'get_merchant_profile') {
     
     // Join users กับ shops
     $sql = "SELECT u.id as user_id, u.username, u.fullname as owner_name, u.phone as owner_phone,
-                   s.id as shop_id, s.shop_name, s.description, s.address as shop_address, s.image as shop_image
+                s.id as shop_id, s.shop_name, s.description, s.address as shop_address, 
+                s.image as shop_image, s.bank_name, s.bank_account, s.bank_account_name, s.qr_code
             FROM users u 
             JOIN shops s ON u.id = s.owner_id 
             WHERE u.id = '$owner_id'";
@@ -162,9 +163,23 @@ elseif ($method == 'POST' && $action == 'update_merchant_profile') {
     $stmt_u->execute();
 
     // อัปเดต Shop
-    $s_sql = "UPDATE shops SET shop_name=?, description=?, address=?";
-    $s_params = [$shop_name, $description, $shop_address];
-    $s_types = "sss";
+    $bank_name = $_POST['bank_name'] ?? '';
+    $bank_account = $_POST['bank_account'] ?? '';
+    $bank_account_name = $_POST['bank_account_name'] ?? '';
+
+    $s_sql = "UPDATE shops SET shop_name=?, description=?, address=?, bank_name=?, bank_account=?, bank_account_name=?";
+    $s_params = [$shop_name, $description, $shop_address, $bank_name, $bank_account, $bank_account_name];
+    $s_types = "ssssss";
+
+    // อัปโหลด QR Code (เพิ่มต่อจากส่วนอัปโหลด shop_image เดิม)
+    if (isset($_FILES['qr_code']) && $_FILES['qr_code']['error'] == 0) {
+        $ext = pathinfo($_FILES['qr_code']['name'], PATHINFO_EXTENSION);
+        $qr_name = "qr_" . $shop_id . "_" . time() . "." . $ext;
+        move_uploaded_file($_FILES['qr_code']['tmp_name'], "../uploads/" . $qr_name);
+        $s_sql .= ", qr_code=?";
+        $s_params[] = $qr_name;
+        $s_types .= "s";
+    }
 
     // อัปโหลดรูปหน้าร้าน
     if (isset($_FILES['shop_image']) && $_FILES['shop_image']['error'] == 0) {
