@@ -10,7 +10,8 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 //  ดึงข้อมูลร้านค้า 
 if ($method == 'GET' && $action == 'get_shops') {
-    $sql = "SELECT s.*, u.phone, u.id as id_owner
+    $sql = "SELECT s.*, u.phone, u.id as id_owner,
+                s.bank_name, s.bank_account, s.bank_account_name, s.qr_code
             FROM shops s 
             JOIN users u ON s.owner_id = u.id";
             

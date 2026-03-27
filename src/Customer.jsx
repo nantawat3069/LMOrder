@@ -44,8 +44,13 @@ function Customer() {
 
     // Cart States
     const [address, setAddress] = useState(''); 
-    const [paymentMethod, setPaymentMethod] = useState('เงินสด (COD)');
+    const [paymentMethod, setPaymentMethod] = useState('เงินสด ปลายทาง');
     const [selectedAddressId, setSelectedAddressId] = useState(''); 
+
+    // ชำระธนาคาร
+    const [showPaymentPopup, setShowPaymentPopup] = useState(false);
+    const [slipFile, setSlipFile] = useState(null);
+    const [slipPreview, setSlipPreview] = useState('');
 
     // General Modal System
     const [modal, setModal] = useState({ show: false, type: 'alert', title: '', message: '', onConfirm: null });
@@ -381,28 +386,43 @@ function Customer() {
         });
     };
 
+    // ฟังก์ชันจริงที่ยิง API
+    const doPlaceOrder = async () => {
+        try {
+            const res = await axios.post('http://192.168.1.36/LMOrder/api/order.php', {
+                action: 'place_order',
+                customer_id: user.id,
+                shop_id: selectedShop.id,
+                total_price: totalPrice,
+                address: address,
+                payment_method: paymentMethod,
+                items: cart
+            });
+            if (res.data.status === 'success') {
+                showAlert('สำเร็จ', '✅ สั่งซื้อเรียบร้อย!');
+                setSelectedShop(null);
+                setActiveTab('orders');
+                setSlipFile(null);
+                setSlipPreview('');
+            }
+        } catch (err) { showAlert('Error', 'เกิดข้อผิดพลาด'); }
+    };
+
+    // ฟังก์ชันกดยืนยัน - เช็คก่อนว่าต้องแสดง popup ไหม
     const handlePlaceOrder = async () => {
         if (cart.length === 0) { showAlert('ตะกร้าว่าง', 'กรุณาเลือกสินค้าก่อนครับ'); return; }
         if (!selectedAddressId && !address) { showAlert('ข้อมูลไม่ครบ', 'กรุณาเลือกที่อยู่จัดส่งครับ'); return; }
-        
-        confirmAction('ยืนยันการสั่งซื้อ', `ยอดรวม ${totalPrice.toLocaleString()} บาท ยืนยันหรือไม่?`, async () => {
-            try {
-                const res = await axios.post('http://192.168.1.36/LMOrder/api/order.php', {
-                    action: 'place_order',
-                    customer_id: user.id,
-                    shop_id: selectedShop.id,
-                    total_price: totalPrice,
-                    address: address, 
-                    payment_method: paymentMethod,
-                    items: cart
-                });
-                if (res.data.status === 'success') {
-                    showAlert('สำเร็จ', '✅ สั่งซื้อเรียบร้อย!');
-                    setSelectedShop(null);
-                    setActiveTab('orders');
-                }
-            } catch (err) { showAlert('Error', 'เกิดข้อผิดพลาด'); }
-        });
+
+        if (paymentMethod === 'ชำระทันที') {
+            // เปิด Popup แสดงข้อมูลธนาคาร/QR
+            setSlipFile(null);
+            setSlipPreview('');
+            setShowPaymentPopup(true);
+            return;
+        }
+
+        // เงินสด หรือ ธนาคาร/QR ปลายทาง -> confirm แล้วสั่งเลย
+        confirmAction('ยืนยันการสั่งซื้อ', `ยอดรวม ${totalPrice.toLocaleString()} บาท ยืนยันหรือไม่?`, doPlaceOrder);
     };
 
     // แก้ไข: ฟังก์ชันยกเลิกออเดอร์ แบบสลับหน้า Pop-up
@@ -501,6 +521,30 @@ function Customer() {
             // ดึงสถานะใหม่ทันที ไม่ต้อง showAlert
             fetchAppealStatus(user.id);
         } catch (err) { console.error(err); }
+    };
+
+    // เช็คว่าร้านมีข้อมูลธนาคารครบไหม
+    const shopHasBank = () => {
+        return selectedShop?.bank_name && selectedShop?.bank_account && selectedShop?.bank_account_name;
+    };
+
+    // เช็คว่าร้านมี QR ไหม
+    const shopHasQR = () => !!selectedShop?.qr_code;
+
+    // Dropdown options ตามข้อมูลร้าน
+    const getPaymentOptions = () => {
+        const opts = ['เงินสด ปลายทาง'];
+        if (shopHasBank() || shopHasQR()) opts.push('ธนาคาร/QR-code ปลายทาง');
+        if (shopHasBank() || shopHasQR()) opts.push('ชำระทันที');
+        return opts;
+    };
+
+    // ส่งสลิป
+    const handleSubmitSlip = async () => {
+        if (!slipFile) { showAlert('แจ้งเตือน', 'กรุณาเลือกรูปสลิปก่อนครับ'); return; }
+        // เดี๋ยวทำ backend ทีหลัง — ตอนนี้แค่ปิด popup และสั่งซื้อเลย
+        setShowPaymentPopup(false);
+        await doPlaceOrder();
     };
 
     const getStatusBadge = (status) => {
@@ -751,7 +795,12 @@ function Customer() {
                                                     {selectedAddressId && <div className="small text-muted mt-1 bg-white p-2 border rounded">{address}</div>}
                                                 </div>
 
-                                                <select className="form-select mb-3" value={paymentMethod} onChange={e => setPaymentMethod(e.target.value)}><option>เงินสด (COD)</option><option>โอนเงิน</option></select>
+                                                {/* เลือกวิธีชำระ */}
+                                                <select className="form-select mb-3" value={paymentMethod} onChange={e => setPaymentMethod(e.target.value)}>
+                                                    {getPaymentOptions().map(opt => (
+                                                        <option key={opt}>{opt}</option>
+                                                    ))}
+                                                </select>
                                                 <button onClick={handlePlaceOrder} className="btn btn-success w-100">ยืนยันการสั่งซื้อ</button>
                                             </>
                                         )}
@@ -1018,6 +1067,94 @@ function Customer() {
                 </div>
             )}
 
+            {/* Popup ชำระทันที */}
+            {showPaymentPopup && (
+                <div className="modal-overlay">
+                    <div className="modal-box" style={{maxWidth: '480px'}}>
+                        <div className="d-flex justify-content-between align-items-center mb-3">
+                            <h4 className="mb-0 text-primary">💳 ชำระเงิน</h4>
+                            <button className="btn-close" onClick={() => setShowPaymentPopup(false)}></button>
+                        </div>
+
+                        {/* ยอดที่ต้องชำระ */}
+                        <div className="bg-light rounded p-3 mb-3 text-center">
+                            <div className="text-muted small mb-1">ยอดที่ต้องชำระ</div>
+                            <h2 className="text-primary fw-bold mb-0">{totalPrice.toLocaleString()} บาท</h2>
+                        </div>
+
+                        {/* ข้อมูลธนาคาร */}
+                        {shopHasBank() && (
+                            <div className="border rounded p-3 mb-3">
+                                <h6 className="fw-bold mb-2">🏦 ข้อมูลบัญชีธนาคาร</h6>
+                                <div className="d-flex justify-content-between small mb-1">
+                                    <span className="text-muted">ธนาคาร</span>
+                                    <strong>{selectedShop.bank_name}</strong>
+                                </div>
+                                <div className="d-flex justify-content-between small mb-1">
+                                    <span className="text-muted">เลขบัญชี</span>
+                                    <strong className="text-primary">{selectedShop.bank_account}</strong>
+                                </div>
+                                <div className="d-flex justify-content-between small">
+                                    <span className="text-muted">ชื่อบัญชี</span>
+                                    <strong>{selectedShop.bank_account_name}</strong>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* QR Code */}
+                        {shopHasQR() && (
+                            <div className="text-center mb-3">
+                                <h6 className="fw-bold mb-2">📱 QR Code สำหรับโอนเงิน</h6>
+                                <img
+                                    src={`http://192.168.1.36/LMOrder/uploads/${selectedShop.qr_code}`}
+                                    alt="QR Code"
+                                    style={{maxWidth: '220px', width: '100%', borderRadius: '12px', border: '1px solid #eee'}}
+                                />
+                            </div>
+                        )}
+
+                        <hr />
+
+                        {/* อัปโหลดสลิป */}
+                        <div className="mb-3">
+                            <label className="form-label fw-bold">📎 แนบสลิปการโอน</label>
+                            <input
+                                type="file"
+                                className="form-control mb-2"
+                                accept="image/*"
+                                onChange={e => {
+                                    const file = e.target.files[0];
+                                    if (file) {
+                                        setSlipFile(file);
+                                        setSlipPreview(URL.createObjectURL(file));
+                                    }
+                                }}
+                            />
+                            {slipPreview && (
+                                <img
+                                    src={slipPreview}
+                                    alt="slip preview"
+                                    style={{maxWidth: '100%', maxHeight: '200px', objectFit: 'contain', borderRadius: '8px', border: '1px solid #eee'}}
+                                />
+                            )}
+                        </div>
+
+                        <div className="d-flex gap-2">
+                            <button className="btn btn-secondary flex-fill" onClick={() => setShowPaymentPopup(false)}>
+                                ยกเลิก
+                            </button>
+                            <button
+                                className="btn btn-success flex-fill"
+                                disabled={!slipFile}
+                                onClick={handleSubmitSlip}
+                            >
+                                ✅ ส่งสลิปและยืนยัน
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Popup รายงานร้านค้า */}
             {showReportModal && (
                 <div className="modal-overlay">
@@ -1239,8 +1376,9 @@ function Customer() {
 
                             {/* เลือกวิธีชำระ */}
                             <select className="form-select mb-3" value={paymentMethod} onChange={e => setPaymentMethod(e.target.value)}>
-                                <option>เงินสด (COD)</option>
-                                <option>โอนเงิน</option>
+                                {getPaymentOptions().map(opt => (
+                                    <option key={opt}>{opt}</option>
+                                ))}
                             </select>
 
                             <button onClick={handlePlaceOrder} className="btn btn-success w-100 py-2 fs-5 shadow-sm">
