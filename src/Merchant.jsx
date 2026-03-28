@@ -412,6 +412,32 @@ function Merchant() {
         </div>
     );
 
+    const getOrderStatusBadge = (status) => {
+        const map = {
+            pending:    ['bg-secondary', '⏳ รอร้านรับ'],
+            accepted:   ['bg-primary',   '✅ รับออเดอร์แล้ว'],
+            cooking:    ['bg-warning text-dark', '🍳 กำลังปรุง'],
+            delivering: ['bg-info text-dark',    '🛵 กำลังส่ง'],
+            completed:  ['bg-success',   '✅ สำเร็จ'],
+            cancelled:  ['bg-danger',    '❌ ยกเลิก'],
+        };
+        const [cls, label] = map[status] || ['bg-secondary', status];
+        return <span className={`badge ${cls}`}>{label}</span>;
+    };
+
+    const getPaymentBadge = (o) => {
+        if (o.slip_image) {
+            return <span className="badge bg-success">💚 ชำระแล้ว</span>;
+        }
+        if (o.payment_method === 'เงินสด ปลายทาง') {
+            return <span className="badge bg-danger">🔴 ยังไม่ชำระ (เงินสด)</span>;
+        }
+        if (o.payment_method === 'ธนาคาร/QR-code ปลายทาง') {
+            return <span className="badge bg-danger">🔴 ยังไม่ชำระ (โอน)</span>;
+        }
+        return null;
+    };
+
     if (!shop) return <div className="text-center mt-5">กำลังโหลด...</div>;
 
     return (
@@ -459,16 +485,47 @@ function Merchant() {
                             {orders.map(o => (
                                 <div key={o.id} className="col-md-6 col-lg-4 mb-3">
                                     <div className="card p-3 shadow border-0 h-100">
-                                        <div className="d-flex justify-content-between border-bottom pb-2 mb-2"><strong className="text-primary">Order #{o.id}</strong><span className={`badge ${o.status === 'pending' ? 'bg-danger' : 'bg-info'}`}>{o.status}</span></div>
-                                        <p className="mb-1"><strong>ลูกค้า:</strong> {o.customer_name}</p><p className="mb-2"><strong>ที่อยู่:</strong> {o.address}</p>
+                                        {/* Header: Order ID + สถานะ */}
+                                        <div className="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
+                                            <strong className="text-primary">Order #{o.id}</strong>
+                                            {getOrderStatusBadge(o.status)}
+                                        </div>
+
+                                        {/* ลูกค้า + ที่อยู่ */}
+                                        <p className="mb-1"><strong>ลูกค้า:</strong> {o.customer_name}</p>
+                                        <p className="mb-2"><strong>ที่อยู่:</strong> {o.address}</p>
+
+                                        {/* รายการอาหาร */}
                                         <RenderOrderOptions items={o.items} />
+
                                         <div className="mt-auto">
-                                            <h5 className="text-end text-primary mb-3">รวม {parseInt(o.total_price).toLocaleString()} บ.</h5>
+                                            {/* ยอดรวม + การชำระ */}
+                                            <div className="d-flex justify-content-between align-items-center mb-2">
+                                                <h5 className="text-primary mb-0">{parseInt(o.total_price).toLocaleString()} บ.</h5>
+                                                <div className="d-flex align-items-center gap-2">
+                                                    {getPaymentBadge(o)}
+                                                    {o.slip_image && (
+                                                        <button
+                                                            className="btn btn-sm btn-outline-primary py-0"
+                                                            onClick={() => setViewingSlipMerchant(`http://192.168.1.36/LMOrder/uploads/${o.slip_image}`)}
+                                                        >
+                                                            🧾 ดูสลิป
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {/* ปุ่มดำเนินการ */}
                                             <div className="d-grid gap-2">
-                                                {o.status === 'pending' && (<><button onClick={() => updateStatus(o.id, 'accepted')} className="btn btn-success">รับ</button><button onClick={() => updateStatus(o.id, 'cancelled')} className="btn btn-outline-danger">ปฏิเสธ</button></>)}
-                                                {o.status === 'accepted' && <button onClick={() => updateStatus(o.id, 'cooking')} className="btn btn-warning">ปรุงอาหาร</button>}
-                                                {o.status === 'cooking' && <button onClick={() => updateStatus(o.id, 'delivering')} className="btn btn-info text-white">พร้อมส่ง</button>}
-                                                {o.status === 'delivering' && <button onClick={() => updateStatus(o.id, 'completed')} className="btn btn-primary">จบงาน</button>}
+                                                {o.status === 'pending' && (
+                                                    <>
+                                                        <button onClick={() => updateStatus(o.id, 'accepted')} className="btn btn-success">รับออเดอร์</button>
+                                                        <button onClick={() => updateStatus(o.id, 'cancelled')} className="btn btn-outline-danger">ปฏิเสธ</button>
+                                                    </>
+                                                )}
+                                                {o.status === 'accepted' && <button onClick={() => updateStatus(o.id, 'cooking')} className="btn btn-warning">🍳 เริ่มปรุงอาหาร</button>}
+                                                {o.status === 'cooking' && <button onClick={() => updateStatus(o.id, 'delivering')} className="btn btn-info text-white">🛵 พร้อมส่ง</button>}
+                                                {o.status === 'delivering' && <button onClick={() => updateStatus(o.id, 'completed')} className="btn btn-primary">✅ จบงาน</button>}
                                             </div>
                                         </div>
                                     </div>

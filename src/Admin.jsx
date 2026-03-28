@@ -6,18 +6,27 @@ const API = 'http://192.168.1.36/LMOrder/api';
 
 function OrderRow({ order, role }) {
     const [open, setOpen] = useState(false);
+    const [viewingSlip, setViewingSlip] = useState(false);
 
     const getStatusBadge = (status) => {
         const map = {
-            pending:    ['bg-secondary', 'รอร้านรับ'],
-            accepted:   ['bg-primary',   'รับแล้ว'],
-            cooking:    ['bg-warning text-dark', 'กำลังปรุง'],
-            delivering: ['bg-info text-dark',    'กำลังส่ง'],
-            completed:  ['bg-success',   'สำเร็จ'],
-            cancelled:  ['bg-danger',    'ยกเลิก'],
+            pending:    ['bg-secondary', '⏳ รอร้านรับ'],
+            accepted:   ['bg-primary',   '✅ รับแล้ว'],
+            cooking:    ['bg-warning text-dark', '🍳 กำลังปรุง'],
+            delivering: ['bg-info text-dark',    '🛵 กำลังส่ง'],
+            completed:  ['bg-success',   '✅ สำเร็จ'],
+            cancelled:  ['bg-danger',    '❌ ยกเลิก'],
         };
         const [cls, label] = map[order.status] || ['bg-secondary', order.status];
         return <span className={`badge ${cls}`}>{label}</span>;
+    };
+
+    const getPaymentBadge = () => {
+        if (order.slip_image) return <span className="badge bg-success">💚 ชำระแล้ว</span>;
+        if (order.payment_method === 'เงินสด ปลายทาง') return <span className="badge bg-danger">🔴 ชำระปลายทาง (เงินสด)</span>;
+        if (order.payment_method === 'ธนาคาร/QR-code ปลายทาง') return <span className="badge bg-danger">🔴 ชำระปลายทาง (โอน)</span>;
+        if (order.payment_method === 'ชำระทันที') return <span className="badge bg-warning text-dark">⏳ รอตรวจสลิป</span>;
+        return <span className="badge bg-secondary">{order.payment_method || '-'}</span>;
     };
 
     return (
@@ -43,12 +52,27 @@ function OrderRow({ order, role }) {
                 </td>
                 <td className="text-primary fw-bold">{parseInt(order.total_price).toLocaleString()} บ.</td>
                 <td>{getStatusBadge(order.status)}</td>
+                {/* คอลัมน์การชำระ */}
+                <td>
+                    <div className="d-flex align-items-center gap-1 flex-wrap">
+                        {getPaymentBadge()}
+                        {order.slip_image && (
+                            <button
+                                className="btn btn-sm btn-outline-primary py-0 px-1"
+                                style={{fontSize: '0.75rem'}}
+                                onClick={() => setViewingSlip(true)}
+                            >
+                                🧾 สลิป
+                            </button>
+                        )}
+                    </div>
+                </td>
                 <td>
                     <button
                         className="btn btn-sm btn-outline-secondary py-0 px-2"
                         onClick={() => setOpen(!open)}
                     >
-                        {open ? '▲ ซ่อน' : '▼ ดู'}
+                        {open ? '▲ เพิ่มเติม' : '▼ เพิ่มเติม'}
                     </button>
                 </td>
             </tr>
@@ -56,7 +80,7 @@ function OrderRow({ order, role }) {
             {/* Dropdown รายละเอียด */}
             {open && (
                 <tr>
-                    <td colSpan={6} className="bg-light p-0">
+                    <td colSpan={7} className="bg-light p-0">
                         <div className="p-3">
                             <div className="mb-1 small text-muted fw-bold">รายการที่สั่ง:</div>
                             {order.items && order.items.length > 0 ? (
@@ -79,6 +103,25 @@ function OrderRow({ order, role }) {
                                 <span>รวม</span>
                                 <span className="text-primary">{parseInt(order.total_price).toLocaleString()} บ.</span>
                             </div>
+                        </div>
+                    </td>
+                </tr>
+            )}
+
+            {/* Popup ดูสลิป */}
+            {viewingSlip && (
+                <tr>
+                    <td colSpan={7} className="p-0">
+                        <div className="p-3 border-top bg-white">
+                            <div className="d-flex justify-content-between align-items-center mb-2">
+                                <strong className="small">🧾 สลิปการโอน — Order #{order.id}</strong>
+                                <button className="btn-close btn-sm" onClick={() => setViewingSlip(false)}></button>
+                            </div>
+                            <img
+                                src={`http://192.168.1.36/LMOrder/uploads/${order.slip_image}`}
+                                alt="slip"
+                                style={{maxWidth: '300px', width: '100%', borderRadius: '8px', border: '1px solid #eee'}}
+                            />
                         </div>
                     </td>
                 </tr>
@@ -690,6 +733,7 @@ function Admin() {
                                                                 <th>{userDetail.user.role === 'merchant' ? 'ลูกค้า' : 'ร้านค้า'}</th>
                                                                 <th>ราคา</th>
                                                                 <th>สถานะ</th>
+                                                                <th>การชำระ</th>
                                                                 <th>เพิ่มเติม</th>
                                                             </tr>
                                                         </thead>
@@ -1008,6 +1052,7 @@ function Admin() {
                                                                 <th>{userDetail.user.role === 'merchant' ? 'ลูกค้า' : 'ร้านค้า'}</th>
                                                                 <th>ราคา</th>
                                                                 <th>สถานะ</th>
+                                                                <th>การชำระ</th>
                                                                 <th>เพิ่มเติม</th>
                                                             </tr>
                                                         </thead>
