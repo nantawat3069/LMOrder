@@ -754,18 +754,17 @@ function Admin() {
                                                             onClick={() => setOrderStatusFilter(s)}
                                                         >
                                                             {{
-                                                                all: (<><span className="material-icons" style={{fontSize: '14px'}}>list</span> ทั้งหมด</>),
-                                                                pending: (<><span className="material-icons" style={{fontSize: '14px'}}>schedule</span> รอรับ</>),
-                                                                accepted: (<><span className="material-icons" style={{fontSize: '14px'}}>check_circle</span> รับแล้ว</>),
-                                                                cooking: (<><span className="material-icons" style={{fontSize: '14px'}}>soup_kitchen</span> ปรุง</>),
-                                                                delivering: (<><span className="material-icons" style={{fontSize: '14px'}}>delivery_dining</span> ส่ง</>),
-                                                                completed: (<><span className="material-icons" style={{fontSize: '14px'}}>task_alt</span> สำเร็จ</>),
-                                                                cancelled: (<><span className="material-icons" style={{fontSize: '14px'}}>cancel</span> ยกเลิก</>)
+                                                                all: (<><span className={`material-icons ${orderStatusFilter === s ? '' : 'text-primary'}`} style={{fontSize: '14px'}}>list</span> ทั้งหมด</>),
+                                                                pending: (<><span className={`material-icons ${orderStatusFilter === s ? '' : 'text-warning'}`} style={{fontSize: '14px'}}>schedule</span> รอรับ</>),
+                                                                accepted: (<><span className={`material-icons ${orderStatusFilter === s ? '' : 'text-primary'}`} style={{fontSize: '14px'}}>check_circle</span> รับแล้ว</>),
+                                                                cooking: (<><span className={`material-icons ${orderStatusFilter === s ? '' : 'text-warning'}`} style={{fontSize: '14px'}}>soup_kitchen</span> ปรุง</>),
+                                                                delivering: (<><span className={`material-icons ${orderStatusFilter === s ? '' : 'text-info'}`} style={{fontSize: '14px'}}>delivery_dining</span> ส่ง</>),
+                                                                completed: (<><span className={`material-icons ${orderStatusFilter === s ? '' : 'text-success'}`} style={{fontSize: '14px'}}>task_alt</span> สำเร็จ</>),
+                                                                cancelled: (<><span className={`material-icons ${orderStatusFilter === s ? '' : 'text-danger'}`} style={{fontSize: '14px'}}>cancel</span> ยกเลิก</>)
                                                             }[s]}
                                                         </button>
                                                     ))}
                                                 </div>
-
                                                 {userDetail.orders.length === 0 ? (
                                                     <div className="text-center text-muted small py-3">ไม่พบออเดอร์</div>
                                                 ) : (
@@ -1134,13 +1133,13 @@ function Admin() {
                                                             onClick={() => setOrderStatusFilter(s)}
                                                         >
                                                             {{
-                                                                all: (<><span className="material-icons" style={{fontSize: '14px'}}>list</span> ทั้งหมด</>),
-                                                                pending: (<><span className="material-icons" style={{fontSize: '14px'}}>schedule</span> รอรับ</>),
-                                                                accepted: (<><span className="material-icons" style={{fontSize: '14px'}}>check_circle</span> รับแล้ว</>),
-                                                                cooking: (<><span className="material-icons" style={{fontSize: '14px'}}>soup_kitchen</span> ปรุง</>),
-                                                                delivering: (<><span className="material-icons" style={{fontSize: '14px'}}>delivery_dining</span> ส่ง</>),
-                                                                completed: (<><span className="material-icons" style={{fontSize: '14px'}}>task_alt</span> สำเร็จ</>),
-                                                                cancelled: (<><span className="material-icons" style={{fontSize: '14px'}}>cancel</span> ยกเลิก</>)
+                                                                all: (<><span className={`material-icons ${orderStatusFilter === s ? '' : 'text-primary'}`} style={{fontSize: '14px'}}>list</span> ทั้งหมด</>),
+                                                                pending: (<><span className={`material-icons ${orderStatusFilter === s ? '' : 'text-warning'}`} style={{fontSize: '14px'}}>schedule</span> รอรับ</>),
+                                                                accepted: (<><span className={`material-icons ${orderStatusFilter === s ? '' : 'text-primary'}`} style={{fontSize: '14px'}}>check_circle</span> รับแล้ว</>),
+                                                                cooking: (<><span className={`material-icons ${orderStatusFilter === s ? '' : 'text-warning'}`} style={{fontSize: '14px'}}>soup_kitchen</span> ปรุง</>),
+                                                                delivering: (<><span className={`material-icons ${orderStatusFilter === s ? '' : 'text-info'}`} style={{fontSize: '14px'}}>delivery_dining</span> ส่ง</>),
+                                                                completed: (<><span className={`material-icons ${orderStatusFilter === s ? '' : 'text-success'}`} style={{fontSize: '14px'}}>task_alt</span> สำเร็จ</>),
+                                                                cancelled: (<><span className={`material-icons ${orderStatusFilter === s ? '' : 'text-danger'}`} style={{fontSize: '14px'}}>cancel</span> ยกเลิก</>)
                                                             }[s]}
                                                         </button>
                                                     ))}
