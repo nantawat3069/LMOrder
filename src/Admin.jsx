@@ -10,22 +10,30 @@ function OrderRow({ order, role }) {
 
     const getStatusBadge = (status) => {
         const map = {
-            pending:    ['bg-secondary', '⏳ รอร้านรับ'],
-            accepted:   ['bg-primary',   '✅ รับแล้ว'],
-            cooking:    ['bg-warning text-dark', '🍳 กำลังปรุง'],
-            delivering: ['bg-info text-dark',    '🛵 กำลังส่ง'],
-            completed:  ['bg-success',   '✅ สำเร็จ'],
-            cancelled:  ['bg-danger',    '❌ ยกเลิก'],
+            pending:    ['bg-secondary', 'schedule', 'รอร้านรับ'],
+            accepted:   ['bg-primary',   'check_circle', 'รับแล้ว'],
+            cooking:    ['bg-warning text-dark', 'soup_kitchen', 'กำลังปรุง'],
+            delivering: ['bg-info text-dark',    'delivery_dining', 'กำลังส่ง'],
+            completed:  ['bg-success',   'task_alt', 'สำเร็จ'],
+            cancelled:  ['bg-danger',    'cancel', 'ยกเลิก'],
         };
-        const [cls, label] = map[order.status] || ['bg-secondary', order.status];
-        return <span className={`badge ${cls}`}>{label}</span>;
+        const [cls, icon, label] = map[status] || ['bg-secondary', 'help', status];
+        return (
+            <span className={`badge ${cls} d-inline-flex align-items-center gap-1`}>
+                <span className="material-icons" style={{fontSize: '14px'}}>{icon}</span>
+                {label}
+            </span>
+        );
     };
 
     const getPaymentBadge = () => {
-        if (order.slip_image) return <span className="badge bg-success">💚 ชำระแล้ว</span>;
-        if (order.payment_method === 'เงินสด ปลายทาง') return <span className="badge bg-danger">🔴 ชำระปลายทาง (เงินสด)</span>;
-        if (order.payment_method === 'ธนาคาร/QR-code ปลายทาง') return <span className="badge bg-danger">🔴 ชำระปลายทาง (โอน)</span>;
-        if (order.payment_method === 'ชำระทันที') return <span className="badge bg-warning text-dark">⏳ รอตรวจสลิป</span>;
+        const badgeStyle = "badge d-inline-flex align-items-center gap-1";
+        const iconStyle = { fontSize: '14px' };
+
+        if (order.slip_image) return <span className={`${badgeStyle} bg-success`}><span className="material-icons" style={iconStyle}>check_circle</span> ชำระแล้ว</span>;
+        if (order.payment_method === 'เงินสด ปลายทาง') return <span className={`${badgeStyle} bg-danger`}><span className="material-icons" style={iconStyle}>error</span> ชำระปลายทาง (เงินสด)</span>;
+        if (order.payment_method === 'ธนาคาร/QR-code ปลายทาง') return <span className={`${badgeStyle} bg-danger`}><span className="material-icons" style={iconStyle}>error</span> ชำระปลายทาง (โอน)</span>;
+        if (order.payment_method === 'ชำระทันที') return <span className={`${badgeStyle} bg-warning text-dark`}><span className="material-icons" style={iconStyle}>hourglass_empty</span> รอตรวจสลิป</span>;
         return <span className="badge bg-secondary">{order.payment_method || '-'}</span>;
     };
 
@@ -62,7 +70,7 @@ function OrderRow({ order, role }) {
                                 style={{fontSize: '0.75rem'}}
                                 onClick={() => setViewingSlip(true)}
                             >
-                                🧾 สลิป
+                                <span className="material-icons align-middle me-1" style={{fontSize: '16px'}}>receipt_long</span> สลิป
                             </button>
                         )}
                     </div>
@@ -399,33 +407,33 @@ function Admin() {
 
     //  Badge helpers
     const getRoleBadge = (role) => {
-        if (role === 'merchant') return <span className="badge" style={{background:'#6c5ce7'}}>🏪 ร้านค้า</span>;
-        return <span className="badge bg-primary">🛒 ลูกค้า</span>;
+        if (role === 'merchant') return <span className="badge d-inline-flex align-items-center gap-1" style={{background:'#6c5ce7'}}><span className="material-icons" style={{fontSize: '14px'}}>store</span> ร้านค้า</span>;
+        return <span className="badge bg-primary d-inline-flex align-items-center gap-1"><span className="material-icons" style={{fontSize: '14px'}}>shopping_cart</span> ลูกค้า</span>;
     };
 
     const getTicketTypeBadge = (type) => {
-        const map = { complaint: ['bg-warning text-dark', '📢 ร้องเรียน'], report: ['bg-danger', '🚨 รายงาน'], request: ['bg-info text-dark', '📝 คำขอ'] };
-        const [cls, label] = map[type] || ['bg-secondary', type];
-        return <span className={`badge ${cls}`}>{label}</span>;
+        const map = { complaint: ['bg-warning text-dark', 'campaign', 'ร้องเรียน'], report: ['bg-danger', 'report', 'รายงาน'], request: ['bg-info text-dark', 'description', 'คำขอ'] };
+        const [cls, icon, label] = map[type] || ['bg-secondary', 'help', type];
+        return <span className={`badge ${cls} d-inline-flex align-items-center gap-1`}><span className="material-icons" style={{fontSize: '14px'}}>{icon}</span>{label}</span>;
     };
 
     const getTicketStatusBadge = (status) => {
-        const map = { open: ['bg-danger', '🔴 รอดำเนินการ'], in_progress: ['bg-warning text-dark', '🟡 กำลังดำเนินการ'], resolved: ['bg-success', '✅ แก้ไขแล้ว'], rejected: ['bg-secondary', '⛔ ปฏิเสธ'] };
-        const [cls, label] = map[status] || ['bg-secondary', status];
-        return <span className={`badge ${cls}`}>{label}</span>;
+        const map = { open: ['bg-danger', 'error', 'รอดำเนินการ'], in_progress: ['bg-warning text-dark', 'sync', 'กำลังดำเนินการ'], resolved: ['bg-success', 'check_circle', 'แก้ไขแล้ว'], rejected: ['bg-secondary', 'block', 'ปฏิเสธ'] };
+        const [cls, icon, label] = map[status] || ['bg-secondary', 'help', status];
+        return <span className={`badge ${cls} d-inline-flex align-items-center gap-1`}><span className="material-icons" style={{fontSize: '14px'}}>{icon}</span>{label}</span>;
     };
 
     const getLogActionBadge = (action) => {
         const map = {
-            ban: ['bg-danger', '🔨 แบน'],
-            unban: ['bg-success', '✅ ปลดแบน'],
-            delete_user: ['bg-dark', '🗑️ ลบบัญชี'],
-            edit_user: ['bg-primary', '✏️ แก้ไข'],
-            resolve_ticket: ['bg-success', '✅ แก้ไขคำร้อง'],
-            reject_ticket: ['bg-secondary', '⛔ ปฏิเสธคำร้อง'],
+            ban: ['bg-danger', 'gavel', 'แบน'],
+            unban: ['bg-success', 'task_alt', 'ปลดแบน'],
+            delete_user: ['bg-dark', 'delete', 'ลบบัญชี'],
+            edit_user: ['bg-primary', 'edit', 'แก้ไข'],
+            resolve_ticket: ['bg-success', 'task_alt', 'แก้ไขคำร้อง'],
+            reject_ticket: ['bg-secondary', 'block', 'ปฏิเสธคำร้อง'],
         };
-        const [cls, label] = map[action] || ['bg-secondary', action];
-        return <span className={`badge ${cls}`}>{label}</span>;
+        const [cls, icon, label] = map[action] || ['bg-secondary', 'help', action];
+        return <span className={`badge ${cls} d-inline-flex align-items-center gap-1`}><span className="material-icons" style={{fontSize: '14px'}}>{icon}</span>{label}</span>;
     };
 
     //  RENDER
@@ -437,7 +445,7 @@ function Admin() {
                 <div className="d-flex flex-wrap justify-content-between align-items-center">
                     <div className="d-flex align-items-center gap-2">
                         <div className="d-flex align-items-center justify-content-center rounded-circle bg-danger text-white fw-bold" style={{ width: 44, height: 44, fontSize: '1.2rem' }}>
-                            🛡️
+                            <span className="material-icons" style={{ fontSize: '2rem', marginLeft: '4px' }}>admin_panel_settings</span>
                         </div>
                         <div>
                             <h4 className="mb-0 text-danger">Admin Panel</h4>
@@ -446,16 +454,19 @@ function Admin() {
                     </div>
                     <div className="d-flex gap-2 flex-wrap">
                         {[
-                            { key: 'users', icon: '👥', label: 'ผู้ใช้' },
-                            { key: 'tickets', icon: '📨', label: 'คำร้อง', badge: pendingTicketsCount },
-                            { key: 'logs', icon: '📋', label: 'ประวัติ' },
+                            { key: 'users', icon: 'people', label: 'ผู้ใช้' },
+                            { key: 'tickets', icon: 'inbox', label: 'คำร้อง', badge: pendingTicketsCount },
+                            { key: 'logs', icon: 'assignment', label: 'ประวัติ' },
                         ].map(tab => (
                             <button
                                 key={tab.key}
-                                className={`btn position-relative ${activeTab === tab.key ? 'btn-danger' : 'btn-outline-danger'}`}
+                                className={`btn position-relative d-inline-flex align-items-center gap-1 ${activeTab === tab.key ? 'btn-danger' : 'btn-outline-danger'}`}
                                 onClick={() => setActiveTab(tab.key)}
                             >
-                                {tab.icon} {tab.label}
+                                {/* เรียกใช้ไอคอนตรงนี้ */}
+                                <span className="material-icons" style={{ fontSize: '18px' }}>{tab.icon}</span>
+                                {tab.label}
+
                                 {tab.badge > 0 && (
                                     <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning text-dark">
                                         {tab.badge}
@@ -464,10 +475,10 @@ function Admin() {
                             </button>
                         ))}
                         <button
-                            className="btn btn-outline-secondary"
+                            className="btn btn-outline-secondary d-inline-flex align-items-center gap-1"
                             onClick={() => confirmAction('ออกจากระบบ', 'ยืนยันออกจากระบบ?', () => { localStorage.removeItem('user'); navigate('/'); })}
                         >
-                            ออก
+                            <span className="material-icons" style={{ fontSize: '18px' }}>logout</span> ออก
                         </button>
                     </div>
                 </div>
@@ -481,28 +492,36 @@ function Admin() {
                     {/*  ฝั่งซ้าย: รายชื่อ  */}
                     <div className={`${selectedUser ? 'col-md-5' : 'col-12'} mb-3`}>
                         <div className="card p-3 shadow-sm">
-                            <h5 className="mb-3 text-danger">👥 รายชื่อผู้ใช้ทั้งหมด</h5>
+                            <h5 className="mb-3 text-danger d-flex align-items-center gap-2">
+                                <span className="material-icons">group</span> รายชื่อผู้ใช้ทั้งหมด
+                            </h5>
 
-                            {/* Search - ลบ onKeyDown ออก */}
+                            {/* Search */}
                             <div className="d-flex gap-2 mb-3">
-                                <input
-                                    className="form-control"
-                                    placeholder="🔍 ค้นหาชื่อ, username, ชื่อร้าน..."
-                                    value={userSearch}
-                                    onChange={e => setUserSearch(e.target.value)}
-                                />
-                                {/* ลบปุ่ม "ค้นหา" ออก */}
+                                <div className="input-group">
+                                    <input
+                                        className="form-control"
+                                        placeholder="ค้นหาชื่อ, username, ชื่อร้าน..."
+                                        value={userSearch}
+                                        onChange={e => setUserSearch(e.target.value)}
+                                    />
+                                </div>
                             </div>
 
-                            {/* Filter - เปลี่ยน onClick ให้ set state อย่างเดียว (useEffect จัดการ fetch เอง) */}
+                            {/* Filter */}
                             <div className="d-flex gap-2 mb-3">
                                 {['all', 'customer', 'merchant'].map(r => (
                                     <button
                                         key={r}
-                                        className={`btn btn-sm ${userRoleFilter === r ? 'btn-danger' : 'btn-outline-secondary'}`}
+                                        className={`btn btn-sm ${userRoleFilter === r ? 'btn-danger' : 'btn-outline-secondary'} d-inline-flex align-items-center gap-1`}
                                         onClick={() => setUserRoleFilter(r)}
                                     >
-                                        {{ all: '🌐 ทั้งหมด', customer: '🛒 ลูกค้า', merchant: '🏪 ร้านค้า' }[r]}
+                                        {/* << ปรับแก้ตรงนี้ >> */}
+                                        {{
+                                            all: (<span className="d-inline-flex align-items-center gap-1"><span className="material-icons" style={{fontSize: '16px'}}>language</span> ทั้งหมด</span>),
+                                            customer: (<span className="d-inline-flex align-items-center gap-1"><span className="material-icons" style={{fontSize: '16px'}}>shopping_cart</span> ลูกค้า</span>),
+                                            merchant: (<span className="d-inline-flex align-items-center gap-1"><span className="material-icons" style={{fontSize: '16px'}}>storefront</span> ร้านค้า</span>)
+                                        }[r]}
                                     </button>
                                 ))}
                             </div>
@@ -527,12 +546,20 @@ function Admin() {
                                                 background: u.is_banned ? '#636e72' : (u.role === 'merchant' ? '#6c5ce7' : '#0984e3'),
                                                 fontSize: '1.1rem'
                                             }}>
-                                            {u.role === 'merchant' ? '🏪' : '👤'}
+                                            {/* เปลี่ยนจาก Emoji เป็น Material Icons */}
+                                            <span className="material-icons">
+                                                {u.role === 'merchant' ? 'storefront' : 'person'}
+                                            </span>
                                         </div>
                                         <div className="flex-grow-1 overflow-hidden">
                                             <div className="d-flex align-items-center gap-2">
                                                 <strong className="text-truncate">{u.fullname}</strong>
-                                                {u.is_banned == 1 && <span className="badge bg-danger">🔨 แบน</span>}
+                                                {/* เปลี่ยน Emoji ค้อน เป็นไอคอน gavel (ค้อนศาล) และจัดให้อยู่กึ่งกลาง */}
+                                                {u.is_banned == 1 && (
+                                                    <span className="badge bg-danger d-inline-flex align-items-center gap-1">
+                                                        <span className="material-icons" style={{ fontSize: '14px' }}>gavel</span> แบน
+                                                    </span>
+                                                )}
                                             </div>
                                             <small className="text-muted">
                                                 @{u.username}
@@ -551,7 +578,7 @@ function Admin() {
                         <div className="col-md-7 mb-3">
                             <div className="card p-4 shadow-sm">
                                 <div className="d-flex justify-content-between align-items-start mb-3">
-                                    <h5 className="mb-0 text-danger">👤 รายละเอียดผู้ใช้</h5>
+                                    <h5 className="mb-0 text-danger d-flex align-items-center gap-2"><span className="material-icons">person</span> รายละเอียดผู้ใช้</h5>
                                     <button className="btn-close" onClick={() => { setSelectedUser(null); setUserDetail(null); }} />
                                 </div>
 
@@ -563,14 +590,16 @@ function Admin() {
                                         <div className="d-flex align-items-center mb-4 p-3 rounded" style={{ background: '#f8f9fa' }}>
                                             <div className="rounded-circle d-flex align-items-center justify-content-center me-3 text-white"
                                                 style={{ width: 64, height: 64, background: userDetail.user.role === 'merchant' ? '#6c5ce7' : '#0984e3', fontSize: '1.8rem' }}>
-                                                {userDetail.user.role === 'merchant' ? '🏪' : '👤'}
+                                                <span className="material-icons" style={{ fontSize: '1.8rem' }}>
+                                                    {userDetail.user.role === 'merchant' ? 'storefront' : 'person'}
+                                                </span>
                                             </div>
                                             <div>
                                                 <h4 className="mb-1">{userDetail.user.fullname}</h4>
                                                 <div className="d-flex gap-2 flex-wrap">
                                                     <span className="text-muted">@{userDetail.user.username}</span>
                                                     {getRoleBadge(userDetail.user.role)}
-                                                    {userDetail.user.is_banned == 1 && <span className="badge bg-danger">🔨 ถูกแบน</span>}
+                                                    {userDetail.user.is_banned == 1 && <span className="badge bg-danger">ถูกแบน</span>}
                                                 </div>
                                                 <small className="text-muted">สมัครเมื่อ: {userDetail.user.created_at}</small>
                                             </div>
@@ -578,7 +607,7 @@ function Admin() {
 
                                         {/*  Edit Form  */}
                                         <div className="mb-4">
-                                            <h6 className="fw-bold mb-3">✏️ แก้ไขข้อมูล</h6>
+                                            <h6 className="fw-bold mb-3">แก้ไขข้อมูล</h6>
                                             <div className="row">
                                                 <div className="col-md-6 mb-2">
                                                     <label className="small text-muted">ชื่อ-นามสกุล</label>
@@ -602,27 +631,31 @@ function Admin() {
 
                                             {/* ปุ่มบันทึก + แบน/ลบ + แจ้งเตือน */}
                                             <div className="d-flex gap-2 flex-wrap mt-3">
-                                                <button className="btn btn-primary" onClick={handleSaveEdit}>
-                                                    💾 บันทึกการแก้ไข
+                                                <button className="btn btn-primary d-inline-flex align-items-center gap-1" onClick={handleSaveEdit}>
+                                                    <span className="material-icons" style={{ fontSize: '18px' }}>save</span> บันทึกการแก้ไข
                                                 </button>
                                                 <button
-                                                    className={`btn ${userDetail.user.is_banned == 1 ? 'btn-success' : 'btn-warning'}`}
+                                                    className={`btn ${userDetail.user.is_banned == 1 ? 'btn-success' : 'btn-warning'} d-inline-flex align-items-center gap-1`}
                                                     onClick={() => handleToggleBan(userDetail.user)}
                                                 >
-                                                    {userDetail.user.is_banned == 1 ? '✅ ปลดแบน' : '🔨 แบนผู้ใช้'}
+                                                    {userDetail.user.is_banned == 1 ? (
+                                                        <><span className="material-icons" style={{ fontSize: '18px' }}>task_alt</span> ปลดแบน</>
+                                                    ) : (
+                                                        <><span className="material-icons" style={{ fontSize: '18px' }}>gavel</span> แบนผู้ใช้</>
+                                                    )}
                                                 </button>
-                                                <button className="btn btn-danger" onClick={() => handleDeleteUser(userDetail.user)}>
-                                                    🗑️ ลบบัญชีถาวร
+                                                <button className="btn btn-danger d-inline-flex align-items-center gap-1" onClick={() => handleDeleteUser(userDetail.user)}>
+                                                    <span className="material-icons" style={{ fontSize: '18px' }}>delete_forever</span> ลบบัญชีถาวร
                                                 </button>
                                                 <button
-                                                    className="btn btn-info text-white"
+                                                    className="btn btn-info text-white d-inline-flex align-items-center gap-1"
                                                     onClick={() => {
                                                         setShowNotifModal(true);
                                                         setNotifForm({ category: '', message: '' });
                                                         fetchUserNotifs(selectedUser.id);
                                                     }}
                                                 >
-                                                    🔔 แจ้งเตือน
+                                                    <span className="material-icons" style={{ fontSize: '18px' }}>notifications</span> แจ้งเตือน
                                                 </button>
                                             </div>
 
@@ -661,7 +694,10 @@ function Admin() {
                                         {/*  Addresses (ถ้า customer)  */}
                                         {userDetail.addresses.length > 0 && (
                                             <div className="mb-4">
-                                                <h6 className="fw-bold mb-2">📍 ที่อยู่จัดส่ง ({userDetail.addresses.length} รายการ)</h6>
+                                                <h6 className="fw-bold mb-2 d-inline-flex align-items-center gap-1">
+                                                    <span className="material-icons text-danger" style={{ fontSize: '18px' }}>location_on</span>
+                                                    ที่อยู่จัดส่ง ({userDetail.addresses.length} รายการ)
+                                                </h6>
                                                 {userDetail.addresses.map((addr, i) => (
                                                     <div key={i} className="bg-light p-2 rounded mb-1 small">
                                                         <strong>{addr.address_text}</strong> · {addr.contact_phone}
@@ -670,10 +706,13 @@ function Admin() {
                                             </div>
                                         )}
 
-                                        {/*  Products (ถ้า merchant)  */}
+                                        {/* Products (ถ้า merchant)  */}
                                         {userDetail.products.length > 0 && (
                                             <div className="mb-4">
-                                                <h6 className="fw-bold mb-2">🍽️ เมนูอาหาร ({userDetail.products.length} รายการ)</h6>
+                                                <h6 className="fw-bold mb-2 d-inline-flex align-items-center gap-1">
+                                                    <span className="material-icons text-warning" style={{ fontSize: '18px' }}>restaurant_menu</span>
+                                                    เมนูอาหาร ({userDetail.products.length} รายการ)
+                                                </h6>
                                                 <div className="d-flex flex-wrap gap-2">
                                                     {userDetail.products.map((p, i) => (
                                                         <div key={i} className="badge bg-light text-dark border px-2 py-1">
@@ -685,38 +724,43 @@ function Admin() {
                                             </div>
                                         )}
 
-                                        {/*  Orders  */}
+                                        {/* Orders  */}
                                         {userDetail.orders !== undefined && (
                                             <div className="mb-4">
-                                                <h6 className="fw-bold mb-2">
-                                                    📜 ประวัติออเดอร์ทั้งหมด ({userDetail.orders.length} รายการ)
+                                                <h6 className="fw-bold mb-2 d-inline-flex align-items-center gap-1">
+                                                    <span className="material-icons text-primary" style={{ fontSize: '18px' }}>receipt_long</span>
+                                                    ประวัติออเดอร์ทั้งหมด ({userDetail.orders.length} รายการ)
                                                 </h6>
 
                                                 {/* Search + Filter */}
-                                                <div className="d-flex gap-2 mb-2">
-                                                    <input
-                                                        className="form-control form-control-sm"
-                                                        placeholder="🔍 ค้นหาชื่อร้าน / ชื่อลูกค้า..."
-                                                        value={orderSearch}
-                                                        onChange={e => setOrderSearch(e.target.value)}
-                                                    />
+                                                <div className="d-flex gap-2 mb-2 position-relative">
+                                                    {/* ใส่ไอคอนค้นหาเข้าไปใน Input โดยใช้ Position ของ CSS หรือใช้ icon วางข้างนอกก็ได้ ในที่นี้ผมวางด้านหน้าแบบง่ายๆ ครับ */}
+                                                    <div className="input-group input-group-sm">
+                                                        
+                                                        <input
+                                                            className="form-control"
+                                                            placeholder="ค้นหาชื่อร้าน / ชื่อลูกค้า..."
+                                                            value={orderSearch}
+                                                            onChange={e => setOrderSearch(e.target.value)}
+                                                        />
+                                                    </div>
                                                 </div>
                                                 <div className="d-flex gap-1 mb-3 flex-wrap">
                                                     {['all', 'pending', 'accepted', 'cooking', 'delivering', 'completed', 'cancelled'].map(s => (
                                                         <button
                                                             key={s}
-                                                            className={`btn btn-sm ${orderStatusFilter === s ? 'btn-danger' : 'btn-outline-secondary'}`}
+                                                            className={`btn btn-sm ${orderStatusFilter === s ? 'btn-danger' : 'btn-outline-secondary'} d-inline-flex align-items-center gap-0`}
                                                             style={{fontSize: '0.75rem', padding: '2px 8px'}}
                                                             onClick={() => setOrderStatusFilter(s)}
                                                         >
                                                             {{
-                                                                all: 'ทั้งหมด',
-                                                                pending: 'รอรับ',
-                                                                accepted: 'รับแล้ว',
-                                                                cooking: 'ปรุง',
-                                                                delivering: 'ส่ง',
-                                                                completed: '✅ สำเร็จ',
-                                                                cancelled: '❌ ยกเลิก'
+                                                                all: (<><span className="material-icons" style={{fontSize: '14px'}}>list</span> ทั้งหมด</>),
+                                                                pending: (<><span className="material-icons" style={{fontSize: '14px'}}>schedule</span> รอรับ</>),
+                                                                accepted: (<><span className="material-icons" style={{fontSize: '14px'}}>check_circle</span> รับแล้ว</>),
+                                                                cooking: (<><span className="material-icons" style={{fontSize: '14px'}}>soup_kitchen</span> ปรุง</>),
+                                                                delivering: (<><span className="material-icons" style={{fontSize: '14px'}}>delivery_dining</span> ส่ง</>),
+                                                                completed: (<><span className="material-icons" style={{fontSize: '14px'}}>task_alt</span> สำเร็จ</>),
+                                                                cancelled: (<><span className="material-icons" style={{fontSize: '14px'}}>cancel</span> ยกเลิก</>)
                                                             }[s]}
                                                         </button>
                                                     ))}
@@ -761,25 +805,35 @@ function Admin() {
                     {/*  รายการคำร้อง  */}
                     <div className={`${selectedTicket ? 'col-md-5' : 'col-12'} mb-3`}>
                         <div className="card p-3 shadow-sm">
-                            <h5 className="mb-3 text-danger">📨 คำร้องทั้งหมด</h5>
+                            <h5 className="mb-3 text-danger d-flex align-items-center gap-2">
+                                <span className="material-icons">inbox</span> คำร้องทั้งหมด
+                            </h5>
 
                             <div className="d-flex gap-2 mb-3">
-                                <input
-                                    className="form-control"
-                                    placeholder="🔍 ค้นหาหัวข้อ, ชื่อผู้ส่ง..."
-                                    value={ticketSearch}
-                                    onChange={e => setTicketSearch(e.target.value)}
-                                />
+                                <div className="input-group">
+                                    <input
+                                        className="form-control"
+                                        placeholder="ค้นหาหัวข้อ, ชื่อผู้ส่ง..."
+                                        value={ticketSearch}
+                                        onChange={e => setTicketSearch(e.target.value)}
+                                    />
+                                </div>
                             </div>
 
                             <div className="d-flex gap-2 mb-3 flex-wrap">
                                 {['all', 'open', 'in_progress', 'resolved', 'rejected'].map(s => (
                                     <button
                                         key={s}
-                                        className={`btn btn-sm ${ticketStatusFilter === s ? 'btn-danger' : 'btn-outline-secondary'}`}
+                                        className={`btn btn-sm ${ticketStatusFilter === s ? 'btn-danger' : 'btn-outline-secondary'} d-inline-flex align-items-center gap-1`}
                                         onClick={() => setTicketStatusFilter(s)}
                                     >
-                                        {{ all: 'ทั้งหมด', open: '🔴 รอ', in_progress: '🟡 กำลังดำเนินการ', resolved: '✅ แก้ไขแล้ว', rejected: '⛔ ปฏิเสธ' }[s]}
+                                        {{
+                                            all: (<><span className={`material-icons ${ticketStatusFilter === s ? '' : 'text-primary'}`} style={{fontSize: '16px'}}>list</span> ทั้งหมด</>),
+                                            open: (<><span className={`material-icons ${ticketStatusFilter === s ? '' : 'text-danger'}`} style={{fontSize: '16px'}}>error_outline</span> รอ</>),
+                                            in_progress: (<><span className={`material-icons ${ticketStatusFilter === s ? '' : 'text-warning'}`} style={{fontSize: '16px'}}>sync</span> กำลังดำเนินการ</>),
+                                            resolved: (<><span className={`material-icons ${ticketStatusFilter === s ? '' : 'text-success'}`} style={{fontSize: '16px'}}>check_circle_outline</span> แก้ไขแล้ว</>),
+                                            rejected: (<><span className={`material-icons ${ticketStatusFilter === s ? '' : 'text-danger'}`} style={{fontSize: '16px'}}>block</span> ปฏิเสธ</>)
+                                        }[s]}
                                     </button>
                                 ))}
                             </div>
@@ -888,9 +942,24 @@ function Admin() {
                                         {/* Action Buttons สำหรับ Ticket */}
                                         {selectedTicket.status === 'open' || selectedTicket.status === 'in_progress' ? (
                                             <div className="d-flex gap-2 flex-wrap">
-                                                <button className="btn btn-warning flex-fill" onClick={() => handleUpdateTicket(selectedTicket, 'in_progress')}>🟡 กำลังดำเนินการ</button>
-                                                <button className="btn btn-success flex-fill" onClick={() => handleUpdateTicket(selectedTicket, 'resolved')}>✅ แก้ไขแล้ว</button>
-                                                <button className="btn btn-secondary flex-fill" onClick={() => handleUpdateTicket(selectedTicket, 'rejected')}>⛔ ปฏิเสธ</button>
+                                                <button 
+                                                    className="btn btn-warning flex-fill d-inline-flex align-items-center justify-content-center gap-1 text-dark" 
+                                                    onClick={() => handleUpdateTicket(selectedTicket, 'in_progress')}
+                                                >
+                                                    <span className="material-icons" style={{fontSize: '18px'}}>sync</span> กำลังดำเนินการ
+                                                </button>
+                                                <button 
+                                                    className="btn btn-success flex-fill d-inline-flex align-items-center justify-content-center gap-1" 
+                                                    onClick={() => handleUpdateTicket(selectedTicket, 'resolved')}
+                                                >
+                                                    <span className="material-icons" style={{fontSize: '18px'}}>check_circle</span> แก้ไขแล้ว
+                                                </button>
+                                                <button 
+                                                    className="btn btn-secondary flex-fill d-inline-flex align-items-center justify-content-center gap-1" 
+                                                    onClick={() => handleUpdateTicket(selectedTicket, 'rejected')}
+                                                >
+                                                    <span className="material-icons" style={{fontSize: '18px'}}>block</span> ปฏิเสธ
+                                                </button>
                                             </div>
                                         ) : (
                                             <div className="alert alert-secondary mb-0">คำร้องนี้ถูกดำเนินการแล้ว</div>
@@ -906,14 +975,16 @@ function Admin() {
                                         <div className="d-flex align-items-center mb-4 p-3 rounded" style={{ background: '#f8f9fa' }}>
                                             <div className="rounded-circle d-flex align-items-center justify-content-center me-3 text-white"
                                                 style={{ width: 64, height: 64, background: userDetail.user.role === 'merchant' ? '#6c5ce7' : '#0984e3', fontSize: '1.8rem' }}>
-                                                {userDetail.user.role === 'merchant' ? '🏪' : '👤'}
+                                                <span className="material-icons" style={{ fontSize: '1.8rem' }}>
+                                                    {userDetail.user.role === 'merchant' ? 'storefront' : 'person'}
+                                                </span>
                                             </div>
                                             <div>
                                                 <h4 className="mb-1">{userDetail.user.fullname}</h4>
                                                 <div className="d-flex gap-2 flex-wrap">
                                                     <span className="text-muted">@{userDetail.user.username}</span>
                                                     {getRoleBadge(userDetail.user.role)}
-                                                    {userDetail.user.is_banned == 1 && <span className="badge bg-danger">🔨 ถูกแบน</span>}
+                                                    {userDetail.user.is_banned == 1 && <span className="badge bg-danger">ถูกแบน</span>}
                                                 </div>
                                                 <small className="text-muted">สมัครเมื่อ: {userDetail.user.created_at}</small>
                                             </div>
@@ -921,7 +992,7 @@ function Admin() {
 
                                         {/* Edit Form */}
                                         <div className="mb-4">
-                                            <h6 className="fw-bold mb-3">✏️ แก้ไขข้อมูล</h6>
+                                            <h6 className="fw-bold mb-3">แก้ไขข้อมูล</h6>
                                             <div className="row">
                                                 <div className="col-md-6 mb-2">
                                                     <label className="small text-muted">ชื่อ-นามสกุล</label>
@@ -945,19 +1016,30 @@ function Admin() {
 
                                             {/* ปุ่มชุดเต็มเหมือน users tab */}
                                             <div className="d-flex gap-2 flex-wrap mt-3">
-                                                <button className="btn btn-primary" onClick={handleSaveEdit}>💾 บันทึกการแก้ไข</button>
+                                                <button className="btn btn-primary d-inline-flex align-items-center gap-1" onClick={handleSaveEdit}>
+                                                    <span className="material-icons" style={{ fontSize: '18px' }}>save</span> บันทึกการแก้ไข
+                                                </button>
+                                                
                                                 <button
-                                                    className={`btn ${userDetail.user.is_banned == 1 ? 'btn-success' : 'btn-warning'}`}
+                                                    className={`btn ${userDetail.user.is_banned == 1 ? 'btn-success' : 'btn-warning'} d-inline-flex align-items-center gap-1`}
                                                     onClick={() => handleToggleBan(userDetail.user)}
                                                 >
-                                                    {userDetail.user.is_banned == 1 ? '✅ ปลดแบน' : '🔨 แบนผู้ใช้'}
+                                                    {userDetail.user.is_banned == 1 ? (
+                                                        <><span className="material-icons" style={{ fontSize: '18px' }}>task_alt</span> ปลดแบน</>
+                                                    ) : (
+                                                        <><span className="material-icons" style={{ fontSize: '18px' }}>gavel</span> แบนผู้ใช้</>
+                                                    )}
                                                 </button>
-                                                <button className="btn btn-danger" onClick={() => handleDeleteUser(userDetail.user)}>🗑️ ลบบัญชีถาวร</button>
+                                                
+                                                <button className="btn btn-danger d-inline-flex align-items-center gap-1" onClick={() => handleDeleteUser(userDetail.user)}>
+                                                    <span className="material-icons" style={{ fontSize: '18px' }}>delete_forever</span> ลบบัญชีถาวร
+                                                </button>
+                                                
                                                 <button
-                                                    className="btn btn-info text-white"
+                                                    className="btn btn-info text-white d-inline-flex align-items-center gap-1"
                                                     onClick={() => { setShowNotifModal(true); setNotifForm({ category: '', message: '' }); fetchUserNotifs(selectedUser.id); }}
                                                 >
-                                                    🔔 แจ้งเตือน
+                                                    <span className="material-icons" style={{ fontSize: '18px' }}>notifications</span> แจ้งเตือน
                                                 </button>
                                             </div>
 
@@ -993,7 +1075,10 @@ function Admin() {
                                         {/* Addresses */}
                                         {userDetail.addresses.length > 0 && (
                                             <div className="mb-4">
-                                                <h6 className="fw-bold mb-2">📍 ที่อยู่จัดส่ง ({userDetail.addresses.length} รายการ)</h6>
+                                                <h6 className="fw-bold mb-2 d-inline-flex align-items-center gap-1">
+                                                    <span className="material-icons text-danger" style={{ fontSize: '18px' }}>location_on</span>
+                                                    ที่อยู่จัดส่ง ({userDetail.addresses.length} รายการ)
+                                                </h6>
                                                 {userDetail.addresses.map((addr, i) => (
                                                     <div key={i} className="bg-light p-2 rounded mb-1 small">
                                                         <strong>{addr.address_text}</strong> · {addr.contact_phone}
@@ -1002,10 +1087,13 @@ function Admin() {
                                             </div>
                                         )}
 
-                                        {/* Products (merchant) */}
+                                        {/* Products */}
                                         {userDetail.products.length > 0 && (
                                             <div className="mb-4">
-                                                <h6 className="fw-bold mb-2">🍽️ เมนูอาหาร ({userDetail.products.length} รายการ)</h6>
+                                                <h6 className="fw-bold mb-2 d-inline-flex align-items-center gap-1">
+                                                    <span className="material-icons text-warning" style={{ fontSize: '18px' }}>restaurant_menu</span>
+                                                    เมนูอาหาร ({userDetail.products.length} รายการ)
+                                                </h6>
                                                 <div className="d-flex flex-wrap gap-2">
                                                     {userDetail.products.map((p, i) => (
                                                         <div key={i} className="badge bg-light text-dark border px-2 py-1">
@@ -1017,27 +1105,43 @@ function Admin() {
                                             </div>
                                         )}
 
-                                        {/* Orders พร้อม search/filter เต็มรูปแบบ */}
+                                        {/* Orders */}
                                         {userDetail.orders !== undefined && (
                                             <div className="mb-4">
-                                                <h6 className="fw-bold mb-2">📜 ประวัติออเดอร์ทั้งหมด ({userDetail.orders.length} รายการ)</h6>
-                                                <div className="d-flex gap-2 mb-2">
-                                                    <input
-                                                        className="form-control form-control-sm"
-                                                        placeholder="🔍 ค้นหาชื่อร้าน / ชื่อลูกค้า..."
-                                                        value={orderSearch}
-                                                        onChange={e => setOrderSearch(e.target.value)}
-                                                    />
+                                                <h6 className="fw-bold mb-2 d-inline-flex align-items-center gap-1">
+                                                    <span className="material-icons text-primary" style={{ fontSize: '18px' }}>receipt_long</span>
+                                                    ประวัติออเดอร์ทั้งหมด ({userDetail.orders.length} รายการ)
+                                                </h6>
+
+                                                {/* Search + Filter */}
+                                                <div className="d-flex gap-2 mb-2 position-relative">
+                                                    {/* ใส่ไอคอนค้นหาเข้าไปใน Input โดยใช้ Position ของ CSS หรือใช้ icon วางข้างนอกก็ได้ ในที่นี้ผมวางด้านหน้าแบบง่ายๆ ครับ */}
+                                                    <div className="input-group input-group-sm">
+                                                        <input
+                                                            className="form-control"
+                                                            placeholder="ค้นหาชื่อร้าน / ชื่อลูกค้า..."
+                                                            value={orderSearch}
+                                                            onChange={e => setOrderSearch(e.target.value)}
+                                                        />
+                                                    </div>
                                                 </div>
                                                 <div className="d-flex gap-1 mb-3 flex-wrap">
                                                     {['all', 'pending', 'accepted', 'cooking', 'delivering', 'completed', 'cancelled'].map(s => (
                                                         <button
                                                             key={s}
-                                                            className={`btn btn-sm ${orderStatusFilter === s ? 'btn-danger' : 'btn-outline-secondary'}`}
+                                                            className={`btn btn-sm ${orderStatusFilter === s ? 'btn-danger' : 'btn-outline-secondary'} d-inline-flex align-items-center gap-0`}
                                                             style={{fontSize: '0.75rem', padding: '2px 8px'}}
                                                             onClick={() => setOrderStatusFilter(s)}
                                                         >
-                                                            {{ all: 'ทั้งหมด', pending: 'รอรับ', accepted: 'รับแล้ว', cooking: 'ปรุง', delivering: 'ส่ง', completed: '✅ สำเร็จ', cancelled: '❌ ยกเลิก' }[s]}
+                                                            {{
+                                                                all: (<><span className="material-icons" style={{fontSize: '14px'}}>list</span> ทั้งหมด</>),
+                                                                pending: (<><span className="material-icons" style={{fontSize: '14px'}}>schedule</span> รอรับ</>),
+                                                                accepted: (<><span className="material-icons" style={{fontSize: '14px'}}>check_circle</span> รับแล้ว</>),
+                                                                cooking: (<><span className="material-icons" style={{fontSize: '14px'}}>soup_kitchen</span> ปรุง</>),
+                                                                delivering: (<><span className="material-icons" style={{fontSize: '14px'}}>delivery_dining</span> ส่ง</>),
+                                                                completed: (<><span className="material-icons" style={{fontSize: '14px'}}>task_alt</span> สำเร็จ</>),
+                                                                cancelled: (<><span className="material-icons" style={{fontSize: '14px'}}>cancel</span> ยกเลิก</>)
+                                                            }[s]}
                                                         </button>
                                                     ))}
                                                 </div>
@@ -1078,31 +1182,36 @@ function Admin() {
              */}
             {activeTab === 'logs' && (
                 <div className="card shadow-sm p-4">
-                    <h5 className="mb-4 text-danger">📋 ประวัติการดำเนินการของ Admin</h5>
+                    <h5 className="mb-4 text-danger d-flex align-items-center gap-2">
+                        <span className="material-icons">assignment</span> ประวัติการดำเนินการของ Admin
+                    </h5>
                     {/* เพิ่ม */}
                     <div className="d-flex gap-2 mb-3">
-                        <input
-                            className="form-control"
-                            placeholder="🔍 ค้นหาชื่อ Admin, ชื่อเป้าหมาย, รายละเอียด..."
-                            value={logSearch}
-                            onChange={e => setLogSearch(e.target.value)}
-                        />
+                        <div className="input-group">
+                            <input
+                                className="form-control"
+                                placeholder="ค้นหาชื่อ Admin, ชื่อเป้าหมาย, รายละเอียด..."
+                                value={logSearch}
+                                onChange={e => setLogSearch(e.target.value)}
+                            />
+                        </div>
                     </div>
                     <div className="d-flex gap-2 mb-4 flex-wrap">
                         {['all', 'ban', 'unban', 'delete_user', 'edit_user', 'resolve_ticket', 'reject_ticket'].map(a => (
                             <button
                                 key={a}
-                                className={`btn btn-sm ${logActionFilter === a ? 'btn-danger' : 'btn-outline-secondary'}`}
+                                className={`btn btn-sm ${logActionFilter === a ? 'btn-danger' : 'btn-outline-secondary'} d-inline-flex align-items-center gap-1`}
                                 onClick={() => setLogActionFilter(a)}
                             >
+                                {/* << ปรับแก้ตรงนี้ >> */}
                                 {{
-                                    all: '🌐 ทั้งหมด',
-                                    ban: '🔨 แบน',
-                                    unban: '✅ ปลดแบน',
-                                    delete_user: '🗑️ ลบบัญชี',
-                                    edit_user: '✏️ แก้ไข',
-                                    resolve_ticket: '✅ แก้ไขคำร้อง',
-                                    reject_ticket: '⛔ ปฏิเสธคำร้อง'
+                                    all: (<span className="d-inline-flex align-items-center gap-1"><span className="material-icons text-muted" style={{fontSize: '16px'}}>history</span> ทั้งหมด</span>),
+                                    ban: (<span className="d-inline-flex align-items-center gap-1"><span className="material-icons text-danger" style={{fontSize: '16px'}}>gavel</span> แบน</span>),
+                                    unban: (<span className="d-inline-flex align-items-center gap-1"><span className="material-icons text-success" style={{fontSize: '16px'}}>undo</span> ปลดแบน</span>),
+                                    delete_user: (<span className="d-inline-flex align-items-center gap-1"><span className="material-icons text-danger" style={{fontSize: '16px'}}>delete_forever</span> ลบบัญชี</span>),
+                                    edit_user: (<span className="d-inline-flex align-items-center gap-1"><span className="material-icons text-primary" style={{fontSize: '16px'}}>edit</span> แก้ไข</span>),
+                                    resolve_ticket: (<span className="d-inline-flex align-items-center gap-1"><span className="material-icons text-success" style={{fontSize: '16px'}}>check_circle_outline</span> แก้ไขคำร้อง</span>),
+                                    reject_ticket: (<span className="d-inline-flex align-items-center gap-1"><span className="material-icons text-danger" style={{fontSize: '16px'}}>block</span> ปฏิเสธคำร้อง</span>)
                                 }[a]}
                             </button>
                         ))}
@@ -1149,13 +1258,13 @@ function Admin() {
                                                 {/* ปุ่มปลดแบนจากหน้าประวัติได้เลย ถ้า action เป็น ban */}
                                                 {log.action === 'ban' && log.target_user_id && (
                                                     <button
-                                                        className="btn btn-sm btn-outline-success"
+                                                        className="btn btn-sm btn-outline-success d-inline-flex align-items-center gap-1"
                                                         onClick={() => {
                                                             const fakeUser = { id: log.target_user_id, fullname: log.target_fullname, username: log.target_username, is_banned: 1 };
                                                             handleToggleBan(fakeUser);
                                                         }}
                                                     >
-                                                        ✅ ปลดแบน
+                                                        <span className="material-icons" style={{fontSize: '16px'}}>task_alt</span> ปลดแบน
                                                     </button>
                                                 )}
                                             </td>
@@ -1222,7 +1331,7 @@ function Admin() {
 
                         <div className="d-flex gap-2">
                             <button className="btn btn-secondary flex-fill" onClick={() => setShowNotifModal(false)}>ยกเลิก</button>
-                            <button className="btn btn-info text-white flex-fill" onClick={handleSendNotification}>📨 ส่งแจ้งเตือน</button>
+                            <button className="btn btn-info text-white flex-fill" onClick={handleSendNotification}>ส่งแจ้งเตือน</button>
                         </div>
                     </div>
                 </div>
@@ -1233,7 +1342,7 @@ function Admin() {
                 <div className="modal-overlay">
                     <div className="modal-box" style={{maxWidth: '480px'}}>
                         <div className="d-flex justify-content-between align-items-center mb-3">
-                            <h4 className="mb-0 text-danger">🔨 แบนผู้ใช้</h4>
+                            <h4 className="mb-0 text-danger">แบนผู้ใช้</h4>
                             <button className="btn-close" onClick={() => setShowBanModal(false)} />
                         </div>
                         <p className="text-muted small mb-3">แบน: <strong>{banTargetUser.fullname}</strong> (@{banTargetUser.username})</p>
@@ -1241,7 +1350,7 @@ function Admin() {
                         <div className="mb-3">
                             <label className="form-label fw-bold">หมวดหมู่การแบน <span className="text-danger">*</span></label>
                             <div className="d-flex flex-wrap gap-2">
-                                {['🚨 ละเมิดกฎชุมชน', '💬 พฤติกรรมไม่เหมาะสม', '🔁 โกงออเดอร์', '🤖 บัญชีปลอม/บอท', '📛 สแปม', '⚖️ ละเมิดข้อกำหนด', '🔞 เนื้อหาไม่เหมาะสม'].map(cat => (
+                                {['ละเมิดกฎชุมชน', 'พฤติกรรมไม่เหมาะสม', 'โกงออเดอร์', 'บัญชีปลอม/บอท', 'สแปม', 'ละเมิดข้อกำหนด', 'เนื้อหาไม่เหมาะสม'].map(cat => (
                                     <button
                                         key={cat}
                                         className={`btn btn-sm ${banForm.category === cat ? 'btn-danger' : 'btn-outline-secondary'}`}
@@ -1266,7 +1375,7 @@ function Admin() {
 
                         <div className="d-flex gap-2">
                             <button className="btn btn-secondary flex-fill" onClick={() => setShowBanModal(false)}>ยกเลิก</button>
-                            <button className="btn btn-danger flex-fill" onClick={handleConfirmBan}>🔨 ยืนยันแบน</button>
+                            <button className="btn btn-danger flex-fill" onClick={handleConfirmBan}>ยืนยันแบน</button>
                         </div>
                     </div>
                 </div>
