@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
@@ -154,6 +154,13 @@ function Admin() {
     //  Orders (ใน User Detail) 
     const [orderSearch, setOrderSearch] = useState('');
     const [orderStatusFilter, setOrderStatusFilter] = useState('all');
+    const orderSearchRef = useRef('');
+    const orderStatusFilterRef = useRef('all');
+
+    const ticketSearchRef = useRef('');
+    const ticketStatusFilterRef = useRef('all');
+    const logSearchRef = useRef('');
+    const logActionFilterRef = useRef('all');
 
     //  Tickets Tab 
     const [tickets, setTickets] = useState([]);
@@ -264,8 +271,8 @@ function Admin() {
             const params = new URLSearchParams({ 
                 action: 'get_user_detail', 
                 user_id: uid,
-                order_search: orderSearch,
-                order_status: orderStatusFilter
+                order_search: orderSearchRef.current,
+                order_status: orderStatusFilterRef.current
             });
             const res = await axios.get(`${API}/admin.php?${params}`);
             if (res.data.status === 'success') {
@@ -283,8 +290,8 @@ function Admin() {
     const fetchTickets = async () => {
         try {
             const params = new URLSearchParams({ action: 'get_tickets' });
-            if (ticketSearch) params.append('search', ticketSearch);
-            if (ticketStatusFilter !== 'all') params.append('status', ticketStatusFilter);
+            if (ticketSearchRef.current) params.append('search', ticketSearchRef.current);
+            if (ticketStatusFilterRef.current !== 'all') params.append('status', ticketStatusFilterRef.current);
             const res = await axios.get(`${API}/admin.php?${params}`);
             if (res.data.status === 'success') setTickets(res.data.tickets);
         } catch (e) { console.error(e); }
@@ -293,8 +300,8 @@ function Admin() {
     const fetchLogs = async () => {
         try {
             const params = new URLSearchParams({ action: 'get_logs' });
-            if (logSearch) params.append('search', logSearch);
-            if (logActionFilter !== 'all') params.append('action_filter', logActionFilter);
+            if (logSearchRef.current) params.append('search', logSearchRef.current);
+            if (logActionFilterRef.current !== 'all') params.append('action_filter', logActionFilterRef.current);
             const res = await axios.get(`${API}/admin.php?${params}`);
             if (res.data.status === 'success') setLogs(res.data.logs);
         } catch (e) { console.error(e); }
@@ -741,7 +748,10 @@ function Admin() {
                                                             className="form-control"
                                                             placeholder="ค้นหาชื่อร้าน / ชื่อลูกค้า..."
                                                             value={orderSearch}
-                                                            onChange={e => setOrderSearch(e.target.value)}
+                                                            onChange={e => {
+                                                                setOrderSearch(e.target.value);
+                                                                orderSearchRef.current = e.target.value;
+                                                            }}
                                                         />
                                                     </div>
                                                 </div>
@@ -751,7 +761,10 @@ function Admin() {
                                                             key={s}
                                                             className={`btn btn-sm ${orderStatusFilter === s ? 'btn-danger' : 'btn-outline-secondary'} d-inline-flex align-items-center gap-0`}
                                                             style={{fontSize: '0.75rem', padding: '2px 8px'}}
-                                                            onClick={() => setOrderStatusFilter(s)}
+                                                            onClick={() => {
+                                                                setOrderStatusFilter(s);
+                                                                orderStatusFilterRef.current = s;
+                                                            }}
                                                         >
                                                             {{
                                                                 all: (<><span className={`material-icons ${orderStatusFilter === s ? '' : 'text-primary'}`} style={{fontSize: '14px'}}>list</span> ทั้งหมด</>),
@@ -814,7 +827,10 @@ function Admin() {
                                         className="form-control"
                                         placeholder="ค้นหาหัวข้อ, ชื่อผู้ส่ง..."
                                         value={ticketSearch}
-                                        onChange={e => setTicketSearch(e.target.value)}
+                                        onChange={e => {
+                                            setTicketSearch(e.target.value);
+                                            ticketSearchRef.current = e.target.value;
+                                        }}
                                     />
                                 </div>
                             </div>
@@ -824,7 +840,10 @@ function Admin() {
                                     <button
                                         key={s}
                                         className={`btn btn-sm ${ticketStatusFilter === s ? 'btn-danger' : 'btn-outline-secondary'} d-inline-flex align-items-center gap-1`}
-                                        onClick={() => setTicketStatusFilter(s)}
+                                        onClick={() => {
+                                            setTicketStatusFilter(s);
+                                            ticketStatusFilterRef.current = s;
+                                        }}
                                     >
                                         {{
                                             all: (<><span className={`material-icons ${ticketStatusFilter === s ? '' : 'text-primary'}`} style={{fontSize: '16px'}}>list</span> ทั้งหมด</>),
@@ -1120,7 +1139,10 @@ function Admin() {
                                                             className="form-control"
                                                             placeholder="ค้นหาชื่อร้าน / ชื่อลูกค้า..."
                                                             value={orderSearch}
-                                                            onChange={e => setOrderSearch(e.target.value)}
+                                                            onChange={e => {
+                                                                setOrderSearch(e.target.value);
+                                                                orderSearchRef.current = e.target.value;
+                                                            }}
                                                         />
                                                     </div>
                                                 </div>
@@ -1130,7 +1152,10 @@ function Admin() {
                                                             key={s}
                                                             className={`btn btn-sm ${orderStatusFilter === s ? 'btn-danger' : 'btn-outline-secondary'} d-inline-flex align-items-center gap-0`}
                                                             style={{fontSize: '0.75rem', padding: '2px 8px'}}
-                                                            onClick={() => setOrderStatusFilter(s)}
+                                                            onClick={() => {
+                                                                setOrderStatusFilter(s);
+                                                                orderStatusFilterRef.current = s;
+                                                            }}
                                                         >
                                                             {{
                                                                 all: (<><span className={`material-icons ${orderStatusFilter === s ? '' : 'text-primary'}`} style={{fontSize: '14px'}}>list</span> ทั้งหมด</>),
@@ -1191,7 +1216,10 @@ function Admin() {
                                 className="form-control"
                                 placeholder="ค้นหาชื่อ Admin, ชื่อเป้าหมาย, รายละเอียด..."
                                 value={logSearch}
-                                onChange={e => setLogSearch(e.target.value)}
+                                onChange={e => {
+                                    setLogSearch(e.target.value);
+                                    logSearchRef.current = e.target.value;
+                                }}
                             />
                         </div>
                     </div>
@@ -1200,7 +1228,10 @@ function Admin() {
                             <button
                                 key={a}
                                 className={`btn btn-sm ${logActionFilter === a ? 'btn-danger' : 'btn-outline-secondary'} d-inline-flex align-items-center gap-1`}
-                                onClick={() => setLogActionFilter(a)}
+                                onClick={() => {
+                                    setLogActionFilter(a);
+                                    logActionFilterRef.current = a;
+                                }}
                             >
                                 {/* << ปรับแก้ตรงนี้ >> */}
                                 {{

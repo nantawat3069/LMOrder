@@ -55,6 +55,8 @@ function Merchant() {
 
     const [modal, setModal] = useState({ show: false, type: 'alert', title: '', message: '', onConfirm: null });
 
+    const [copiedOrderId, setCopiedOrderId] = useState(null);
+
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
         if (!storedUser) { navigate('/'); return; }
@@ -492,7 +494,20 @@ function Merchant() {
                                         </div>
 
                                         {/* ลูกค้า + ที่อยู่ */}
-                                        <p className="mb-1"><strong>ลูกค้า:</strong> {o.customer_name}</p>
+                                        <div className="d-flex align-items-center justify-content-between mb-1">
+                                            <p className="mb-0"><strong>ลูกค้า:</strong> {o.customer_name}</p>
+                                            <button
+                                                className="btn btn-sm btn-outline-secondary py-0 px-2"
+                                                style={{fontSize: '0.9rem'}}
+                                                onClick={() => {
+                                                    navigator.clipboard.writeText(o.customer_phone);
+                                                    setCopiedOrderId(o.id);
+                                                    setTimeout(() => setCopiedOrderId(null), 2000);
+                                                }}
+                                            >
+                                                {copiedOrderId === o.id ? 'คัดลอกแล้ว' : `เบอร์ : ${o.customer_phone}`}
+                                            </button>
+                                        </div>
                                         <p className="mb-2"><strong>ที่อยู่:</strong> {o.address}</p>
 
                                         {/* รายการอาหาร */}

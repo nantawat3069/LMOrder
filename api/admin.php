@@ -59,8 +59,17 @@ elseif ($method == 'GET' && $action == 'get_user_detail') {
     $order_where = "";
     if (!empty($order_search)) {
         $s = $conn->real_escape_string($order_search);
-        $order_where .= " AND (u.fullname LIKE '%$s%' OR u.username LIKE '%$s%' OR s.shop_name LIKE '%$s%')";
+        
+        // ลบ @ ออกถ้าพิมพ์นำหน้า เพื่อค้นหา username
+        $s_clean = ltrim($s, '@');
+        
+        $order_where .= " AND (
+            u.fullname LIKE '%$s%' 
+            OR u.username LIKE '%$s_clean%'
+            OR s.shop_name LIKE '%$s%'
+        )";
     }
+    
     if ($order_status_filter !== 'all') {
         $sf = $conn->real_escape_string($order_status_filter);
         $order_where .= " AND o.status = '$sf'";
