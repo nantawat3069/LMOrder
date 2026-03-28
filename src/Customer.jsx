@@ -851,7 +851,7 @@ function Customer() {
                                             {/* แสดงวิธีชำระ */}
                                             {o.payment_method && (
                                                 <small className="text-muted">
-                                                    💳 {o.payment_method}
+                                                    {o.payment_method}
                                                 </small>
                                             )}
                                         </div>
@@ -1024,7 +1024,7 @@ function Customer() {
                         className="btn btn-outline-danger w-100 py-2" 
                         onClick={() => confirmAction('ออกจากระบบ', 'ยืนยันที่จะออกจากระบบ?', () => { localStorage.removeItem('user'); navigate('/'); })}
                     >
-                        🚪 ออกจากระบบ
+                        ออกจากระบบ
                     </button>
 
                     <hr className="my-5"/>
@@ -1238,7 +1238,7 @@ function Customer() {
 
                         <div className="d-flex gap-2">
                             <button className="btn btn-secondary flex-fill" onClick={() => { setShowReportModal(false); setReportForm({ category: '', message: '' }); }}>ยกเลิก</button>
-                            <button className="btn btn-danger flex-fill" onClick={handleSubmitReport}>📨 ส่งรายงาน</button>
+                            <button className="btn btn-danger flex-fill" onClick={handleSubmitReport}>ส่งรายงาน</button>
                         </div>
                     </div>
                 </div>
@@ -1306,7 +1306,7 @@ function Customer() {
                                     className="btn btn-outline-danger flex-fill"
                                     onClick={() => { localStorage.removeItem('user'); navigate('/'); }}
                                 >
-                                    🚪 ออกจากระบบ
+                                    ออกจากระบบ
                                 </button>
                                 {(appealStatus === null || appealStatus === 'resolved' || appealStatus === 'rejected') && (
                                     <button
@@ -1314,7 +1314,7 @@ function Customer() {
                                         disabled={!banAppealMessage.trim()}
                                         onClick={handleAppeal}
                                     >
-                                        📨 ส่งคำร้อง
+                                        ส่งคำร้อง
                                     </button>
                                 )}
                             </div>

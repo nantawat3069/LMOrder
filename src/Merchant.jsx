@@ -615,7 +615,7 @@ function Merchant() {
             {/* TAB: History */}
             {activeTab === 'history' && (
                 <div>
-                    <h4 className="mb-4">📜 ประวัติยอดขาย (ออเดอร์ที่เสร็จสิ้น)</h4>
+                    <h4 className="mb-4">ประวัติยอดขาย (ออเดอร์ที่เสร็จสิ้น)</h4>
                     {history.length === 0 ? (
                         <div className="text-center text-muted py-5">ยังไม่มีประวัติการขาย</div>
                     ) : (
@@ -655,7 +655,7 @@ function Merchant() {
                                                 <small className="d-block text-muted">ยอดรวม</small>
                                                 <h5 className="text-primary mb-0">{parseInt(o.total_price).toLocaleString()} บ.</h5>
                                                 {o.payment_method && (
-                                                    <small className="text-muted">💳 {o.payment_method}</small>
+                                                    <small className="text-muted">{o.payment_method}</small>
                                                 )}
                                             </div>
                                             <div className="d-flex gap-2">
@@ -940,7 +940,7 @@ function Merchant() {
 
                         <div className="d-flex gap-2">
                             <button className="btn btn-secondary flex-fill" onClick={() => setReportCustomerModal({ show: false, order: null, category: '', message: '' })}>ยกเลิก</button>
-                            <button className="btn btn-danger flex-fill" onClick={handleReportCustomer}>📨 ส่งรายงาน</button>
+                            <button className="btn btn-danger flex-fill" onClick={handleReportCustomer}>ส่งรายงาน</button>
                         </div>
                     </div>
                 </div>
@@ -1004,7 +1004,7 @@ function Merchant() {
                                 className="btn btn-outline-danger flex-fill"
                                 onClick={() => { localStorage.removeItem('user'); navigate('/'); }}
                             >
-                                🚪 ออกจากระบบ
+                                ออกจากระบบ
                             </button>
                             {(appealStatus === null || appealStatus === 'resolved' || appealStatus === 'rejected') && (
                                 <button
@@ -1012,7 +1012,7 @@ function Merchant() {
                                     disabled={!banAppealMessage.trim()}
                                     onClick={handleAppeal}
                                 >
-                                    📨 ส่งคำร้อง
+                                    ส่งคำร้อง
                                 </button>
                             )}
                         </div>
