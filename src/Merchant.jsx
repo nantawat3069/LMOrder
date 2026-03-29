@@ -604,9 +604,9 @@ function Merchant() {
                                                         <button onClick={() => updateStatus(o.id, 'cancelled')} className="btn btn-outline-danger">ปฏิเสธ</button>
                                                     </>
                                                 )}
-                                                {o.status === 'accepted' && <button onClick={() => updateStatus(o.id, 'cooking')} className="btn btn-warning">🍳 เริ่มปรุงอาหาร</button>}
-                                                {o.status === 'cooking' && <button onClick={() => updateStatus(o.id, 'delivering')} className="btn btn-info text-white">🛵 พร้อมส่ง</button>}
-                                                {o.status === 'delivering' && <button onClick={() => updateStatus(o.id, 'completed')} className="btn btn-primary">✅ จบงาน</button>}
+                                                {o.status === 'accepted' && <button onClick={() => updateStatus(o.id, 'cooking')} className="btn btn-warning">เริ่มปรุงอาหาร</button>}
+                                                {o.status === 'cooking' && <button onClick={() => updateStatus(o.id, 'delivering')} className="btn btn-info text-white">พร้อมส่ง</button>}
+                                                {o.status === 'delivering' && <button onClick={() => updateStatus(o.id, 'completed')} className="btn btn-primary">จบงาน</button>}
                                             </div>
                                         </div>
                                     </div>
