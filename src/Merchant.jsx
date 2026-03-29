@@ -56,6 +56,7 @@ function Merchant() {
     const [modal, setModal] = useState({ show: false, type: 'alert', title: '', message: '', onConfirm: null });
 
     const [copiedOrderId, setCopiedOrderId] = useState(null);
+    const [showMobileMenu, setShowMobileMenu] = useState(false);
 
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
@@ -444,8 +445,8 @@ function Merchant() {
 
     return (
         <div className="container mt-4 pb-5">
-            {/* Header / Navbar */}
-            <div className="card shadow-sm p-3 mb-4 sticky-top" style={{top: '10px', zIndex: 1000}}>
+            {/* Header / Navbar - Desktop Version */}
+            <div className="card shadow-sm p-3 mb-4 sticky-top d-none d-md-block" style={{top: '10px', zIndex: 1000}}>
                 <div className="d-flex flex-wrap justify-content-between align-items-center">
                     <div className="d-flex align-items-center">
                         {shop.image ? (
@@ -469,6 +470,71 @@ function Merchant() {
                         <button className={`btn ${activeTab === 'settings' ? 'btn-primary' : 'btn-outline-primary'}`} onClick={() => handleTabChange('settings')}>⚙️ ตั้งค่าร้าน</button>
                         <button className="btn btn-outline-danger" onClick={() => confirmAction('ออกจากระบบ', 'ยืนยัน?', () => { localStorage.removeItem('user'); navigate('/'); })}>ออก</button>
                     </div>
+                </div>
+            </div>
+
+            {/* Mobile Header with Dropdown Menu */}
+            <div className="d-block d-md-none mb-3 pt-2">
+                <div className="card shadow-sm p-2 sticky-top" style={{top: '10px', zIndex: 1000}}>
+                    <div className="d-flex justify-content-between align-items-center">
+                        <div className="d-flex align-items-center">
+                            {shop.image ? (
+                                <img src={shop.image} className="rounded-circle me-2 border" style={{width:'40px', height:'40px', objectFit:'cover'}} />
+                            ) : (
+                                <div className="bg-light rounded-circle me-2 d-flex align-items-center justify-content-center" style={{width:'40px', height:'40px'}}>🏠</div>
+                            )}
+                            <h5 className="mb-0 text-primary fw-bold">{shop.shop_name}</h5>
+                        </div>
+                        <button 
+                            className="btn border-0" 
+                            onClick={() => setShowMobileMenu(!showMobileMenu)}
+                            style={{fontSize: '1.5rem'}}
+                        >
+                            ☰
+                        </button>
+                    </div>
+                    {/* Mobile Dropdown Menu */}
+                    {showMobileMenu && (
+                        <div className="mt-2 pt-2 border-top">
+                            <button 
+                                className={`btn w-100 text-start mb-2 ${activeTab === 'orders' ? 'btn-primary' : 'btn-outline-primary'}`} 
+                                onClick={() => { handleTabChange('orders'); setShowMobileMenu(false); }}
+                            >
+                                🔔 ออเดอร์ ({orders.length})
+                            </button>
+                            <button 
+                                className={`btn w-100 text-start mb-2 ${activeTab === 'menu' ? 'btn-primary' : 'btn-outline-primary'}`} 
+                                onClick={() => { handleTabChange('menu'); setShowMobileMenu(false); }}
+                            >
+                                🍽️ จัดการเมนู
+                            </button>
+                            <button 
+                                className={`btn w-100 text-start mb-2 ${activeTab === 'history' ? 'btn-primary' : 'btn-outline-primary'}`} 
+                                onClick={() => { handleTabChange('history'); setShowMobileMenu(false); }}
+                            >
+                                📜 ประวัติ
+                            </button>
+                            <button
+                                className={`btn w-100 text-start mb-2 position-relative ${activeTab === 'notifications' ? 'btn-primary' : 'btn-outline-primary'}`}
+                                onClick={() => { handleTabChange('notifications'); markNotificationsRead(); setShowMobileMenu(false); }}
+                            >
+                                🔔 แจ้งเตือน
+                                {unreadCount > 0 && <span className="position-absolute top-50 end-10 translate-middle-y badge rounded-pill bg-danger">{unreadCount}</span>}
+                            </button>
+                            <button 
+                                className={`btn w-100 text-start mb-2 ${activeTab === 'settings' ? 'btn-primary' : 'btn-outline-primary'}`} 
+                                onClick={() => { handleTabChange('settings'); setShowMobileMenu(false); }}
+                            >
+                                ⚙️ ตั้งค่าร้าน
+                            </button>
+                            <button 
+                                className="btn w-100 text-start btn-outline-danger" 
+                                onClick={() => { confirmAction('ออกจากระบบ', 'ยืนยัน?', () => { localStorage.removeItem('user'); navigate('/'); }); setShowMobileMenu(false); }}
+                            >
+                                ออก
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
 
