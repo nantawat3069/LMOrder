@@ -14,8 +14,9 @@ $host = getenv('MYSQL_HOST');
 $user = getenv('MYSQL_USER');
 $pass = getenv('MYSQL_PASSWORD');
 $dbname = getenv('MYSQL_DB');
+$port = getenv('MYSQL_PORT') ?: 3306;
 
-$conn = new mysqli($host, $user, $pass, $dbname);
+$conn = new mysqli($host, $user, $pass, $dbname, $port);
 $conn->set_charset("utf8");
 
 if ($conn->connect_error) {
