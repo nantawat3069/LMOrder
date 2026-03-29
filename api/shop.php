@@ -43,8 +43,6 @@ elseif ($method == 'POST' && $action == 'add_product') {
     
     $image_name = "";
     if (isset($_FILES['image']) && $_FILES['image']['error'] == 0) {
-        $ext = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
-        $image_name = "menu_" . time() . "." . $ext;
         require_once 'cloudinary_upload.php';
         $image_name = uploadToCloudinary($_FILES['image']['tmp_name'], $_FILES['image']['name']);
     }
@@ -91,8 +89,6 @@ elseif ($method == 'POST' && $action == 'update_product') {
     $types = "sds";
 
     if (isset($_FILES['image']) && $_FILES['image']['error'] == 0) {
-        $ext = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
-        $image_name = "menu_" . time() . "." . $ext;
         require_once 'cloudinary_upload.php';
         $image_name = uploadToCloudinary($_FILES['image']['tmp_name'], $_FILES['image']['name']);
         $sql .= ", image=?";
