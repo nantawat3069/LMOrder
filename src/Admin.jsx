@@ -1033,6 +1033,16 @@ function Admin() {
                                                     <label className="small text-muted">เบอร์โทร</label>
                                                     <input className="form-control" value={editForm.phone} onChange={e => setEditForm({ ...editForm, phone: e.target.value })} />
                                                 </div>
+                                                <div className="col-md-6 mb-2">
+                                                    <label className="small text-muted">เปลี่ยนรหัสผ่าน <span className="text-muted fw-normal">(เว้นว่างถ้าไม่เปลี่ยน)</span></label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="password"
+                                                        placeholder="รหัสผ่านใหม่"
+                                                        value={editForm.password}
+                                                        onChange={e => setEditForm({ ...editForm, password: e.target.value })}
+                                                    />
+                                                </div>
                                                 {userDetail.user.role === 'merchant' && <>
                                                     <div className="col-md-6 mb-2">
                                                         <label className="small text-muted">ชื่อร้าน</label>
