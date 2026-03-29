@@ -217,9 +217,33 @@ elseif ($method == 'POST' && $action == 'delete_user') {
     $u = $u_res->fetch_assoc();
     $detail = "ลบบัญชี: {$u['username']} ({$u['fullname']})";
 
+    // ปิด FK ชั่วคราว ลบข้อมูลที่เกี่ยวข้องก่อน แล้วค่อยลบ user
+    $conn->query("SET FOREIGN_KEY_CHECKS = 0");
+
+    // ลบ orders และ order_items ของ user นี้
+    $orders_res = $conn->query("SELECT id FROM orders WHERE customer_id = '$target_id'");
+    while ($row = $orders_res->fetch_assoc()) {
+        $conn->query("DELETE FROM order_items WHERE order_id = '{$row['id']}'");
+    }
+    $conn->query("DELETE FROM orders WHERE customer_id = '$target_id'");
+
+    // ลบข้อมูลที่เกี่ยวข้องอื่นๆ
+    $conn->query("DELETE FROM addresses WHERE user_id = '$target_id'");
+    $conn->query("DELETE FROM notifications WHERE user_id = '$target_id'");
+    $conn->query("DELETE FROM tickets WHERE sender_id = '$target_id'");
+
+    // ถ้าเป็น merchant ลบร้านและสินค้าด้วย
+    $shop_res = $conn->query("SELECT id FROM shops WHERE owner_id = '$target_id'");
+    if ($shop = $shop_res->fetch_assoc()) {
+        $conn->query("DELETE FROM products WHERE shop_id = '{$shop['id']}'");
+        $conn->query("DELETE FROM shops WHERE id = '{$shop['id']}'");
+    }
+
+    // ลบ user
     $conn->query("DELETE FROM users WHERE id = '$target_id'");
 
-    // บันทึก log (target_user_id = NULL เพราะลบไปแล้ว)
+    $conn->query("SET FOREIGN_KEY_CHECKS = 1");
+
     $conn->query("INSERT INTO admin_logs (admin_id, action, target_user_id, detail) VALUES ('$admin_id', 'delete_user', NULL, '$detail')");
 
     echo json_encode(["status" => "success"]);
