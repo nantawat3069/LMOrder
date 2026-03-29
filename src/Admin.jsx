@@ -1365,23 +1365,6 @@ function Admin() {
                                 onChange={e => setNotifForm({ ...notifForm, message: e.target.value })}
                             />
                         </div>
-
-                        {/* ประวัติแจ้งเตือน */}
-                        {userNotifs.length > 0 && (
-                            <div className="mb-3">
-                                <small className="fw-bold text-muted">ประวัติแจ้งเตือนล่าสุด:</small>
-                                <div className="mt-1 border rounded p-2 bg-light" style={{maxHeight: '150px', overflowY: 'auto'}}>
-                                    {userNotifs.map((n, i) => (
-                                        <div key={i} className="border-bottom pb-1 mb-1 small">
-                                            <span className="badge bg-info text-dark me-1">{n.category}</span>
-                                            <span>{n.message}</span>
-                                            <div className="text-muted" style={{fontSize:'0.75rem'}}>{n.created_at}</div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
                         <div className="d-flex gap-2">
                             <button className="btn btn-secondary flex-fill" onClick={() => setShowNotifModal(false)}>ยกเลิก</button>
                             <button className="btn btn-info text-white flex-fill" onClick={handleSendNotification}>ส่งแจ้งเตือน</button>
