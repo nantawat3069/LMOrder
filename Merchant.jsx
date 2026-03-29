@@ -548,30 +548,6 @@ function Merchant() {
                             <button onClick={toggleShop} className={`btn ${shop.is_open == 1 ? 'btn-warning' : 'btn-success'}`} style={{ minWidth: '120px' }}>{shop.is_open == 1 ? 'กดปิดร้าน' : 'กดเปิดร้าน'}</button>
                         </div>
                     </div>
-                    {shop.owner_phone && (
-                        <div className="mb-3">
-                            <a 
-                                href={`tel:${shop.owner_phone}`}
-                                style={{
-                                    textDecoration: 'underline',
-                                    color: '#007bff',
-                                    cursor: 'pointer',
-                                    userSelect: 'text'
-                                }}
-                                onClick={(e) => {
-                                    if (!/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-                                        e.preventDefault();
-                                        navigator.clipboard.writeText(shop.owner_phone).then(() => {
-                                            alert('✅ คัดลอกเบอร์โทรแล้ว');
-                                        });
-                                    }
-                                }}
-                                title="คลิกเพื่อโทร (บนมือถือ) หรือคัดลอก (บนคอมพิวเตอร์)"
-                            >
-                                📞 เบอร์ติดต่อ: {shop.owner_phone}
-                            </a>
-                        </div>
-                    )}
                     {orders.length === 0 ? <div className="alert alert-info text-center py-5"><h4>ไม่มีออเดอร์ใหม่ 😴</h4></div> : (
                         <div className="row">
                             {orders.map(o => (
@@ -586,17 +562,32 @@ function Merchant() {
                                         {/* ลูกค้า + ที่อยู่ */}
                                         <div className="d-flex align-items-center justify-content-between mb-1">
                                             <p className="mb-0"><strong>ลูกค้า:</strong> {o.customer_name}</p>
-                                            <button
-                                                className="btn btn-sm btn-outline-secondary py-0 px-2"
-                                                style={{fontSize: '0.9rem'}}
-                                                onClick={() => {
-                                                    navigator.clipboard.writeText(o.customer_phone);
-                                                    setCopiedOrderId(o.id);
-                                                    setTimeout(() => setCopiedOrderId(null), 2000);
-                                                }}
-                                            >
-                                                {copiedOrderId === o.id ? 'คัดลอกแล้ว' : `เบอร์ : ${o.customer_phone}`}
-                                            </button>
+                                            <div className="d-flex gap-2">
+                                                <button
+                                                    className="btn btn-sm btn-outline-secondary py-0 px-2"
+                                                    style={{fontSize: '0.9rem'}}
+                                                    onClick={() => {
+                                                        navigator.clipboard.writeText(o.customer_phone);
+                                                        setCopiedOrderId(o.id);
+                                                        setTimeout(() => setCopiedOrderId(null), 2000);
+                                                    }}
+                                                >
+                                                    {copiedOrderId === o.id ? 'คัดลอกแล้ว' : `เบอร์ : ${o.customer_phone}`}
+                                                </button>
+                                                <button
+                                                    className="btn btn-sm btn-outline-success py-0 px-2"
+                                                    style={{fontSize: '0.9rem'}}
+                                                    onClick={() => {
+                                                        const phoneNumber = o.customer_phone
+                                                            .replace(/^0/, '') // Remove leading 0
+                                                            .replace(/-/g, ''); // Remove dashes
+                                                        const formattedPhone = `+66${phoneNumber}`;
+                                                        window.location.href = `tel:${formattedPhone}`;
+                                                    }}
+                                                >
+                                                    โทร
+                                                </button>
+                                            </div>
                                         </div>
                                         <p className="mb-2"><strong>ที่อยู่:</strong> {o.address}</p>
 
@@ -628,9 +619,9 @@ function Merchant() {
                                                         <button onClick={() => updateStatus(o.id, 'cancelled')} className="btn btn-outline-danger">ปฏิเสธ</button>
                                                     </>
                                                 )}
-                                                {o.status === 'accepted' && <button onClick={() => updateStatus(o.id, 'cooking')} className="btn btn-warning">เริ่มปรุงอาหาร</button>}
-                                                {o.status === 'cooking' && <button onClick={() => updateStatus(o.id, 'delivering')} className="btn btn-info text-white">พร้อมส่ง</button>}
-                                                {o.status === 'delivering' && <button onClick={() => updateStatus(o.id, 'completed')} className="btn btn-primary">จบงาน</button>}
+                                                {o.status === 'accepted' && <button onClick={() => updateStatus(o.id, 'cooking')} className="btn btn-warning">🍳 เริ่มปรุงอาหาร</button>}
+                                                {o.status === 'cooking' && <button onClick={() => updateStatus(o.id, 'delivering')} className="btn btn-info text-white">🛵 พร้อมส่ง</button>}
+                                                {o.status === 'delivering' && <button onClick={() => updateStatus(o.id, 'completed')} className="btn btn-primary">✅ จบงาน</button>}
                                             </div>
                                         </div>
                                     </div>
