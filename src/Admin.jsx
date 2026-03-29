@@ -624,7 +624,7 @@ function Admin() {
                                                     <input className="form-control" value={editForm.fullname} onChange={e => setEditForm({ ...editForm, fullname: e.target.value })} />
                                                 </div>
                                                 <div className="col-md-6 mb-2">
-                                                    <label className="small text-muted">เบอร์โทร</label>
+                                                    <label className="small text-muted">เบอร์โทรทดสอบๆ</label>
                                                     <input className="form-control" value={editForm.phone} onChange={e => setEditForm({ ...editForm, phone: e.target.value })} />
                                                 </div>
                                                 <div className="col-md-6 mb-2">
