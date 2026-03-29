@@ -231,12 +231,18 @@ elseif ($method == 'POST' && $action == 'edit_user') {
     $target_id = $data->target_id;
     $fullname = $data->fullname;
     $phone = $data->phone;
+    $password = $data->password ?? '';
 
-    $stmt = $conn->prepare("UPDATE users SET fullname=?, phone=? WHERE id=?");
-    $stmt->bind_param("ssi", $fullname, $phone, $target_id);
+    if (!empty($password)) {
+        $hashed = password_hash($password, PASSWORD_DEFAULT);
+        $stmt = $conn->prepare("UPDATE users SET fullname=?, phone=?, password=? WHERE id=?");
+        $stmt->bind_param("sssi", $fullname, $phone, $hashed, $target_id);
+    } else {
+        $stmt = $conn->prepare("UPDATE users SET fullname=?, phone=? WHERE id=?");
+        $stmt->bind_param("ssi", $fullname, $phone, $target_id);
+    }
     $stmt->execute();
 
-    // ถ้าเป็น merchant อัปเดต shop ด้วย
     if (!empty($data->shop_name)) {
         $shop_name = $data->shop_name;
         $description = $data->description ?? '';

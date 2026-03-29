@@ -281,7 +281,8 @@ function Admin() {
                     fullname: res.data.user.fullname,
                     phone: res.data.user.phone,
                     shop_name: res.data.user.shop_name || '',
-                    description: res.data.user.description || ''
+                    description: res.data.user.description || '',
+                    password: ''
                 });
             }
         } catch (e) { console.error(e); }
@@ -386,9 +387,11 @@ function Admin() {
                 action: 'edit_user',
                 admin_id: admin.id,
                 target_id: selectedUser.id,
+                password: editForm.password || '',
                 ...editForm
             });
             showAlert('สำเร็จ', 'บันทึกข้อมูลเรียบร้อย');
+            setEditForm({ ...editForm, password: '' });
             fetchUsers();
             fetchUserDetail(selectedUser.id);
         });
@@ -623,6 +626,16 @@ function Admin() {
                                                 <div className="col-md-6 mb-2">
                                                     <label className="small text-muted">เบอร์โทร</label>
                                                     <input className="form-control" value={editForm.phone} onChange={e => setEditForm({ ...editForm, phone: e.target.value })} />
+                                                </div>
+                                                <div className="col-md-6 mb-2">
+                                                    <label className="small text-muted">เปลี่ยนรหัสผ่าน <span className="text-muted fw-normal">(เว้นว่างถ้าไม่เปลี่ยน)</span></label>
+                                                    <input
+                                                        className="form-control"
+                                                        type="password"
+                                                        placeholder="รหัสผ่านใหม่"
+                                                        value={editForm.password}
+                                                        onChange={e => setEditForm({ ...editForm, password: e.target.value })}
+                                                    />
                                                 </div>
                                                 {userDetail.user.role === 'merchant' && <>
                                                     <div className="col-md-6 mb-2">
