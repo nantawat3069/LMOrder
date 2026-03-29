@@ -150,7 +150,7 @@ function ShopMenu() {
                             <div className="animate-fade-in"> {/* เพิ่ม Animation เล็กน้อย */}
                                 <button onClick={() => setSelectedProduct(null)} className="btn btn-sm btn-outline-secondary mb-3">&larr; ย้อนกลับ</button>
                                 <div className="d-flex mb-3">
-                                    {selectedProduct.image && <img src={`http://192.168.1.36/LMOrder/uploads/${selectedProduct.image}`} style={{width:'100px', height:'100px', objectFit:'cover', borderRadius:'10px'}} className="me-3" />}
+                                    {selectedProduct.image && <img src={`${selectedProduct.image}`} style={{width:'100px', height:'100px', objectFit:'cover', borderRadius:'10px'}} className="me-3" />}
                                     <div>
                                         <h3>{selectedProduct.name}</h3>
                                         <h4 className="text-primary">{calculateCurrentPrice().toLocaleString()} บาท</h4>
@@ -196,7 +196,7 @@ function ShopMenu() {
                                     <div key={p.id} className="col-md-6 mb-3">
                                         {/* ปรับการ์ดเมนูย่อย ให้กลืนกับพื้นหลังขาว หรือเด่นขึ้นมานิดหน่อย */}
                                         <div className="card h-100 p-3 flex-row align-items-center border shadow-sm">
-                                            <img src={p.image ? `http://192.168.1.36/LMOrder/uploads/${p.image}` : "https://placehold.co/100x100"} style={{width: '90px', height: '90px', objectFit: 'cover', borderRadius: '15px'}}/>
+                                            <img src={p.image ? `${p.image}` : "https://placehold.co/100x100"} style={{width: '90px', height: '90px', objectFit: 'cover', borderRadius: '15px'}}/>
                                             <div className="ms-3 flex-grow-1">
                                                 <h5 className="mb-1">{p.name}</h5>
                                                 <h6 className="text-primary mb-2">{parseInt(p.price).toLocaleString()} บ.</h6>

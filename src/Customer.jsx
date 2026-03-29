@@ -616,7 +616,7 @@ function Customer() {
                                 {/* รูป + ชื่อร้าน */}
                                 <div className="d-flex align-items-center me-3" style={{minWidth: '150px'}}>
                                     {o.shop_image ? 
-                                        <img src={`http://192.168.1.36/LMOrder/uploads/${o.shop_image}`} className="rounded-circle me-2 border" style={{width: '40px', height: '40px', objectFit: 'cover'}} /> 
+                                        <img src={`${o.shop_image}`} className="rounded-circle me-2 border" style={{width: '40px', height: '40px', objectFit: 'cover'}} /> 
                                         : <div className="bg-light rounded-circle me-2 d-flex align-items-center justify-content-center border" style={{width: '40px', height: '40px'}}>🏪</div>
                                     }
                                     <strong className="text-truncate" style={{maxWidth: '100px'}}>{o.shop_name}</strong>
@@ -665,7 +665,7 @@ function Customer() {
                                             >
                                                 <div className="card-body text-center p-4">
                                                     {shop.image ? (
-                                                        <img src={`http://192.168.1.36/LMOrder/uploads/${shop.image}`} className="rounded-circle mb-3" style={{width:'80px', height:'80px', objectFit:'cover', filter: shop.is_open == 1 ? 'none' : 'grayscale(100%)'}} />
+                                                        <img src={shop.image} className="rounded-circle mb-3" style={{width:'80px', height:'80px', objectFit:'cover', filter: shop.is_open == 1 ? 'none' : 'grayscale(100%)'}} />
                                                     ) : (
                                                         <div className="bg-light rounded-circle mx-auto d-flex align-items-center justify-content-center mb-3" style={{width:'80px', height:'80px', fontSize:'30px'}}>🏪</div>
                                                     )}
@@ -711,7 +711,7 @@ function Customer() {
                                             <div className="d-flex justify-content-end mb-2"><button onClick={() => setSelectedProduct(null)} className="btn-close"></button></div>
                                             <div className="d-flex align-items-center mb-3">
                                                 {selectedProduct.image ? 
-                                                    <img src={`http://192.168.1.36/LMOrder/uploads/${selectedProduct.image}`} style={{width: '90px', height: '90px', objectFit: 'cover', borderRadius: '12px'}} className="me-3 border" /> 
+                                                    <img src={`${selectedProduct.image}`} style={{width: '90px', height: '90px', objectFit: 'cover', borderRadius: '12px'}} className="me-3 border" /> 
                                                     : <div className="bg-light me-3 d-flex align-items-center justify-content-center border" style={{width: '90px', height: '90px', borderRadius: '12px', fontSize: '2rem'}}>🍽️</div>
                                                 }
                                                 <div><h4 className="mb-1">{selectedProduct.name}</h4><h5 className="text-primary mb-0">{calculateCurrentPrice().toLocaleString()} บาท</h5></div>
@@ -746,7 +746,7 @@ function Customer() {
                                                         {p.is_available == 0 && (
                                                             <div className="position-absolute top-50 start-50 translate-middle badge bg-danger border border-white shadow-sm px-3 py-2" style={{zIndex: 10, fontSize: '1.1rem'}}>สินค้าหมด</div>
                                                         )}
-                                                        <img src={p.image ? `http://192.168.1.36/LMOrder/uploads/${p.image}` : "https://placehold.co/100x100"} 
+                                                        <img src={p.image ? `${p.image}` : "https://placehold.co/100x100"} 
                                                              style={{width:'70px', height:'70px', objectFit:'cover', borderRadius:'10px', opacity: p.is_available == 0 ? 0.5 : 1}}/>
                                                         <div className="ms-3 flex-grow-1">
                                                             <h6 className="mb-1">{p.name}</h6>
@@ -860,7 +860,7 @@ function Customer() {
                                             {o.slip_image && (
                                                 <button
                                                     className="btn btn-sm btn-outline-primary"
-                                                    onClick={() => setViewingSlip(`http://192.168.1.36/LMOrder/uploads/${o.slip_image}`)}
+                                                    onClick={() => setViewingSlip(`${o.slip_image}`)}
                                                 >
                                                     🧾 ดูสลิป
                                                 </button>
@@ -1132,7 +1132,7 @@ function Customer() {
                                 <div className="text-center flex-shrink-0">
                                     <div className="fw-bold mb-1 small">📱 QR Code</div>
                                     <img
-                                        src={`http://192.168.1.36/LMOrder/uploads/${selectedShop.qr_code}`}
+                                        src={`${selectedShop.qr_code}`}
                                         alt="QR Code"
                                         style={{width: '160px', height: '160px', objectFit: 'contain', borderRadius: '8px', border: '1px solid #eee'}}
                                     />

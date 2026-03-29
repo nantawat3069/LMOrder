@@ -240,12 +240,12 @@ function Merchant() {
                     description: d.description || '',
                     shop_address: d.shop_address || '',
                     shop_image: null,
-                    shop_image_preview: d.shop_image ? `http://192.168.1.36/LMOrder/uploads/${d.shop_image}` : '',
+                    shop_image_preview: d.shop_image ? `${d.shop_image}` : '',
                     bank_name: d.bank_name || '',
                     bank_account: d.bank_account || '',
                     bank_account_name: d.bank_account_name || '',
                     qr_code: null,
-                    qr_code_preview: d.qr_code ? `http://192.168.1.36/LMOrder/uploads/${d.qr_code}` : ''
+                    qr_code_preview: d.qr_code ? `${d.qr_code}` : ''
                 });
             }
         } catch (err) { console.error(err); }
@@ -449,7 +449,7 @@ function Merchant() {
                 <div className="d-flex flex-wrap justify-content-between align-items-center">
                     <div className="d-flex align-items-center">
                         {shop.image ? (
-                            <img src={`http://192.168.1.36/LMOrder/uploads/${shop.image}`} className="rounded-circle me-3 border" style={{width:'50px', height:'50px', objectFit:'cover'}} />
+                            <img src={shop.image} className="rounded-circle me-3 border" style={{width:'50px', height:'50px', objectFit:'cover'}} />
                         ) : (
                             <div className="bg-light rounded-circle me-3 d-flex align-items-center justify-content-center" style={{width:'50px', height:'50px'}}>🏠</div>
                         )}
@@ -522,7 +522,7 @@ function Merchant() {
                                                     {o.slip_image && (
                                                         <button
                                                             className="btn btn-sm btn-outline-primary py-0"
-                                                            onClick={() => setViewingSlipMerchant(`http://192.168.1.36/LMOrder/uploads/${o.slip_image}`)}
+                                                            onClick={() => setViewingSlipMerchant(`${o.slip_image}`)}
                                                         >
                                                             🧾 ดูสลิป
                                                         </button>
@@ -565,7 +565,7 @@ function Merchant() {
                                              transition: 'background-color 0.3s ease'
                                          }}>
                                         <div style={{position: 'relative'}}>
-                                            <img src={p.image ? `http://192.168.1.36/LMOrder/uploads/${p.image}` : "https://placehold.co/100"} 
+                                            <img src={p.image ? `${p.image}` : "https://placehold.co/100"} 
                                                  style={{width: '80px', height: '80px', objectFit: 'cover', borderRadius: '10px', opacity: p.is_available == 0 ? 0.5 : 1, filter: p.is_available == 0 ? 'grayscale(100%)' : 'none'}} 
                                             />
                                             {p.is_available == 0 && <span className="position-absolute top-50 start-50 translate-middle badge bg-danger" style={{fontSize: '0.6rem'}}>หมด</span>}
@@ -678,7 +678,7 @@ function Merchant() {
                                                 {o.slip_image && (
                                                     <button
                                                         className="btn btn-sm btn-outline-primary"
-                                                        onClick={() => setViewingSlipMerchant(`http://192.168.1.36/LMOrder/uploads/${o.slip_image}`)}
+                                                        onClick={() => setViewingSlipMerchant(`${o.slip_image}`)}
                                                     >
                                                         🧾 ดูสลิป
                                                     </button>

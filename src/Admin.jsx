@@ -126,7 +126,7 @@ function OrderRow({ order, role }) {
                                 <button className="btn-close btn-sm" onClick={() => setViewingSlip(false)}></button>
                             </div>
                             <img
-                                src={`http://192.168.1.36/LMOrder/uploads/${order.slip_image}`}
+                                src={`${order.slip_image}`}
                                 alt="slip"
                                 style={{maxWidth: '300px', width: '100%', borderRadius: '8px', border: '1px solid #eee'}}
                             />

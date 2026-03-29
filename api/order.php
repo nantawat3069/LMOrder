@@ -111,14 +111,11 @@ elseif ($action == 'close_notification') {
 // อัปโหลดสลิปการโอน
 elseif ($action == 'upload_slip') {
     $order_id = $_POST['order_id'];
-
     if (isset($_FILES['slip']) && $_FILES['slip']['error'] == 0) {
-        $ext = pathinfo($_FILES['slip']['name'], PATHINFO_EXTENSION);
-        $slip_name = "slip_" . $order_id . "_" . time() . "." . $ext;
-        move_uploaded_file($_FILES['slip']['tmp_name'], "../uploads/" . $slip_name);
-
-        $conn->query("UPDATE orders SET slip_image = '$slip_name' WHERE id = '$order_id'");
-        echo json_encode(["status" => "success", "slip_image" => $slip_name]);
+        require_once 'cloudinary_upload.php';
+        $slip_url = uploadToCloudinary($_FILES['slip']['tmp_name'], $_FILES['slip']['name']);
+        $conn->query("UPDATE orders SET slip_image = '$slip_url' WHERE id = '$order_id'");
+        echo json_encode(["status" => "success", "slip_image" => $slip_url]);
     } else {
         echo json_encode(["status" => "error", "message" => "ไม่พบไฟล์"]);
     }

@@ -45,7 +45,8 @@ elseif ($method == 'POST' && $action == 'add_product') {
     if (isset($_FILES['image']) && $_FILES['image']['error'] == 0) {
         $ext = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
         $image_name = "menu_" . time() . "." . $ext;
-        move_uploaded_file($_FILES['image']['tmp_name'], "../uploads/" . $image_name);
+        require_once 'cloudinary_upload.php';
+        $image_name = uploadToCloudinary($_FILES['image']['tmp_name'], $_FILES['image']['name']);
     }
     
     $stmt = $conn->prepare("INSERT INTO products (shop_id, name, price, image, options, is_available) VALUES (?, ?, ?, ?, ?, 1)");
@@ -92,7 +93,8 @@ elseif ($method == 'POST' && $action == 'update_product') {
     if (isset($_FILES['image']) && $_FILES['image']['error'] == 0) {
         $ext = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
         $image_name = "menu_" . time() . "." . $ext;
-        move_uploaded_file($_FILES['image']['tmp_name'], "../uploads/" . $image_name);
+        require_once 'cloudinary_upload.php';
+        $image_name = uploadToCloudinary($_FILES['image']['tmp_name'], $_FILES['image']['name']);
         $sql .= ", image=?";
         $params[] = $image_name;
         $types .= "s";
@@ -173,9 +175,8 @@ elseif ($method == 'POST' && $action == 'update_merchant_profile') {
 
     // อัปโหลด QR Code (เพิ่มต่อจากส่วนอัปโหลด shop_image เดิม)
     if (isset($_FILES['qr_code']) && $_FILES['qr_code']['error'] == 0) {
-        $ext = pathinfo($_FILES['qr_code']['name'], PATHINFO_EXTENSION);
-        $qr_name = "qr_" . $shop_id . "_" . time() . "." . $ext;
-        move_uploaded_file($_FILES['qr_code']['tmp_name'], "../uploads/" . $qr_name);
+        require_once 'cloudinary_upload.php';
+        $qr_name = uploadToCloudinary($_FILES['qr_code']['tmp_name'], $_FILES['qr_code']['name']);
         $s_sql .= ", qr_code=?";
         $s_params[] = $qr_name;
         $s_types .= "s";
@@ -183,10 +184,8 @@ elseif ($method == 'POST' && $action == 'update_merchant_profile') {
 
     // อัปโหลดรูปหน้าร้าน
     if (isset($_FILES['shop_image']) && $_FILES['shop_image']['error'] == 0) {
-        $ext = pathinfo($_FILES['shop_image']['name'], PATHINFO_EXTENSION);
-        $image_name = "shop_" . $shop_id . "_" . time() . "." . $ext;
-        move_uploaded_file($_FILES['shop_image']['tmp_name'], "../uploads/" . $image_name);
-        
+        require_once 'cloudinary_upload.php';
+        $image_name = uploadToCloudinary($_FILES['shop_image']['tmp_name'], $_FILES['shop_image']['name']);
         $s_sql .= ", image=?";
         $s_params[] = $image_name;
         $s_types .= "s";
