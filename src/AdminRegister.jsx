@@ -23,7 +23,7 @@ function AdminRegister() {
         e.preventDefault();
         setLoading(true);
         try {
-            const res = await axios.post('http://192.168.1.36/LMOrder/api/auth.php', {
+            const res = await axios.post('http://localhost/LMOrder/api/auth.php', {
                 action: 'register_admin',
                 ...inputs
             });

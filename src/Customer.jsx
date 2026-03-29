@@ -73,7 +73,7 @@ function Customer() {
 
     const fetchMyNotifications = async (uid) => {
         try {
-            const res = await axios.get(`http://192.168.1.36/LMOrder/api/admin.php?action=get_my_notifications&user_id=${uid}`);
+            const res = await axios.get(`http://localhost/LMOrder/api/admin.php?action=get_my_notifications&user_id=${uid}`);
             if (res.data.status === 'success') {
                 setMyNotifications(res.data.notifications);
                 setUnreadCount(res.data.unread_count);
@@ -84,7 +84,7 @@ function Customer() {
     const markNotificationsRead = async () => {
         if (!user || unreadCount === 0) return;
         try {
-            await axios.post('http://192.168.1.36/LMOrder/api/admin.php', {
+            await axios.post('http://localhost/LMOrder/api/admin.php', {
                 action: 'mark_notifications_read',
                 user_id: user.id
             });
@@ -167,7 +167,7 @@ function Customer() {
         // เช็คครั้งแรกทันที
         const checkBan = async () => {
             try {
-                const res = await axios.get(`http://192.168.1.36/LMOrder/api/customer.php?action=check_ban&user_id=${user.id}`);
+                const res = await axios.get(`http://localhost/LMOrder/api/customer.php?action=check_ban&user_id=${user.id}`);
                 if (res.data.is_banned == 1) {
                     setIsBanned(true);
                     // อัปเดตทุกครั้งเลย ไม่ต้องเช็คก่อน
@@ -199,7 +199,7 @@ function Customer() {
     //  API Functions 
     const fetchShops = async () => {
         try {
-            const res = await axios.get('http://192.168.1.36/LMOrder/api/customer.php?action=get_shops');
+            const res = await axios.get('http://localhost/LMOrder/api/customer.php?action=get_shops');
             if (res.data.status === 'success') {
                 const sortedShops = res.data.shops.sort((a, b) => b.is_open - a.is_open);
                 setShops(sortedShops);
@@ -217,14 +217,14 @@ function Customer() {
 
     const updateMenuData = async (shopId) => {
         try {
-            const res = await axios.get(`http://192.168.1.36/LMOrder/api/order.php?action=get_shop_menu&shop_id=${shopId}`);
+            const res = await axios.get(`http://localhost/LMOrder/api/order.php?action=get_shop_menu&shop_id=${shopId}`);
             if (res.data.status === 'success') setProducts(res.data.products);
         } catch (err) { console.error(err); }
     };
 
     const fetchMyOrders = async (cid) => {
         try {
-            const res = await axios.get(`http://192.168.1.36/LMOrder/api/order.php?action=get_my_orders&customer_id=${cid}`);
+            const res = await axios.get(`http://localhost/LMOrder/api/order.php?action=get_my_orders&customer_id=${cid}`);
             if (res.data.status === 'success') {
                 setMyOrders(res.data.orders);
                 setActiveOrdersCount(res.data.orders.filter(o => o.status !== 'completed' && o.status !== 'cancelled').length);
@@ -234,7 +234,7 @@ function Customer() {
 
     const fetchAddresses = async (uid) => {
         try {
-            const res = await axios.get(`http://192.168.1.36/LMOrder/api/customer.php?action=get_profile&user_id=${uid}`);
+            const res = await axios.get(`http://localhost/LMOrder/api/customer.php?action=get_profile&user_id=${uid}`);
             if (res.data.status === 'success') {
                 setSavedAddresses(res.data.addresses);
             }
@@ -243,7 +243,7 @@ function Customer() {
 
     const fetchProfileData = async () => {
         try {
-            const res = await axios.get(`http://192.168.1.36/LMOrder/api/customer.php?action=get_profile&user_id=${user.id}`);
+            const res = await axios.get(`http://localhost/LMOrder/api/customer.php?action=get_profile&user_id=${user.id}`);
             if (res.data.status === 'success') {
                 const u = res.data.user;
                 setProfileForm({
@@ -282,7 +282,7 @@ function Customer() {
     const handleSaveProfile = async () => {
         confirmAction('บันทึกการตั้งค่า', 'ต้องการยืนยันการแก้ไขข้อมูลหรือไม่?', async () => {
             try {
-                await axios.post('http://192.168.1.36/LMOrder/api/customer.php', {
+                await axios.post('http://localhost/LMOrder/api/customer.php', {
                     action: 'update_profile',
                     user_id: user.id,
                     fullname: profileForm.fullname,
@@ -305,7 +305,7 @@ function Customer() {
             showAlert('ผิดพลาด', 'ชื่อผู้ใช้งาน (Username) ไม่ตรงกัน'); return;
         }
         confirmAction('ลบบัญชีถาวร', '⚠️ ยืนยันที่จะลบหรือไม่?', async () => {
-            const res = await axios.post('http://192.168.1.36/LMOrder/api/customer.php', {
+            const res = await axios.post('http://localhost/LMOrder/api/customer.php', {
                 action: 'delete_account',
                 user_id: user.id,
                 username_confirmation: deleteConfirmUsername
@@ -392,7 +392,7 @@ function Customer() {
     // ฟังก์ชันจริงที่ยิง API สั่งออเดอร์
     const doPlaceOrder = async (slipFileToUpload = null) => {
         try {
-            const res = await axios.post('http://192.168.1.36/LMOrder/api/order.php', {
+            const res = await axios.post('http://localhost/LMOrder/api/order.php', {
                 action: 'place_order',
                 customer_id: user.id,
                 shop_id: selectedShop.id,
@@ -409,7 +409,7 @@ function Customer() {
                     formData.append('action', 'upload_slip');
                     formData.append('order_id', res.data.order_id);
                     formData.append('slip', slipFileToUpload);
-                    await axios.post('http://192.168.1.36/LMOrder/api/order.php', formData);
+                    await axios.post('http://localhost/LMOrder/api/order.php', formData);
                 }
 
                 showAlert('สำเร็จ', '✅ สั่งซื้อเรียบร้อย!');
@@ -451,7 +451,7 @@ function Customer() {
             // กรณีตอบตกลง ลบจริง
             onConfirm: async () => {
                 try {
-                    await axios.post('http://192.168.1.36/LMOrder/api/order.php', {
+                    await axios.post('http://localhost/LMOrder/api/order.php', {
                         action: 'update_status', 
                         order_id: order.id, 
                         status: 'cancelled' 
@@ -474,7 +474,7 @@ function Customer() {
         e.stopPropagation();
         try {
             // ยิง API ไปบอก Server ว่าปิดแจ้งเตือนออเดอร์นี้แล้วนะ
-            await axios.post('http://192.168.1.36/LMOrder/api/order.php', {
+            await axios.post('http://localhost/LMOrder/api/order.php', {
                 action: 'close_notification',
                 order_id: orderId
             });
@@ -487,7 +487,7 @@ function Customer() {
     const handleSubmitReport = async () => {
         if (!reportForm.category) { showAlert('แจ้งเตือน', 'กรุณาเลือกหมวดหมู่การรายงาน'); return; }
         try {
-            await axios.post('http://192.168.1.36/LMOrder/api/admin.php', {
+            await axios.post('http://localhost/LMOrder/api/admin.php', {
                 action: 'submit_ticket',
                 sender_id: user.id,
                 target_id: selectedShop?.id_owner ?? null,
@@ -504,7 +504,7 @@ function Customer() {
     // ดึงสถานะคำร้องอุทธรณ์ล่าสุดของ user
     const fetchAppealStatus = async (uid, bannedAt = null) => {
         try {
-            let url = `http://192.168.1.36/LMOrder/api/admin.php?action=get_my_appeal&user_id=${uid}`;
+            let url = `http://localhost/LMOrder/api/admin.php?action=get_my_appeal&user_id=${uid}`;
             if (bannedAt) url += `&banned_at=${encodeURIComponent(bannedAt)}`;
             const res = await axios.get(url);
             if (res.data.status === 'success' && res.data.ticket) {
@@ -521,7 +521,7 @@ function Customer() {
     const handleAppeal = async () => {
         if (!banAppealMessage.trim()) return;
         try {
-            await axios.post('http://192.168.1.36/LMOrder/api/admin.php', {
+            await axios.post('http://localhost/LMOrder/api/admin.php', {
                 action: 'submit_ticket',
                 sender_id: user.id,
                 target_id: null,

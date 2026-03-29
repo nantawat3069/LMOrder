@@ -10,9 +10,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
     exit();
 }
 
-$host = "localhost";
+$host = "db";
 $user = "root";
-$pass = "";
+$pass = "root";
 $dbname = "lmorder_db";
 
 $conn = new mysqli($host, $user, $pass, $dbname);

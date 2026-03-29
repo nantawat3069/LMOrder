@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  db:
+    image: mariadb:10.4
+    container_name: lmorder_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: lmorder_db
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./sql/lmorder_db.sql:/docker-entrypoint-initdb.d/lmorder_db.sql
+
+  php:
+    build: .
+    container_name: lmorder_php
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./api:/var/www/html/LMOrder/api
+      - ./uploads:/var/www/html/LMOrder/uploads
+    depends_on:
+      - db
+
+volumes:
+  db_data:

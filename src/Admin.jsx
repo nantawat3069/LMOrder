@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-const API = 'http://192.168.1.36/LMOrder/api';
+const API = 'http://localhost/LMOrder/api';
 
 function OrderRow({ order, role }) {
     const [open, setOpen] = useState(false);
