@@ -564,17 +564,6 @@ function Merchant() {
                                             <p className="mb-0"><strong>ลูกค้า:</strong> {o.customer_name}</p>
                                             <div className="d-flex gap-2">
                                                 <button
-                                                    className="btn btn-sm btn-outline-secondary py-0 px-2"
-                                                    style={{fontSize: '0.9rem'}}
-                                                    onClick={() => {
-                                                        navigator.clipboard.writeText(o.customer_phone);
-                                                        setCopiedOrderId(o.id);
-                                                        setTimeout(() => setCopiedOrderId(null), 2000);
-                                                    }}
-                                                >
-                                                    {copiedOrderId === o.id ? 'คัดลอกแล้ว' : `เบอร์ : ${o.customer_phone}`}
-                                                </button>
-                                                <button
                                                     className="btn btn-sm btn-outline-success py-0 px-2"
                                                     style={{fontSize: '0.9rem'}}
                                                     onClick={() => {
@@ -587,6 +576,18 @@ function Merchant() {
                                                 >
                                                     โทร
                                                 </button>
+                                                <button
+                                                    className="btn btn-sm btn-outline-secondary py-0 px-2"
+                                                    style={{fontSize: '0.9rem'}}
+                                                    onClick={() => {
+                                                        navigator.clipboard.writeText(o.customer_phone);
+                                                        setCopiedOrderId(o.id);
+                                                        setTimeout(() => setCopiedOrderId(null), 2000);
+                                                    }}
+                                                >
+                                                    {copiedOrderId === o.id ? 'คัดลอกแล้ว' : ` : ${o.customer_phone}`}
+                                                </button>
+                                                
                                             </div>
                                         </div>
                                         <p className="mb-2"><strong>ที่อยู่:</strong> {o.address}</p>
