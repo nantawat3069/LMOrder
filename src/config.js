@@ -1,1 +1,1 @@
-export const API_BASE_URL = "http://localhost/LMOrder/api";
+export const API_BASE_URL = "https://lmorder-production.up.railway.app";

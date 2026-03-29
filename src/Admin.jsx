@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-const API = 'http://localhost/LMOrder/api';
+const API = 'https://lmorder-production.up.railway.app';
 
 function OrderRow({ order, role }) {
     const [open, setOpen] = useState(false);

@@ -15,7 +15,7 @@ function Register() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const res = await axios.post('http://localhost/LMOrder/api/auth.php', {
+            const res = await axios.post('https://lmorder-production.up.railway.app/auth.php', {
                 action: 'register',
                 ...inputs
             });

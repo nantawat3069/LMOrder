@@ -15,13 +15,13 @@ function ShopHistory() {
         if(u.shop_id) fetchHistory(u.shop_id);
         else {
 
-             axios.get(`http://localhost/LMOrder/api/shop.php?action=get_shop_data&owner_id=${u.id}`)
+             axios.get(`https://lmorder-production.up.railway.app/shop.php?action=get_shop_data&owner_id=${u.id}`)
                 .then(res => fetchHistory(res.data.shop.id));
         }
     }, []);
 
     const fetchHistory = async (sid) => {
-        const res = await axios.get(`http://localhost/LMOrder/api/order.php?action=get_shop_orders&shop_id=${sid}&type=history`);
+        const res = await axios.get(`https://lmorder-production.up.railway.app/order.php?action=get_shop_orders&shop_id=${sid}&type=history`);
         if (res.data.status === 'success') setOrders(res.data.orders);
     };
 

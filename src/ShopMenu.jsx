@@ -30,7 +30,7 @@ function ShopMenu() {
 
     const fetchMenu = async () => {
         try {
-            const res = await axios.get(`http://localhost/LMOrder/api/customer.php?action=get_shop_menu&shop_id=${id}`);
+            const res = await axios.get(`https://lmorder-production.up.railway.app/customer.php?action=get_shop_menu&shop_id=${id}`);
             if (res.data.status === 'success') {
                 setShop(res.data.shop);
                 setProducts(res.data.products);
@@ -113,7 +113,7 @@ function ShopMenu() {
         if (!address.trim()) { setError("กรุณากรอกที่อยู่จัดส่ง"); return; }
 
         try {
-            const res = await axios.post('http://localhost/LMOrder/api/order.php', {
+            const res = await axios.post('https://lmorder-production.up.railway.app/order.php', {
                 action: 'place_order',
                 customer_id: user.id,
                 shop_id: shop.id,

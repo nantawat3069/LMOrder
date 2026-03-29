@@ -23,7 +23,7 @@ function AdminRegister() {
         e.preventDefault();
         setLoading(true);
         try {
-            const res = await axios.post('http://localhost/LMOrder/api/auth.php', {
+            const res = await axios.post('https://lmorder-production.up.railway.app/auth.php', {
                 action: 'register_admin',
                 ...inputs
             });

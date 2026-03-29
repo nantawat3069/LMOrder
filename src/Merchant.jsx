@@ -97,7 +97,7 @@ function Merchant() {
 
         const checkBan = async () => {
             try {
-                const res = await axios.get(`http://localhost/LMOrder/api/customer.php?action=check_ban&user_id=${user.id}`);
+                const res = await axios.get(`https://lmorder-production.up.railway.app/customer.php?action=check_ban&user_id=${user.id}`);
                 if (res.data.is_banned == 1) {
                     setIsBanned(true);
                     setBanInfo({
@@ -132,7 +132,7 @@ function Merchant() {
 
     const fetchAppealStatus = async (uid, bannedAt = null) => {
         try {
-            let url = `http://localhost/LMOrder/api/admin.php?action=get_my_appeal&user_id=${uid}`;
+            let url = `https://lmorder-production.up.railway.app/admin.php?action=get_my_appeal&user_id=${uid}`;
             if (bannedAt) url += `&banned_at=${encodeURIComponent(bannedAt)}`;
             const res = await axios.get(url);
             if (res.data.status === 'success' && res.data.ticket) {
@@ -148,7 +148,7 @@ function Merchant() {
     const handleAppeal = async () => {
         if (!banAppealMessage.trim()) return;
         try {
-            await axios.post('http://localhost/LMOrder/api/admin.php', {
+            await axios.post('https://lmorder-production.up.railway.app/admin.php', {
                 action: 'submit_ticket',
                 sender_id: user.id,
                 target_id: null,
@@ -163,7 +163,7 @@ function Merchant() {
 
     const fetchMyNotifications = async (uid) => {
         try {
-            const res = await axios.get(`http://localhost/LMOrder/api/admin.php?action=get_my_notifications&user_id=${uid}`);
+            const res = await axios.get(`https://lmorder-production.up.railway.app/admin.php?action=get_my_notifications&user_id=${uid}`);
             if (res.data.status === 'success') {
                 setMyNotifications(res.data.notifications);
                 setUnreadCount(res.data.unread_count);
@@ -174,7 +174,7 @@ function Merchant() {
     const markNotificationsRead = async () => {
         if (!user || unreadCount === 0) return;
         try {
-            await axios.post('http://localhost/LMOrder/api/admin.php', {
+            await axios.post('https://lmorder-production.up.railway.app/admin.php', {
                 action: 'mark_notifications_read',
                 user_id: user.id
             });
@@ -186,7 +186,7 @@ function Merchant() {
     const handleReportCustomer = async () => {
         if (!reportCustomerModal.category) { showAlert('แจ้งเตือน', 'กรุณาเลือกหมวดหมู่การรายงาน'); return; }
         try {
-            await axios.post('http://localhost/LMOrder/api/admin.php', {
+            await axios.post('https://lmorder-production.up.railway.app/admin.php', {
                 action: 'submit_ticket',
                 sender_id: user.id,
                 target_id: reportCustomerModal.order.customer_id,
@@ -201,7 +201,7 @@ function Merchant() {
 
     //  Data Fetching 
     const fetchShopData = async (ownerId) => {
-        const res = await axios.get(`http://localhost/LMOrder/api/shop.php?action=get_shop_data&owner_id=${ownerId}`);
+        const res = await axios.get(`https://lmorder-production.up.railway.app/shop.php?action=get_shop_data&owner_id=${ownerId}`);
         if (res.data.status === 'success') {
             setShop(res.data.shop);
             setProducts(res.data.products);
@@ -212,7 +212,7 @@ function Merchant() {
     };
 
     const fetchOrders = async (sid, type) => {
-        const res = await axios.get(`http://localhost/LMOrder/api/order.php?action=get_shop_orders&shop_id=${sid}&type=${type}`);
+        const res = await axios.get(`https://lmorder-production.up.railway.app/order.php?action=get_shop_orders&shop_id=${sid}&type=${type}`);
         if (res.data.status === 'success') {
             if (type === 'active') {
                 const sortedOrders = res.data.orders.sort((a, b) => a.id - b.id);
@@ -226,7 +226,7 @@ function Merchant() {
     // Fetch Profile Data
     const fetchMerchantProfile = async (uid) => {
         try {
-            const res = await axios.get(`http://localhost/LMOrder/api/shop.php?action=get_merchant_profile&owner_id=${uid}`);
+            const res = await axios.get(`https://lmorder-production.up.railway.app/shop.php?action=get_merchant_profile&owner_id=${uid}`);
             if (res.data.status === 'success') {
                 const d = res.data.data;
                 setShopSettings({
@@ -258,7 +258,7 @@ function Merchant() {
     };
 
     const updateStatus = async (oid, status) => {
-        await axios.post('http://localhost/LMOrder/api/order.php', { action: 'update_status', order_id: oid, status: status });
+        await axios.post('https://lmorder-production.up.railway.app/order.php', { action: 'update_status', order_id: oid, status: status });
         fetchOrders(shop.id, 'active');
     };
 
@@ -292,7 +292,7 @@ function Merchant() {
             if (newMenu.image) formData.append('image', newMenu.image);
             if (editingProduct) formData.append('product_id', editingProduct.id);
 
-            await axios.post('http://localhost/LMOrder/api/shop.php', formData);
+            await axios.post('https://lmorder-production.up.railway.app/shop.php', formData);
             fetchShopData(user.id);
             resetForm();
             showAlert('สำเร็จ', 'บันทึกข้อมูลเรียบร้อยแล้ว');
@@ -301,20 +301,20 @@ function Merchant() {
 
     const handleDelete = async (pid) => {
         confirmAction('ลบเมนู', 'ต้องการลบเมนูนี้ถาวร ใช่หรือไม่?', async () => {
-            await axios.post('http://localhost/LMOrder/api/shop.php', { action: 'delete_product', product_id: pid });
+            await axios.post('https://lmorder-production.up.railway.app/shop.php', { action: 'delete_product', product_id: pid });
             fetchShopData(user.id);
             resetForm();
         });
     };
 
     const toggleShop = async () => {
-        await axios.post('http://localhost/LMOrder/api/shop.php', { action: 'toggle_status', shop_id: shop.id, status: shop.is_open == 1 ? 0 : 1 });
+        await axios.post('https://lmorder-production.up.railway.app/shop.php', { action: 'toggle_status', shop_id: shop.id, status: shop.is_open == 1 ? 0 : 1 });
         fetchShopData(user.id);
     };
 
     const toggleProductStatus = async (product) => {
         const newStatus = product.is_available == 1 ? 0 : 1;
-        await axios.post('http://localhost/LMOrder/api/shop.php', { 
+        await axios.post('https://lmorder-production.up.railway.app/shop.php', { 
             action: 'toggle_product_status', 
             product_id: product.id, 
             status: newStatus 
@@ -341,7 +341,7 @@ function Merchant() {
             formData.append('bank_account_name', shopSettings.bank_account_name);
             if (shopSettings.qr_code) formData.append('qr_code', shopSettings.qr_code);
             try {
-                const res = await axios.post('http://localhost/LMOrder/api/shop.php', formData);
+                const res = await axios.post('https://lmorder-production.up.railway.app/shop.php', formData);
                 if(res.data.status === 'success') {
                     showAlert('สำเร็จ', 'บันทึกข้อมูลเรียบร้อย');
                     fetchMerchantProfile(user.id); // Reload data
@@ -359,7 +359,7 @@ function Merchant() {
             showAlert('ผิดพลาด', 'Username ไม่ตรงกัน'); return;
         }
         confirmAction('ลบบัญชีร้านค้า', '⚠️ คำเตือน: ร้านค้า, เมนู และประวัติทั้งหมดจะถูกลบถาวร!', async () => {
-            const res = await axios.post('http://localhost/LMOrder/api/shop.php', {
+            const res = await axios.post('https://lmorder-production.up.railway.app/shop.php', {
                 action: 'delete_merchant_account',
                 user_id: user.id,
                 username_confirmation: deleteConfirmUsername
