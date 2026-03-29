@@ -10,10 +10,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
     exit();
 }
 
-$host = "db";
-$user = "root";
-$pass = "root";
-$dbname = "lmorder_db";
+$host = getenv('MYSQL_HOST');
+$user = getenv('MYSQL_USER');
+$pass = getenv('MYSQL_PASSWORD');
+$dbname = getenv('MYSQL_DB');
 
 $conn = new mysqli($host, $user, $pass, $dbname);
 $conn->set_charset("utf8");
