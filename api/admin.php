@@ -189,11 +189,21 @@ elseif ($method == 'GET' && $action == 'get_notifications') {
 // ดึงแจ้งเตือนของ user เอง customer/merchant ดู
 elseif ($method == 'GET' && $action == 'get_my_notifications') {
     $user_id = $_GET['user_id'];
-    $sql = "SELECT * FROM notifications WHERE user_id = '$user_id' ORDER BY created_at DESC";
+    $sql = "SELECT n.*, u.fullname as admin_name 
+            FROM notifications n 
+            LEFT JOIN users u ON n.admin_id = u.id 
+            WHERE n.user_id = '$user_id' 
+            ORDER BY n.created_at DESC 
+            LIMIT 50";
     $result = $conn->query($sql);
     $notifs = [];
     while ($row = $result->fetch_assoc()) $notifs[] = $row;
-    echo json_encode(["status" => "success", "notifications" => $notifs]);
+
+    // นับ unread <- ส่วนที่หายไป
+    $unread_res = $conn->query("SELECT COUNT(*) as cnt FROM notifications WHERE user_id='$user_id' AND is_read='0'");
+    $unread = $unread_res->fetch_assoc()['cnt'];
+
+    echo json_encode(["status" => "success", "notifications" => $notifs, "unread_count" => (int)$unread]);
 }
 
 elseif ($method == 'GET' && $action == 'check_ban') {
