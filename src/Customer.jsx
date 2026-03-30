@@ -608,7 +608,8 @@ function Customer() {
                     <div className="d-flex gap-2">
                         <button className={`btn ${activeTab === 'shops' ? 'btn-primary' : 'btn-outline-primary'}`} onClick={() => setActiveTab('shops')}>🏪 ร้านค้า</button>
                         <button className={`btn position-relative ${activeTab === 'orders' ? 'btn-primary' : 'btn-outline-primary'}`} onClick={() => setActiveTab('orders')}>
-                            📜 ประวัติ {activeOrdersCount > 0 && <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">{activeOrdersCount}</span>}
+                            📜 ประวัติ
+                            {activeOrdersCount > 0 && <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">{activeOrdersCount}</span>}
                         </button>
                         <button
                             className={`btn position-relative ${activeTab === 'notifications' ? 'btn-primary' : 'btn-outline-primary'}`}

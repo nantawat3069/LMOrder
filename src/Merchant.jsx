@@ -467,7 +467,10 @@ function Merchant() {
                         <h3 className="mb-0 text-primary">{shop.shop_name}</h3>
                     </div>
                     <div className="d-flex gap-2">
-                        <button className={`btn ${activeTab === 'orders' ? 'btn-primary' : 'btn-outline-primary'}`} onClick={() => handleTabChange('orders')}>🔔 ออเดอร์ ({orders.length})</button>
+                        <button className={`btn position-relative ${activeTab === 'orders' ? 'btn-primary' : 'btn-outline-primary'}`} onClick={() => handleTabChange('orders')}>
+                            🔔 ออเดอร์
+                            {orders.length > 0 && <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">{orders.length}</span>}
+                        </button>
                         <button className={`btn ${activeTab === 'menu' ? 'btn-primary' : 'btn-outline-primary'}`} onClick={() => handleTabChange('menu')}>🍽️ จัดการเมนู</button>
                         <button className={`btn ${activeTab === 'history' ? 'btn-primary' : 'btn-outline-primary'}`} onClick={() => handleTabChange('history')}>📜 ประวัติ</button>
                         <button
@@ -507,10 +510,11 @@ function Merchant() {
                     {showMobileMenu && (
                         <div className="mt-2 pt-2 border-top">
                             <button 
-                                className={`btn w-100 text-start mb-2 ${activeTab === 'orders' ? 'btn-primary' : 'btn-outline-primary'}`} 
+                                className={`btn w-100 text-start mb-2 position-relative ${activeTab === 'orders' ? 'btn-primary' : 'btn-outline-primary'}`} 
                                 onClick={() => { handleTabChange('orders'); setShowMobileMenu(false); }}
                             >
-                                🔔 ออเดอร์ ({orders.length})
+                                🔔 ออเดอร์
+                                {orders.length > 0 && <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">{orders.length}</span>}
                             </button>
                             <button 
                                 className={`btn w-100 text-start mb-2 ${activeTab === 'menu' ? 'btn-primary' : 'btn-outline-primary'}`} 
@@ -529,7 +533,7 @@ function Merchant() {
                                 onClick={() => { handleTabChange('notifications'); markNotificationsRead(); setShowMobileMenu(false); }}
                             >
                                 🔔 แจ้งเตือน
-                                {unreadCount > 0 && <span className="position-absolute top-50 end-10 translate-middle-y badge rounded-pill bg-danger">{unreadCount}</span>}
+                                {unreadCount > 0 && <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">{unreadCount}</span>}
                             </button>
                             <button 
                                 className={`btn w-100 text-start mb-2 ${activeTab === 'settings' ? 'btn-primary' : 'btn-outline-primary'}`} 
