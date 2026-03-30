@@ -518,6 +518,16 @@ function Customer() {
             });
             setShowReportModal(false);
             setReportForm({ category: '', message: '' });
+            
+            await axios.post('https://lmorder-production.up.railway.app/admin.php', {
+                action: 'send_notification',
+                admin_id: user.id,
+                user_id: user.id,
+                category: 'รายงานร้านค้า',
+                message: `✅ ส่งรายงานร้าน "${selectedShop?.shop_name}" หมวด: ${reportForm.category} — รอแอดมินรับคำร้อง`
+            });
+            fetchMyNotifications(user.id);
+
             showAlert('ส่งรายงานแล้ว', '✅ ส่งรายงานถึงแอดมินเรียบร้อยแล้ว ขอบคุณครับ');
         } catch (err) { showAlert('ผิดพลาด', 'ไม่สามารถส่งรายงานได้'); }
     };
@@ -551,7 +561,14 @@ function Customer() {
                 message: banAppealMessage
             });
             setBanAppealMessage('');
-            // ดึงสถานะใหม่ทันที ไม่ต้อง showAlert
+            await axios.post('https://lmorder-production.up.railway.app/admin.php', {
+                action: 'send_notification',
+                admin_id: user.id,
+                user_id: user.id,
+                category: 'ยื่นอุทธรณ์',
+                message: `✅ ส่งคำร้องอุทธรณ์การแบนแล้ว — รอแอดมินรับคำร้อง`
+            });
+            fetchMyNotifications(user.id)
             fetchAppealStatus(user.id);
         } catch (err) { console.error(err); }
     };
