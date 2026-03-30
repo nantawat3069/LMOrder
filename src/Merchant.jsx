@@ -196,6 +196,16 @@ function Merchant() {
                 message: reportCustomerModal.message || '(ไม่มีข้อความเพิ่มเติม)'
             });
             setReportCustomerModal({ show: false, order: null, category: '', message: '' });
+
+            await axios.post('https://lmorder-production.up.railway.app/admin.php', {
+                action: 'send_notification',
+                admin_id: user.id,
+                user_id: user.id,
+                category: 'รายงานลูกค้า',
+                message: `✅ ส่งรายงานลูกค้า "${reportCustomerModal.order.customer_name}" หมวด: ${reportCustomerModal.category} — รอแอดมินรับคำร้อง`
+            });
+            fetchMyNotifications(user.id);
+
             showAlert('ส่งรายงานแล้ว', '✅ ส่งรายงานถึงแอดมินเรียบร้อยแล้ว');
         } catch (err) { showAlert('ผิดพลาด', 'ไม่สามารถส่งรายงานได้'); }
     };
