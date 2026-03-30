@@ -18,6 +18,7 @@ $port = getenv('MYSQL_PORT') ?: 3306;
 
 $conn = new mysqli($host, $user, $pass, $dbname, $port);
 $conn->set_charset("utf8");
+$conn->query("SET time_zone = '+07:00'");
 
 if ($conn->connect_error) {
     die(json_encode(["error" => "Connection failed: " . $conn->connect_error]));
