@@ -53,8 +53,6 @@ function Merchant() {
     const [myNotifications, setMyNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
 
-    const [newNotifIds, setNewNotifIds] = useState(new Set());
-
     const [modal, setModal] = useState({ show: false, type: 'alert', title: '', message: '', onConfirm: null });
 
     const [copiedOrderId, setCopiedOrderId] = useState(null);
@@ -168,26 +166,7 @@ function Merchant() {
         try {
             const res = await axios.get(`https://lmorder-production.up.railway.app/admin.php?action=get_my_notifications&user_id=${uid}`);
             if (res.data.status === 'success') {
-                // ตรวจจับ notification ใหม่ที่ยังไม่เคยเห็น
-                setMyNotifications(prev => {
-                    const prevIds = new Set(prev.map(n => n.id));
-                    const incoming = res.data.notifications;
-                    const brandNew = incoming.filter(n => !prevIds.has(n.id) && n.is_read == '0');
-                    
-                    if (brandNew.length > 0) {
-                        const newIds = new Set(brandNew.map(n => n.id));
-                        setNewNotifIds(prev => new Set([...prev, ...newIds]));
-                        // ลบออกหลัง 5 วิ
-                        setTimeout(() => {
-                            setNewNotifIds(prev => {
-                                const updated = new Set(prev);
-                                newIds.forEach(id => updated.delete(id));
-                                return updated;
-                            });
-                        }, 5000);
-                    }
-                    return incoming;
-                });
+                setMyNotifications(res.data.notifications);
                 setUnreadCount(res.data.unread_count);
             }
         } catch (err) { console.error(err); }
@@ -499,11 +478,7 @@ function Merchant() {
                             onClick={() => { handleTabChange('notifications'); markNotificationsRead(); }}
                         >
                             🔔 แจ้งเตือน
-                            {unreadCount > 0 && (
-                                <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning text-dark">
-                                    {unreadCount}
-                                </span>
-                            )}
+                            {unreadCount > 0 && <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">{unreadCount}</span>}
                         </button>
                         <button className={`btn ${activeTab === 'settings' ? 'btn-primary' : 'btn-outline-primary'}`} onClick={() => handleTabChange('settings')}>⚙️ ตั้งค่าร้าน</button>
                         <button className="btn btn-outline-danger" onClick={() => confirmAction('ออกจากระบบ', 'ยืนยัน?', () => { localStorage.removeItem('user'); navigate('/'); })}>ออก</button>
@@ -558,11 +533,7 @@ function Merchant() {
                                 onClick={() => { handleTabChange('notifications'); markNotificationsRead(); setShowMobileMenu(false); }}
                             >
                                 🔔 แจ้งเตือน
-                                {unreadCount > 0 && (
-                                    <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning text-dark">
-                                        {unreadCount}
-                                    </span>
-                                )}
+                                {unreadCount > 0 && <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">{unreadCount}</span>}
                             </button>
                             <button 
                                 className={`btn w-100 text-start mb-2 ${activeTab === 'settings' ? 'btn-primary' : 'btn-outline-primary'}`} 
@@ -853,9 +824,7 @@ function Merchant() {
                                             <div className="d-flex align-items-center gap-2">
                                                 <span style={{fontSize: '1.2rem'}}>{typeIcon}</span>
                                                 <strong className="small">{n.category}</strong>
-                                                {(n.is_read == '0' || newNotifIds.has(n.id)) && (
-                                                    <span className="badge bg-danger" style={{fontSize: '0.6rem'}}>ใหม่</span>
-                                                )}
+                                                {n.is_read == '0' && <span className="badge bg-danger" style={{fontSize: '0.6rem'}}>ใหม่</span>}
                                             </div>
                                             <small className="text-muted">{n.created_at?.split(' ')[0]} {n.created_at?.split(' ')[1]?.substring(0,5)}</small>
                                         </div>
