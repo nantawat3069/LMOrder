@@ -741,10 +741,10 @@ function Customer() {
                                     </div>
                                 </div>
                                 <button
-                                    className="btn btn-sm btn-outline-danger"
+                                    className="btn btn-sm btn-outline-danger d-inline-flex align-items-center gap-1"
                                     onClick={() => setShowReportModal(true)}
                                 >
-                                    🚨 รายงานร้านนี้
+                                    <span className="material-icons" style={{fontSize: '16px'}}>report</span> รายงานร้านนี้
                                 </button>
                             </div>
                             <div className="row">
@@ -925,13 +925,13 @@ function Customer() {
                                             </button>
                                             {/* ปุ่มรายงาน */}
                                             <button
-                                                className="btn btn-sm btn-outline-danger"
+                                                className="btn btn-sm btn-outline-danger d-inline-flex align-items-center gap-1"
                                                 onClick={() => {
                                                     const shop = shops.find(s => s.shop_name === o.shop_name);
                                                     if (shop) { setSelectedShop(shop); setShowReportModal(true); }
                                                 }}
                                             >
-                                                🚨 รายงาน
+                                                <span className="material-icons" style={{fontSize: '16px'}}>report</span> รายงาน
                                             </button>
                                         </div>
                                     </div>
@@ -1241,7 +1241,9 @@ function Customer() {
                 <div className="modal-overlay">
                     <div className="modal-box" style={{maxWidth: '480px'}}>
                         <div className="d-flex justify-content-between align-items-center mb-3">
-                            <h4 className="mb-0 text-danger">🚨 รายงานร้านค้า</h4>
+                            <h4 className="mb-0 text-danger d-flex align-items-center gap-2">
+                                <span className="material-icons" style={{fontSize: '28px'}}>report</span> รายงานร้านค้า
+                            </h4>
                             <button className="btn-close" onClick={() => { setShowReportModal(false); setReportForm({ category: '', message: '' }); }}></button>
                         </div>
                         <p className="text-muted small mb-3">ร้าน: <strong>{selectedShop?.shop_name}</strong></p>

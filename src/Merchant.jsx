@@ -816,10 +816,10 @@ function Merchant() {
                                                 )}
                                                 {/* ปุ่มรายงาน */}
                                                 <button
-                                                    className="btn btn-sm btn-outline-danger"
+                                                    className="btn btn-sm btn-outline-danger d-inline-flex align-items-center gap-1"
                                                     onClick={() => setReportCustomerModal({ show: true, order: o, category: '', message: '' })}
                                                 >
-                                                    🚨 รายงาน
+                                                    <span className="material-icons" style={{fontSize: '16px'}}>report</span> รายงาน
                                                 </button>
                                             </div>
                                         </div>
@@ -1044,7 +1044,9 @@ function Merchant() {
                 <div className="modal-overlay">
                     <div className="modal-box" style={{maxWidth: '480px'}}>
                         <div className="d-flex justify-content-between align-items-center mb-3">
-                            <h4 className="mb-0 text-danger">🚨 รายงานลูกค้า</h4>
+                            <h4 className="mb-0 text-danger d-flex align-items-center gap-2">
+                                <span className="material-icons" style={{fontSize: '28px'}}>report</span> รายงานลูกค้า
+                            </h4>
                             <button className="btn-close" onClick={() => setReportCustomerModal({ show: false, order: null, category: '', message: '' })}></button>
                         </div>
                         <p className="text-muted small mb-3">
