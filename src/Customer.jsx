@@ -919,18 +919,18 @@ function Customer() {
                                             )}
                                             {/* ปุ่มสั่งอีกครั้ง */}
                                             <button
-                                                className="btn btn-sm btn-soft-primary"
+                                                className="btn btn-sm btn-soft-primary d-inline-flex align-items-center gap-1"
                                                 onClick={() => {
                                                     const shop = shops.find(s => s.shop_name === o.shop_name);
                                                     if (shop && shop.is_open == 1) {
                                                         fetchShopMenu(shop);
                                                         setActiveTab('shops');
                                                     } else {
-                                                        showAlert('ร้านปิด', '⚠️ ร้านค้านี้ปิดให้บริการอยู่ในขณะนี้');
+                                                        showAlert('ร้านปิด', 'ร้านค้านี้ปิดให้บริการอยู่ในขณะนี้');
                                                     }
                                                 }}
                                             >
-                                                🔄 สั่งอีกครั้ง
+                                                <span className="material-icons" style={{fontSize: '16px'}}>refresh</span> สั่งอีกครั้ง
                                             </button>
                                             {/* ปุ่มรายงาน */}
                                             <button
