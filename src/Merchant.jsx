@@ -488,25 +488,38 @@ function Merchant() {
                         <h3 className="mb-0 text-primary">{shop.shop_name}</h3>
                     </div>
                     <div className="d-flex gap-2">
-                        <button className={`btn position-relative ${activeTab === 'orders' ? 'btn-primary' : 'btn-outline-primary'}`} onClick={() => handleTabChange('orders')}>
-                            🔔 ออเดอร์
+                        <button className={`btn position-relative d-inline-flex align-items-center gap-1 ${activeTab === 'orders' ? 'btn-primary' : 'btn-outline-primary'}`} onClick={() => handleTabChange('orders')}>
+                            <span className="material-icons" style={{fontSize: '18px'}}>list_alt</span> ออเดอร์
                             {orders.length > 0 && <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">{orders.length}</span>}
                         </button>
-                        <button className={`btn ${activeTab === 'menu' ? 'btn-primary' : 'btn-outline-primary'}`} onClick={() => handleTabChange('menu')}>🍽️ จัดการเมนู</button>
-                        <button className={`btn ${activeTab === 'history' ? 'btn-primary' : 'btn-outline-primary'}`} onClick={() => handleTabChange('history')}>📜 ประวัติ</button>
+                        
+                        <button className={`btn d-inline-flex align-items-center gap-1 ${activeTab === 'menu' ? 'btn-primary' : 'btn-outline-primary'}`} onClick={() => handleTabChange('menu')}>
+                            <span className="material-icons" style={{fontSize: '18px'}}>restaurant_menu</span> จัดการเมนู
+                        </button>
+                        
+                        <button className={`btn d-inline-flex align-items-center gap-1 ${activeTab === 'history' ? 'btn-primary' : 'btn-outline-primary'}`} onClick={() => handleTabChange('history')}>
+                            <span className="material-icons" style={{fontSize: '18px'}}>history</span> ประวัติ
+                        </button>
+                        
                         <button
-                            className={`btn position-relative ${activeTab === 'notifications' ? 'btn-primary' : 'btn-outline-primary'}`}
+                            className={`btn position-relative d-inline-flex align-items-center gap-1 ${activeTab === 'notifications' ? 'btn-primary' : 'btn-outline-primary'}`}
                             onClick={() => { handleTabChange('notifications'); markNotificationsRead(); }}
                         >
-                            🔔 แจ้งเตือน
+                            <span className="material-icons" style={{fontSize: '18px'}}>notifications</span> แจ้งเตือน
                             {unreadCount > 0 && (
                                 <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning text-dark">
                                     {unreadCount}
                                 </span>
                             )}
                         </button>
-                        <button className={`btn ${activeTab === 'settings' ? 'btn-primary' : 'btn-outline-primary'}`} onClick={() => handleTabChange('settings')}>⚙️ ตั้งค่าร้าน</button>
-                        <button className="btn btn-outline-danger" onClick={() => confirmAction('ออกจากระบบ', 'ยืนยัน?', () => { localStorage.removeItem('user'); navigate('/'); })}>ออก</button>
+                        
+                        <button className={`btn d-inline-flex align-items-center gap-1 ${activeTab === 'settings' ? 'btn-primary' : 'btn-outline-primary'}`} onClick={() => handleTabChange('settings')}>
+                            <span className="material-icons" style={{fontSize: '18px'}}>settings</span> ตั้งค่าร้าน
+                        </button>
+                        
+                        <button className="btn btn-outline-danger d-inline-flex align-items-center gap-1" onClick={() => confirmAction('ออกจากระบบ', 'ยืนยัน?', () => { localStorage.removeItem('user'); navigate('/'); })}>
+                            <span className="material-icons" style={{fontSize: '18px'}}>logout</span> ออก
+                        </button>
                     </div>
                 </div>
             </div>
