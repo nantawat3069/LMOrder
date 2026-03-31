@@ -616,6 +616,8 @@ function Admin() {
                             {/* Search */}
                             <div className="d-flex gap-2 mb-3">
                                 <div className="input-group">
+                                    <input type="text" style={{ display: 'none' }} tabIndex="-1" />
+                                    <input type="password" style={{ display: 'none' }} tabIndex="-1" />
                                     <input
                                         className="form-control"
                                         placeholder="ค้นหาชื่อ, username, ชื่อร้าน..."
