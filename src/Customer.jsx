@@ -954,22 +954,24 @@ function Customer() {
             {/* TAB: Notifications */}
             {activeTab === 'notifications' && (
                 <div className="card shadow-sm p-4" style={{maxWidth: '700px', margin: '0 auto'}}>
-                    <h4 className="mb-4">🔔 การแจ้งเตือน</h4>
+                    <h4 className="mb-4 d-flex align-items-center gap-2">
+                        <span className="material-icons">notifications</span> การแจ้งเตือน
+                    </h4>
 
                     {myNotifications.length === 0 ? (
                         <div className="text-center text-muted py-5">
-                            <div style={{fontSize: '3rem'}}>🔕</div>
+                            <span className="material-icons text-muted" style={{fontSize: '3rem'}}>notifications_off</span>
                             <div className="mt-2">ยังไม่มีการแจ้งเตือน</div>
                         </div>
                     ) : (
                         <div>
                             {myNotifications.map((n, i) => {
                                 const typeIcon = {
-                                    ban: '🔨',
-                                    unban: '✅',
-                                    ticket_update: '📋',
-                                    admin_message: '📢'
-                                }[n.type] || '🔔';
+                                    ban: 'gavel',
+                                    unban: 'task_alt',
+                                    ticket_update: 'assignment',
+                                    admin_message: 'campaign'
+                                }[n.type] || 'notifications';
 
                                 const typeBg = {
                                     ban: '#fff5f5',
@@ -998,7 +1000,7 @@ function Customer() {
                                     >
                                         <div className="d-flex justify-content-between align-items-start mb-1">
                                             <div className="d-flex align-items-center gap-2">
-                                                <span style={{fontSize: '1.2rem'}}>{typeIcon}</span>
+                                                <span className="material-icons" style={{fontSize: '1.2rem'}}>{typeIcon}</span>
                                                 <strong className="small">{n.category}</strong>
                                                 {(n.is_read == '0' || newNotifIds.has(n.id)) && (
                                                     <span className="badge bg-danger" style={{fontSize: '0.6rem'}}>ใหม่</span>
