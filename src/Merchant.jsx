@@ -1061,13 +1061,17 @@ function Merchant() {
                     </div>
 
                     <div className="d-grid gap-2">
-                        <button className="btn btn-primary py-2" onClick={handleSaveSettings}>💾 บันทึกการเปลี่ยนแปลง</button>
+                        <button className="btn btn-primary py-2 d-inline-flex align-items-center justify-content-center gap-1" onClick={handleSaveSettings}>
+                            <span className="material-icons" style={{fontSize: '20px'}}>save</span> บันทึกการเปลี่ยนแปลง
+                        </button>
                     </div>
 
                     <hr className="my-5"/>
 
                     <div className="bg-soft-danger p-3 rounded border border-danger">
-                        <h5 className="text-danger">⚠️ ลบบัญชีร้านค้าถาวร</h5>
+                        <h5 className="text-danger d-flex align-items-center gap-2">
+                            <span className="material-icons text-warning">warning</span> ลบบัญชีร้านค้าถาวร
+                        </h5>
                         <p className="text-muted small">หากลบบัญชี ข้อมูลร้านค้า, เมนู, และประวัติทั้งหมดจะหายไปและกู้คืนไม่ได้</p>
                         <div className="mb-3">
                             <label className="form-label small">พิมพ์ Username <strong>"{shopSettings.username}"</strong> เพื่อยืนยัน</label>
@@ -1083,7 +1087,9 @@ function Merchant() {
                 <div className="modal-overlay" onClick={() => setViewingSlipMerchant(null)}>
                     <div className="modal-box" style={{maxWidth: '420px'}} onClick={e => e.stopPropagation()}>
                         <div className="d-flex justify-content-between align-items-center mb-3">
-                            <h5 className="mb-0">🧾 สลิปการโอน</h5>
+                            <h5 className="mb-0 d-flex align-items-center gap-2">
+                                <span className="material-icons text-dark">receipt_long</span> สลิปการโอน
+                            </h5>
                             <button className="btn-close" onClick={() => setViewingSlipMerchant(null)}></button>
                         </div>
                         <img src={viewingSlipMerchant} alt="slip" style={{width: '100%', borderRadius: '12px', border: '1px solid #eee'}} />
@@ -1167,17 +1173,17 @@ function Merchant() {
 
                         {/* สถานะคำร้อง */}
                         {appealStatus && (
-                            <div className={`alert py-2 mb-3 text-center fw-bold ${
+                            <div className={`alert py-2 mb-3 text-center fw-bold d-flex align-items-center justify-content-center gap-2 ${
                                 appealStatus === 'open'        ? 'alert-secondary' :
                                 appealStatus === 'in_progress' ? 'alert-warning'   :
                                 appealStatus === 'resolved'    ? 'alert-success'   :
                                 appealStatus === 'rejected'    ? 'alert-danger'    : 'alert-secondary'
                             }`}>
                                 {{
-                                    open:        '⏳ รอแอดมินรับเรื่อง',
-                                    in_progress: '🔄 แอดมินกำลังดำเนินการ',
-                                    resolved:    '✅ คำร้องเสร็จสิ้น',
-                                    rejected:    '❌ คำร้องถูกปฏิเสธ',
+                                    open:        (<><span className="material-icons text-secondary" style={{fontSize: '20px'}}>schedule</span> รอแอดมินรับเรื่อง</>),
+                                    in_progress: (<><span className="material-icons text-dark" style={{fontSize: '20px'}}>sync</span> แอดมินกำลังดำเนินการ</>),
+                                    resolved:    (<><span className="material-icons text-success" style={{fontSize: '20px'}}>check_circle</span> คำร้องเสร็จสิ้น</>),
+                                    rejected:    (<><span className="material-icons text-danger" style={{fontSize: '20px'}}>cancel</span> คำร้องถูกปฏิเสธ</>),
                                 }[appealStatus]}
                             </div>
                         )}
@@ -1185,7 +1191,9 @@ function Merchant() {
                         {/* ฟอร์มส่งคำร้อง */}
                         {(appealStatus === null || appealStatus === 'resolved' || appealStatus === 'rejected') ? (
                             <div className="mb-3">
-                                <label className="form-label fw-bold">📝 คำร้องขออุทธรณ์</label>
+                                <label className="form-label fw-bold d-flex align-items-center gap-1">
+                                    <span className="material-icons text-primary" style={{fontSize: '20px'}}>edit_document</span> คำร้องขออุทธรณ์
+                                </label>
                                 {appealStatus === 'resolved' && <div className="small text-muted mb-2">คำร้องก่อนหน้าเสร็จสิ้นแล้ว สามารถส่งใหม่ได้</div>}
                                 {appealStatus === 'rejected' && <div className="small text-muted mb-2">คำร้องก่อนหน้าถูกปฏิเสธ สามารถส่งใหม่ได้</div>}
                                 <textarea
@@ -1198,7 +1206,11 @@ function Merchant() {
                             </div>
                         ) : (
                             <div className="alert alert-light border mb-3 small text-muted text-center">
-                                🔒 ไม่สามารถส่งคำร้องได้ในขณะนี้<br/>กรุณารอแอดมินพิจารณาคำร้องที่ส่งไปแล้ว
+                                <div className="d-flex align-items-center justify-content-center gap-1 mb-1">
+                                    <span className="material-icons text-secondary" style={{fontSize: '18px'}}>lock</span>
+                                    <span>ไม่สามารถส่งคำร้องได้ในขณะนี้</span>
+                                </div>
+                                กรุณารอแอดมินพิจารณาคำร้องที่ส่งไปแล้ว
                             </div>
                         )}
 

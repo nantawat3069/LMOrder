@@ -122,7 +122,7 @@ function OrderRow({ order, role }) {
                     <td colSpan={7} className="p-0">
                         <div className="p-3 border-top bg-white">
                             <div className="d-flex justify-content-between align-items-center mb-2">
-                                <strong className="small">🧾 สลิปการโอน — Order #{order.id}</strong>
+                                <strong className="small">สลิปการโอน — Order #{order.id}</strong>
                                 <button className="btn-close btn-sm" onClick={() => setViewingSlip(false)}></button>
                             </div>
                             <img
@@ -472,7 +472,7 @@ function Admin() {
 
     const handleDeleteUser = (targetUser) => {
         confirmAction(
-            '⚠️ ลบบัญชีถาวร',
+            'ลบบัญชีถาวร',
             `คุณแน่ใจหรือไม่? บัญชี "${targetUser.username}" และข้อมูลทั้งหมดจะถูกลบถาวรและกู้คืนไม่ได้!`,
             async () => {
                 await axios.post(`${API}/admin.php`, {

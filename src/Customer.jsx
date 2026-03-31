@@ -433,7 +433,7 @@ function Customer() {
                     await axios.post('https://lmorder-production.up.railway.app/order.php', formData);
                 }
 
-                showAlert('สำเร็จ', '✅ สั่งซื้อเรียบร้อย!');
+                showAlert('สำเร็จ', 'สั่งซื้อเรียบร้อย!');
                 setSelectedShop(null);
                 setActiveTab('orders');
                 setSlipFile(null);
@@ -566,7 +566,7 @@ function Customer() {
                 admin_id: user.id,
                 user_id: user.id,
                 category: 'ยื่นอุทธรณ์',
-                message: `✅ ส่งคำร้องอุทธรณ์การแบนแล้ว — รอแอดมินรับคำร้อง`
+                message: `ส่งคำร้องอุทธรณ์การแบนแล้ว — รอแอดมินรับคำร้อง`
             });
             fetchMyNotifications(user.id)
             fetchAppealStatus(user.id);
@@ -1082,7 +1082,9 @@ function Customer() {
                     ))}
 
                     <div className="d-flex gap-2 mt-3">
-                        <button className="btn btn-primary flex-grow-1" onClick={handleSaveProfile}>💾 บันทึกการเปลี่ยนแปลง</button>
+                        <button className="btn btn-primary flex-grow-1 d-inline-flex align-items-center justify-content-center gap-1" onClick={handleSaveProfile}>
+                            <span className="material-icons" style={{fontSize: '20px'}}>save</span> บันทึกการเปลี่ยนแปลง
+                        </button>
                         <button className="btn btn-secondary" onClick={() => fetchProfileData()}>ยกเลิก</button>
                     </div>
 
@@ -1098,7 +1100,9 @@ function Customer() {
                     
 
                     <div className="bg-soft-danger p-3 rounded border border-danger">
-                        <h5 className="text-danger">⚠️ ลบบัญชีถาวร</h5>
+                        <h5 className="text-danger d-flex align-items-center gap-2">
+                            <span className="material-icons text-warning">warning</span> ลบบัญชีถาวร
+                        </h5>
                         <p className="text-muted small">หากลบบัญชี ข้อมูลทั้งหมดรวมถึงประวัติการสั่งซื้อจะถูกลบและไม่สามารถกู้คืนได้</p>
                         <div className="mb-3">
                             <label className="form-label small">พิมพ์ Username <strong>"{profileForm.username}"</strong> เพื่อยืนยัน</label>
@@ -1245,7 +1249,9 @@ function Customer() {
                 <div className="modal-overlay" onClick={() => setViewingSlip(null)}>
                     <div className="modal-box" style={{maxWidth: '420px'}} onClick={e => e.stopPropagation()}>
                         <div className="d-flex justify-content-between align-items-center mb-3">
-                            <h5 className="mb-0">🧾 สลิปการโอน</h5>
+                            <h5 className="mb-0 d-flex align-items-center gap-2">
+                                <span className="material-icons text-dark">receipt_long</span> สลิปการโอน
+                            </h5>
                             <button className="btn-close" onClick={() => setViewingSlip(null)}></button>
                         </div>
                         <img
@@ -1330,26 +1336,28 @@ function Customer() {
                             </div>
 
                             {/* สถานะคำร้อง */}
-                            {appealStatus && (
-                                <div className={`alert py-2 mb-3 text-center fw-bold ${
-                                    appealStatus === 'open'        ? 'alert-secondary' :
-                                    appealStatus === 'in_progress' ? 'alert-warning'   :
-                                    appealStatus === 'resolved'    ? 'alert-success'   :
-                                    appealStatus === 'rejected'    ? 'alert-danger'    : 'alert-secondary'
-                                }`}>
-                                    {{
-                                        open:        '⏳ รอแอดมินรับเรื่อง',
-                                        in_progress: '🔄 แอดมินกำลังดำเนินการ',
-                                        resolved:    '✅ คำร้องเสร็จสิ้น',
-                                        rejected:    '❌ คำร้องถูกปฏิเสธ',
-                                    }[appealStatus]}
-                                </div>
-                            )}
+                                {appealStatus && (
+                                    <div className={`alert py-2 mb-3 text-center fw-bold d-flex align-items-center justify-content-center gap-2 ${
+                                        appealStatus === 'open'        ? 'alert-secondary' :
+                                        appealStatus === 'in_progress' ? 'alert-warning'   :
+                                        appealStatus === 'resolved'    ? 'alert-success'   :
+                                        appealStatus === 'rejected'    ? 'alert-danger'    : 'alert-secondary'
+                                    }`}>
+                                        {{
+                                            open:        (<><span className="material-icons text-secondary" style={{fontSize: '20px'}}>schedule</span> รอแอดมินรับเรื่อง</>),
+                                            in_progress: (<><span className="material-icons text-dark" style={{fontSize: '20px'}}>sync</span> แอดมินกำลังดำเนินการ</>),
+                                            resolved:    (<><span className="material-icons text-success" style={{fontSize: '20px'}}>check_circle</span> คำร้องเสร็จสิ้น</>),
+                                            rejected:    (<><span className="material-icons text-danger" style={{fontSize: '20px'}}>cancel</span> คำร้องถูกปฏิเสธ</>),
+                                        }[appealStatus]}
+                                    </div>
+                                )}
 
                             {/* ฟอร์มส่งคำร้อง — ล็อคถ้า open/in_progress */}
                             {(appealStatus === null || appealStatus === 'resolved' || appealStatus === 'rejected') ? (
                                 <div className="mb-3">
-                                    <label className="form-label fw-bold">📝 คำร้องขออุทธรณ์</label>
+                                    <label className="form-label fw-bold d-flex align-items-center gap-1">
+                                        <span className="material-icons text-primary" style={{fontSize: '20px'}}>edit_document</span> คำร้องขออุทธรณ์
+                                    </label>
                                     {appealStatus === 'resolved' && (
                                         <div className="small text-muted mb-2">คำร้องก่อนหน้าเสร็จสิ้นแล้ว สามารถส่งใหม่ได้</div>
                                     )}
@@ -1366,7 +1374,11 @@ function Customer() {
                                 </div>
                             ) : (
                                 <div className="alert alert-light border mb-3 small text-muted text-center">
-                                    🔒 ไม่สามารถส่งคำร้องได้ในขณะนี้<br/>กรุณารอแอดมินพิจารณาคำร้องที่ส่งไปแล้ว
+                                    <div className="d-flex align-items-center justify-content-center gap-1 mb-1">
+                                        <span className="material-icons text-secondary" style={{fontSize: '18px'}}>lock</span>
+                                        <span>ไม่สามารถส่งคำร้องได้ในขณะนี้</span>
+                                    </div>
+                                    กรุณารอแอดมินพิจารณาคำร้องที่ส่งไปแล้ว
                                 </div>
                             )}
 

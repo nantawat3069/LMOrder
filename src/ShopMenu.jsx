@@ -124,7 +124,7 @@ function ShopMenu() {
             });
 
             if (res.data.status === 'success') {
-                alert("✅ สั่งซื้อสำเร็จ!");
+                alert("สั่งซื้อสำเร็จ!");
                 navigate('/customer');
             } else { setError(res.data.message); }
         } catch (err) { setError("เกิดข้อผิดพลาด"); }
