@@ -622,26 +622,35 @@ function Customer() {
             {/* แก้ไข: เติม d-none d-md-block เพื่อซ่อนในมือถือ (แสดงเฉพาะในคอม) */}
             <div className="card shadow-sm p-3 mb-4 sticky-top d-none d-md-block" style={{top: '10px', zIndex: 2000}}>
                 <div className="d-flex flex-wrap justify-content-between align-items-center">
-                    <h3 className="mb-0 text-primary">👋 สวัสดีคุณ {user?.fullname}</h3>
+                    <h3 className="mb-0 text-primary d-flex align-items-center gap-2">
+                        <span className="material-icons" style={{ fontSize: '28px' }}>waving_hand</span> 
+                        สวัสดีคุณ {user?.fullname}
+                    </h3>
                     <div className="d-flex gap-2">
-                        <button className={`btn ${activeTab === 'shops' ? 'btn-primary' : 'btn-outline-primary'}`} onClick={() => setActiveTab('shops')}>🏪 ร้านค้า</button>
-                        <button className={`btn position-relative ${activeTab === 'orders' ? 'btn-primary' : 'btn-outline-primary'}`} onClick={() => setActiveTab('orders')}>
-                            📜 ประวัติ
+                        <button className={`btn d-inline-flex align-items-center gap-1 ${activeTab === 'shops' ? 'btn-primary' : 'btn-outline-primary'}`} onClick={() => setActiveTab('shops')}>
+                            <span className="material-icons" style={{fontSize: '18px'}}>storefront</span> ร้านค้า
+                        </button>
+                        <button className={`btn position-relative d-inline-flex align-items-center gap-1 ${activeTab === 'orders' ? 'btn-primary' : 'btn-outline-primary'}`} onClick={() => setActiveTab('orders')}>
+                            <span className="material-icons" style={{fontSize: '18px'}}>receipt_long</span> ประวัติ
                             {activeOrdersCount > 0 && <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">{activeOrdersCount}</span>}
                         </button>
                         <button
-                            className={`btn position-relative ${activeTab === 'notifications' ? 'btn-primary' : 'btn-outline-primary'}`}
+                            className={`btn position-relative d-inline-flex align-items-center gap-1 ${activeTab === 'notifications' ? 'btn-primary' : 'btn-outline-primary'}`}
                             onClick={() => { setActiveTab('notifications'); markNotificationsRead(); }}
                         >
-                            🔔 แจ้งเตือน
+                            <span className="material-icons" style={{fontSize: '18px'}}>notifications</span> แจ้งเตือน
                             {unreadCount > 0 && (
                                 <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning text-dark">
                                     {unreadCount}
                                 </span>
                             )}
                         </button>
-                        <button className={`btn ${activeTab === 'settings' ? 'btn-primary' : 'btn-outline-primary'}`} onClick={() => setActiveTab('settings')}>⚙️ ตั้งค่าบัญชี</button>
-                        <button className="btn btn-outline-danger" onClick={() => confirmAction('ออกจากระบบ', 'ยืนยัน?', () => { localStorage.removeItem('user'); navigate('/'); })}>ออก</button>
+                        <button className={`btn d-inline-flex align-items-center gap-1 ${activeTab === 'settings' ? 'btn-primary' : 'btn-outline-primary'}`} onClick={() => setActiveTab('settings')}>
+                            <span className="material-icons" style={{fontSize: '18px'}}>settings</span> ตั้งค่าบัญชี
+                        </button>
+                        <button className="btn btn-outline-danger d-inline-flex align-items-center gap-1" onClick={() => confirmAction('ออกจากระบบ', 'ยืนยัน?', () => { localStorage.removeItem('user'); navigate('/'); })}>
+                            <span className="material-icons" style={{fontSize: '18px'}}>logout</span> ออก
+                        </button>
                     </div>
                 </div>
             </div>
