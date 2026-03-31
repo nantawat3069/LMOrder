@@ -604,7 +604,11 @@ function Merchant() {
                             <button onClick={toggleShop} className={`btn ${shop.is_open == 1 ? 'btn-warning' : 'btn-success'}`} style={{ minWidth: '120px' }}>{shop.is_open == 1 ? 'กดปิดร้าน' : 'กดเปิดร้าน'}</button>
                         </div>
                     </div>
-                    {orders.length === 0 ? <div className="alert alert-info text-center py-5"><h4>ไม่มีออเดอร์ใหม่ 😴</h4></div> : (
+                    {orders.length === 0 ?  <div className="alert alert-info text-center py-5">
+                                                <h4 className="mb-0 d-flex justify-content-center align-items-center gap-2">
+                                                    <span className="material-icons" style={{fontSize: '28px'}}>snooze</span> ไม่มีออเดอร์ใหม่
+                                                </h4>
+                                            </div> : (
                         <div className="row">
                             {orders.map(o => (
                                 <div key={o.id} className="col-md-6 col-lg-4 mb-3">
