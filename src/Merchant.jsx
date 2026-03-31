@@ -799,13 +799,17 @@ function Merchant() {
                                         </div>
 
                                         {/* ลูกค้า */}
-                                        <div className="mb-2">
-                                            <span className="fw-bold">👤 {o.customer_name}</span>
+                                        <div className="mb-2 d-flex align-items-center">
+                                            <span className="material-icons text-dark me-1" style={{fontSize: '18px'}}>person</span>
+                                            <span className="fw-bold">{o.customer_name}</span>
                                             <small className="text-muted ms-2">{o.customer_phone}</small>
                                         </div>
 
                                         {/* ที่อยู่ */}
-                                        <small className="text-muted d-block mb-2">📍 {o.address}</small>
+                                        <small className="text-muted d-flex align-items-start mb-2">
+                                            <span className="material-icons text-danger me-1" style={{fontSize: '16px'}}>location_on</span>
+                                            <span>{o.address}</span>
+                                        </small>
 
                                         {/* รายการอาหาร */}
                                         <div className="bg-light p-2 rounded mb-2">

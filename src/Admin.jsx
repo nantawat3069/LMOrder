@@ -934,13 +934,17 @@ function Admin() {
                                 <div className="d-flex justify-content-between align-items-center mb-3">
                                     {ticketViewingUser ? (
                                         <div className="d-flex align-items-center gap-2">
-                                            <button className="btn btn-sm btn-outline-secondary" onClick={() => setTicketViewingUser(null)}>
-                                                ← ย้อนกลับ
+                                            <button className="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1" onClick={() => setTicketViewingUser(null)}>
+                                                <span className="material-icons" style={{fontSize: '16px'}}>arrow_back</span> ย้อนกลับ
                                             </button>
-                                            <h5 className="mb-0 text-danger">👤 โปรไฟล์ผู้ใช้</h5>
+                                            <h5 className="mb-0 text-danger d-flex align-items-center gap-2">
+                                                <span className="material-icons">person</span> โปรไฟล์ผู้ใช้
+                                            </h5>
                                         </div>
                                     ) : (
-                                        <h5 className="mb-0 text-danger">📄 รายละเอียดคำร้อง #{selectedTicket.id}</h5>
+                                        <h5 className="mb-0 text-danger d-flex align-items-center gap-2">
+                                            <span className="material-icons">description</span> รายละเอียดคำร้อง #{selectedTicket.id}
+                                        </h5>
                                     )}
                                     <button className="btn-close" onClick={() => { setSelectedTicket(null); setTicketViewingUser(null); }} />
                                 </div>
