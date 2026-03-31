@@ -138,6 +138,113 @@ function OrderRow({ order, role }) {
     );
 }
 
+// Decorator Pattern
+function UserEditForm({
+    userDetail, editForm, setEditForm,
+    handleSaveEdit, handleToggleBan, handleDeleteUser,
+    showNotifHistory, setShowNotifHistory,
+    userNotifs, fetchUserNotifs, selectedUser,
+    setShowNotifModal, setNotifForm,
+    // Decorator prop — ถ้า true จะ "ต่อเติม" ปุ่มย้อนกลับเข้ามา
+    showBackButton = false,
+    onBack = null
+}) {
+    return (
+        <div className="mb-4">
+            {/* Decorator เพิ่มปุ่มย้อนกลับเฉพาะตอนที่ต้องการ */}
+            {showBackButton && (
+                <button className="btn btn-sm btn-outline-secondary mb-3" onClick={onBack}>
+                    ← ย้อนกลับ
+                </button>
+            )}
+
+            <h6 className="fw-bold mb-3">แก้ไขข้อมูล</h6>
+            <div className="row">
+                <div className="col-md-6 mb-2">
+                    <label className="small text-muted">ชื่อ-นามสกุล</label>
+                    <input className="form-control" value={editForm.fullname} onChange={e => setEditForm({ ...editForm, fullname: e.target.value })} />
+                </div>
+                <div className="col-md-6 mb-2">
+                    <label className="small text-muted">เบอร์โทร</label>
+                    <input className="form-control" value={editForm.phone} onChange={e => setEditForm({ ...editForm, phone: e.target.value })} />
+                </div>
+                <div className="col-md-6 mb-2">
+                    <label className="small text-muted">เปลี่ยนรหัสผ่าน <span className="text-muted fw-normal">(เว้นว่างถ้าไม่เปลี่ยน)</span></label>
+                    <input
+                        className="form-control"
+                        type="password"
+                        placeholder="รหัสผ่านใหม่"
+                        value={editForm.password}
+                        onChange={e => setEditForm({ ...editForm, password: e.target.value })}
+                    />
+                </div>
+                {userDetail.user.role === 'merchant' && <>
+                    <div className="col-md-6 mb-2">
+                        <label className="small text-muted">ชื่อร้าน</label>
+                        <input className="form-control" value={editForm.shop_name} onChange={e => setEditForm({ ...editForm, shop_name: e.target.value })} />
+                    </div>
+                    <div className="col-md-6 mb-2">
+                        <label className="small text-muted">คำอธิบายร้าน</label>
+                        <input className="form-control" value={editForm.description} onChange={e => setEditForm({ ...editForm, description: e.target.value })} />
+                    </div>
+                </>}
+            </div>
+
+            <div className="d-flex gap-2 flex-wrap mt-3">
+                <button className="btn btn-primary d-inline-flex align-items-center gap-1" onClick={handleSaveEdit}>
+                    <span className="material-icons" style={{ fontSize: '18px' }}>save</span> บันทึกการแก้ไข
+                </button>
+                <button
+                    className={`btn ${userDetail.user.is_banned == 1 ? 'btn-success' : 'btn-warning'} d-inline-flex align-items-center gap-1`}
+                    onClick={() => handleToggleBan(userDetail.user)}
+                >
+                    {userDetail.user.is_banned == 1 ? (
+                        <><span className="material-icons" style={{ fontSize: '18px' }}>task_alt</span> ปลดแบน</>
+                    ) : (
+                        <><span className="material-icons" style={{ fontSize: '18px' }}>gavel</span> แบนผู้ใช้</>
+                    )}
+                </button>
+                <button className="btn btn-danger d-inline-flex align-items-center gap-1" onClick={() => handleDeleteUser(userDetail.user)}>
+                    <span className="material-icons" style={{ fontSize: '18px' }}>delete_forever</span> ลบบัญชีถาวร
+                </button>
+                <button
+                    className="btn btn-info text-white d-inline-flex align-items-center gap-1"
+                    onClick={() => { setShowNotifModal(true); setNotifForm({ category: '', message: '' }); fetchUserNotifs(selectedUser.id); }}
+                >
+                    <span className="material-icons" style={{ fontSize: '18px' }}>notifications</span> แจ้งเตือน
+                </button>
+            </div>
+
+            <div className="mt-2">
+                <button
+                    className="btn btn-sm btn-outline-secondary"
+                    onClick={() => { setShowNotifHistory(!showNotifHistory); if (!showNotifHistory) fetchUserNotifs(selectedUser.id); }}
+                >
+                    {showNotifHistory ? '▲ ซ่อนประวัติแจ้งเตือน' : '▼ ดูประวัติแจ้งเตือน'}
+                </button>
+                {showNotifHistory && (
+                    <div className="mt-2 border rounded p-2 bg-light" style={{maxHeight: '200px', overflowY: 'auto'}}>
+                        {userNotifs.length === 0 ? (
+                            <small className="text-muted">ยังไม่มีประวัติแจ้งเตือน</small>
+                        ) : (
+                            userNotifs.map((n, i) => (
+                                <div key={i} className="border-bottom pb-2 mb-2 small">
+                                    <div className="d-flex justify-content-between">
+                                        <span className="badge bg-info text-dark">{n.category}</span>
+                                        <small className="text-muted">{n.created_at}</small>
+                                    </div>
+                                    <div className="mt-1">{n.message}</div>
+                                    <small className="text-muted">โดย: {n.admin_name}</small>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
+
 function Admin() {
     const navigate = useNavigate();
     const [admin, setAdmin] = useState(null);
@@ -615,101 +722,22 @@ function Admin() {
                                             </div>
                                         </div>
 
-                                        {/*  Edit Form  */}
-                                        <div className="mb-4">
-                                            <h6 className="fw-bold mb-3">แก้ไขข้อมูล</h6>
-                                            <div className="row">
-                                                <div className="col-md-6 mb-2">
-                                                    <label className="small text-muted">ชื่อ-นามสกุล</label>
-                                                    <input className="form-control" value={editForm.fullname} onChange={e => setEditForm({ ...editForm, fullname: e.target.value })} />
-                                                </div>
-                                                <div className="col-md-6 mb-2">
-                                                    <label className="small text-muted">เบอร์โทร</label>
-                                                    <input className="form-control" value={editForm.phone} onChange={e => setEditForm({ ...editForm, phone: e.target.value })} />
-                                                </div>
-                                                <div className="col-md-6 mb-2">
-                                                    <label className="small text-muted">เปลี่ยนรหัสผ่าน <span className="text-muted fw-normal">(เว้นว่างถ้าไม่เปลี่ยน)</span></label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="password"
-                                                        placeholder="รหัสผ่านใหม่"
-                                                        value={editForm.password}
-                                                        onChange={e => setEditForm({ ...editForm, password: e.target.value })}
-                                                    />
-                                                </div>
-                                                {userDetail.user.role === 'merchant' && <>
-                                                    <div className="col-md-6 mb-2">
-                                                        <label className="small text-muted">ชื่อร้าน</label>
-                                                        <input className="form-control" value={editForm.shop_name} onChange={e => setEditForm({ ...editForm, shop_name: e.target.value })} />
-                                                    </div>
-                                                    <div className="col-md-6 mb-2">
-                                                        <label className="small text-muted">คำอธิบายร้าน</label>
-                                                        <input className="form-control" value={editForm.description} onChange={e => setEditForm({ ...editForm, description: e.target.value })} />
-                                                    </div>
-                                                </>}
-                                            </div>
-
-                                            {/* ปุ่มบันทึก + แบน/ลบ + แจ้งเตือน */}
-                                            <div className="d-flex gap-2 flex-wrap mt-3">
-                                                <button className="btn btn-primary d-inline-flex align-items-center gap-1" onClick={handleSaveEdit}>
-                                                    <span className="material-icons" style={{ fontSize: '18px' }}>save</span> บันทึกการแก้ไข
-                                                </button>
-                                                <button
-                                                    className={`btn ${userDetail.user.is_banned == 1 ? 'btn-success' : 'btn-warning'} d-inline-flex align-items-center gap-1`}
-                                                    onClick={() => handleToggleBan(userDetail.user)}
-                                                >
-                                                    {userDetail.user.is_banned == 1 ? (
-                                                        <><span className="material-icons" style={{ fontSize: '18px' }}>task_alt</span> ปลดแบน</>
-                                                    ) : (
-                                                        <><span className="material-icons" style={{ fontSize: '18px' }}>gavel</span> แบนผู้ใช้</>
-                                                    )}
-                                                </button>
-                                                <button className="btn btn-danger d-inline-flex align-items-center gap-1" onClick={() => handleDeleteUser(userDetail.user)}>
-                                                    <span className="material-icons" style={{ fontSize: '18px' }}>delete_forever</span> ลบบัญชีถาวร
-                                                </button>
-                                                <button
-                                                    className="btn btn-info text-white d-inline-flex align-items-center gap-1"
-                                                    onClick={() => {
-                                                        setShowNotifModal(true);
-                                                        setNotifForm({ category: '', message: '' });
-                                                        fetchUserNotifs(selectedUser.id);
-                                                    }}
-                                                >
-                                                    <span className="material-icons" style={{ fontSize: '18px' }}>notifications</span> แจ้งเตือน
-                                                </button>
-                                            </div>
-
-                                            {/* Dropdown ประวัติแจ้งเตือน */}
-                                            <div className="mt-2">
-                                                <button
-                                                    className="btn btn-sm btn-outline-secondary"
-                                                    onClick={() => {
-                                                        setShowNotifHistory(!showNotifHistory);
-                                                        if (!showNotifHistory) fetchUserNotifs(selectedUser.id);
-                                                    }}
-                                                >
-                                                    {showNotifHistory ? '▲ ซ่อนประวัติแจ้งเตือน' : '▼ ดูประวัติแจ้งเตือน'}
-                                                </button>
-                                                {showNotifHistory && (
-                                                    <div className="mt-2 border rounded p-2 bg-light" style={{maxHeight: '200px', overflowY: 'auto'}}>
-                                                        {userNotifs.length === 0 ? (
-                                                            <small className="text-muted">ยังไม่มีประวัติแจ้งเตือน</small>
-                                                        ) : (
-                                                            userNotifs.map((n, i) => (
-                                                                <div key={i} className="border-bottom pb-2 mb-2 small">
-                                                                    <div className="d-flex justify-content-between">
-                                                                        <span className="badge bg-info text-dark">{n.category}</span>
-                                                                        <small className="text-muted">{n.created_at}</small>
-                                                                    </div>
-                                                                    <div className="mt-1">{n.message}</div>
-                                                                    <small className="text-muted">โดย: {n.admin_name}</small>
-                                                                </div>
-                                                            ))
-                                                        )}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
+                                        {/* Edit Form */}
+                                            <UserEditForm
+                                                userDetail={userDetail}
+                                                editForm={editForm}
+                                                setEditForm={setEditForm}
+                                                handleSaveEdit={handleSaveEdit}
+                                                handleToggleBan={handleToggleBan}
+                                                handleDeleteUser={handleDeleteUser}
+                                                showNotifHistory={showNotifHistory}
+                                                setShowNotifHistory={setShowNotifHistory}
+                                                userNotifs={userNotifs}
+                                                fetchUserNotifs={fetchUserNotifs}
+                                                selectedUser={selectedUser}
+                                                setShowNotifModal={setShowNotifModal}
+                                                setNotifForm={setNotifForm}
+                                            />
 
                                         {/*  Addresses (ถ้า customer)  */}
                                         {userDetail.addresses.length > 0 && (
@@ -1022,96 +1050,24 @@ function Admin() {
                                         </div>
 
                                         {/* Edit Form */}
-                                        <div className="mb-4">
-                                            <h6 className="fw-bold mb-3">แก้ไขข้อมูล</h6>
-                                            <div className="row">
-                                                <div className="col-md-6 mb-2">
-                                                    <label className="small text-muted">ชื่อ-นามสกุล</label>
-                                                    <input className="form-control" value={editForm.fullname} onChange={e => setEditForm({ ...editForm, fullname: e.target.value })} />
-                                                </div>
-                                                <div className="col-md-6 mb-2">
-                                                    <label className="small text-muted">เบอร์โทร</label>
-                                                    <input className="form-control" value={editForm.phone} onChange={e => setEditForm({ ...editForm, phone: e.target.value })} />
-                                                </div>
-                                                <div className="col-md-6 mb-2">
-                                                    <label className="small text-muted">เปลี่ยนรหัสผ่าน <span className="text-muted fw-normal">(เว้นว่างถ้าไม่เปลี่ยน)</span></label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="password"
-                                                        placeholder="รหัสผ่านใหม่"
-                                                        value={editForm.password}
-                                                        onChange={e => setEditForm({ ...editForm, password: e.target.value })}
-                                                    />
-                                                </div>
-                                                {userDetail.user.role === 'merchant' && <>
-                                                    <div className="col-md-6 mb-2">
-                                                        <label className="small text-muted">ชื่อร้าน</label>
-                                                        <input className="form-control" value={editForm.shop_name} onChange={e => setEditForm({ ...editForm, shop_name: e.target.value })} />
-                                                    </div>
-                                                    <div className="col-md-6 mb-2">
-                                                        <label className="small text-muted">คำอธิบายร้าน</label>
-                                                        <input className="form-control" value={editForm.description} onChange={e => setEditForm({ ...editForm, description: e.target.value })} />
-                                                    </div>
-                                                </>}
-                                            </div>
-
-                                            {/* ปุ่มชุดเต็มเหมือน users tab */}
-                                            <div className="d-flex gap-2 flex-wrap mt-3">
-                                                <button className="btn btn-primary d-inline-flex align-items-center gap-1" onClick={handleSaveEdit}>
-                                                    <span className="material-icons" style={{ fontSize: '18px' }}>save</span> บันทึกการแก้ไข
-                                                </button>
-                                                
-                                                <button
-                                                    className={`btn ${userDetail.user.is_banned == 1 ? 'btn-success' : 'btn-warning'} d-inline-flex align-items-center gap-1`}
-                                                    onClick={() => handleToggleBan(userDetail.user)}
-                                                >
-                                                    {userDetail.user.is_banned == 1 ? (
-                                                        <><span className="material-icons" style={{ fontSize: '18px' }}>task_alt</span> ปลดแบน</>
-                                                    ) : (
-                                                        <><span className="material-icons" style={{ fontSize: '18px' }}>gavel</span> แบนผู้ใช้</>
-                                                    )}
-                                                </button>
-                                                
-                                                <button className="btn btn-danger d-inline-flex align-items-center gap-1" onClick={() => handleDeleteUser(userDetail.user)}>
-                                                    <span className="material-icons" style={{ fontSize: '18px' }}>delete_forever</span> ลบบัญชีถาวร
-                                                </button>
-                                                
-                                                <button
-                                                    className="btn btn-info text-white d-inline-flex align-items-center gap-1"
-                                                    onClick={() => { setShowNotifModal(true); setNotifForm({ category: '', message: '' }); fetchUserNotifs(selectedUser.id); }}
-                                                >
-                                                    <span className="material-icons" style={{ fontSize: '18px' }}>notifications</span> แจ้งเตือน
-                                                </button>
-                                            </div>
-
-                                            {/* Dropdown ประวัติแจ้งเตือน */}
-                                            <div className="mt-2">
-                                                <button
-                                                    className="btn btn-sm btn-outline-secondary"
-                                                    onClick={() => { setShowNotifHistory(!showNotifHistory); if (!showNotifHistory) fetchUserNotifs(selectedUser.id); }}
-                                                >
-                                                    {showNotifHistory ? '▲ ซ่อนประวัติแจ้งเตือน' : '▼ ดูประวัติแจ้งเตือน'}
-                                                </button>
-                                                {showNotifHistory && (
-                                                    <div className="mt-2 border rounded p-2 bg-light" style={{maxHeight: '200px', overflowY: 'auto'}}>
-                                                        {userNotifs.length === 0 ? (
-                                                            <small className="text-muted">ยังไม่มีประวัติแจ้งเตือน</small>
-                                                        ) : (
-                                                            userNotifs.map((n, i) => (
-                                                                <div key={i} className="border-bottom pb-2 mb-2 small">
-                                                                    <div className="d-flex justify-content-between">
-                                                                        <span className="badge bg-info text-dark">{n.category}</span>
-                                                                        <small className="text-muted">{n.created_at}</small>
-                                                                    </div>
-                                                                    <div className="mt-1">{n.message}</div>
-                                                                    <small className="text-muted">โดย: {n.admin_name}</small>
-                                                                </div>
-                                                            ))
-                                                        )}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
+                                        {/* Decorated ด้วย showBackButton */}
+                                            <UserEditForm
+                                                userDetail={userDetail}
+                                                editForm={editForm}
+                                                setEditForm={setEditForm}
+                                                handleSaveEdit={handleSaveEdit}
+                                                handleToggleBan={handleToggleBan}
+                                                handleDeleteUser={handleDeleteUser}
+                                                showNotifHistory={showNotifHistory}
+                                                setShowNotifHistory={setShowNotifHistory}
+                                                userNotifs={userNotifs}
+                                                fetchUserNotifs={fetchUserNotifs}
+                                                selectedUser={selectedUser}
+                                                setShowNotifModal={setShowNotifModal}
+                                                setNotifForm={setNotifForm}
+                                                showBackButton={true}
+                                                onBack={() => setTicketViewingUser(null)}
+                                            />
 
                                         {/* Addresses */}
                                         {userDetail.addresses.length > 0 && (
