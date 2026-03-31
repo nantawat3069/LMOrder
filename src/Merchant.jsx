@@ -223,11 +223,11 @@ function Merchant() {
                 admin_id: user.id,
                 user_id: user.id,
                 category: 'รายงานลูกค้า',
-                message: `✅ ส่งรายงานลูกค้า "${reportCustomerModal.order.customer_name}" หมวด: ${reportCustomerModal.category} — รอแอดมินรับคำร้อง`
+                message: `ส่งรายงานลูกค้า "${reportCustomerModal.order.customer_name}" หมวด: ${reportCustomerModal.category} — รอแอดมินรับคำร้อง`
             });
             fetchMyNotifications(user.id);
 
-            showAlert('ส่งรายงานแล้ว', '✅ ส่งรายงานถึงแอดมินเรียบร้อยแล้ว');
+            showAlert('ส่งรายงานแล้ว', 'ส่งรายงานถึงแอดมินเรียบร้อยแล้ว');
         } catch (err) { showAlert('ผิดพลาด', 'ไม่สามารถส่งรายงานได้'); }
     };
 
@@ -848,24 +848,34 @@ function Merchant() {
             {activeTab === 'notifications' && (
                 <div className="card shadow-sm p-4" style={{maxWidth: '700px', margin: '0 auto'}}>
                     <h4 className="mb-4 d-flex align-items-center gap-2">
-                        <span className="material-icons">notifications</span> การแจ้งเตือน
+                        <span className="material-icons text-warning">notifications</span> การแจ้งเตือน
                     </h4>
 
                     {myNotifications.length === 0 ? (
                         <div className="text-center text-muted py-5">
-                            <span className="material-icons text-muted" style={{fontSize: '3rem'}}>notifications_off</span>
+                            <span className="material-icons text-dark" style={{fontSize: '3rem'}}>notifications_off</span>
                             <div className="mt-2">ยังไม่มีการแจ้งเตือน</div>
                         </div>
                     ) : (
                         <div>
                             {myNotifications.map((n, i) => {
-                                const typeIcon = {
+                                // กำหนดชื่อไอคอนตามเงื่อนไข
+                                const typeIconIcon = {
                                     ban: 'gavel',
                                     unban: 'task_alt',
                                     ticket_update: 'assignment',
                                     admin_message: 'campaign'
                                 }[n.type] || 'notifications';
 
+                                // กำหนดคลาสสีของไอคอน
+                                const typeIconColor = {
+                                    ban: 'text-danger',
+                                    unban: 'text-success',
+                                    ticket_update: 'text-warning',
+                                    admin_message: 'text-info'
+                                }[n.type] || 'text-warning';
+
+                                // สีพื้นหลังและสีเส้นขอบ
                                 const typeBg = {
                                     ban: '#fff5f5',
                                     unban: '#f0fff4',
@@ -893,7 +903,8 @@ function Merchant() {
                                     >
                                         <div className="d-flex justify-content-between align-items-start mb-1">
                                             <div className="d-flex align-items-center gap-2">
-                                                <span className="material-icons" style={{fontSize: '1.2rem'}}>{typeIcon}</span>
+                                                {/* ใส่คลาสสีเข้าไปตรงนี้ */}
+                                                <span className={`material-icons ${typeIconColor}`} style={{fontSize: '1.2rem'}}>{typeIconIcon}</span>
                                                 <strong className="small">{n.category}</strong>
                                                 {(n.is_read == '0' || newNotifIds.has(n.id)) && (
                                                     <span className="badge bg-danger" style={{fontSize: '0.6rem'}}>ใหม่</span>
