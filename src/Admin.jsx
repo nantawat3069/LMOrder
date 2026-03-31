@@ -621,6 +621,7 @@ function Admin() {
                                         placeholder="ค้นหาชื่อ, username, ชื่อร้าน..."
                                         value={userSearch}
                                         onChange={e => setUserSearch(e.target.value)}
+                                        autoComplete="off"
                                     />
                                 </div>
                             </div>
