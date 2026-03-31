@@ -905,7 +905,7 @@ function Customer() {
                                                     className="btn btn-sm btn-outline-primary"
                                                     onClick={() => setViewingSlip(`${o.slip_image}`)}
                                                 >
-                                                    🧾 ดูสลิป
+                                                    ดูสลิป
                                                 </button>
                                             )}
                                             {/* ปุ่มสั่งอีกครั้ง */}
@@ -1076,7 +1076,7 @@ function Customer() {
                     
 
                     <div className="bg-soft-danger p-3 rounded border border-danger">
-                        <h5 className="text-danger">⚠️ โซนอันตราย: ลบบัญชีถาวร</h5>
+                        <h5 className="text-danger">⚠️ ลบบัญชีถาวร</h5>
                         <p className="text-muted small">หากลบบัญชี ข้อมูลทั้งหมดรวมถึงประวัติการสั่งซื้อจะถูกลบและไม่สามารถกู้คืนได้</p>
                         <div className="mb-3">
                             <label className="form-label small">พิมพ์ Username <strong>"{profileForm.username}"</strong> เพื่อยืนยัน</label>
@@ -1095,7 +1095,7 @@ function Customer() {
                 <div className="modal-overlay">
                     <div className="modal-box" style={{maxWidth: '500px'}}>
                         <div className="d-flex justify-content-between align-items-center mb-3">
-                            <h4 className="mb-0">🧾 รายละเอียดออเดอร์ #{viewingOrder.id}</h4>
+                            <h4 className="mb-0">รายละเอียดออเดอร์ #{viewingOrder.id}</h4>
                             <button className="btn-close" onClick={() => setViewingOrder(null)}></button>
                         </div>
                         <div className="text-start mb-3 bg-light p-3 rounded">
@@ -1140,7 +1140,7 @@ function Customer() {
                     <div className="modal-box" style={{maxWidth: '460px'}}>
                         {/* Header */}
                         <div className="d-flex justify-content-between align-items-center mb-2">
-                            <h5 className="mb-0 text-primary">💳 ชำระเงิน</h5>
+                            <h5 className="mb-0 text-primary">ชำระเงิน</h5>
                             <button className="btn-close" onClick={() => setShowPaymentPopup(false)}></button>
                         </div>
 
@@ -1155,7 +1155,7 @@ function Customer() {
 
                                 {shopHasBank() && (
                                     <div className="border rounded p-2" style={{fontSize:'1rem'}}>
-                                        <div className="fw-bold mb-1 small">🏦 บัญชีธนาคาร</div>
+                                        <div className="fw-bold mb-1 small">บัญชีธนาคาร</div>
                                         <div className="d-flex justify-content-between mb-1">
                                             <span className="text-muted">ธนาคาร</span>
                                             <strong>{selectedShop.bank_name}</strong>
@@ -1175,7 +1175,7 @@ function Customer() {
                             {/* ฝั่งขวา: QR Code (ถ้ามี) */}
                             {shopHasQR() && (
                                 <div className="text-center flex-shrink-0">
-                                    <div className="fw-bold mb-1 small">📱 QR Code</div>
+                                    <div className="fw-bold mb-1 small">QR Code</div>
                                     <img
                                         src={`${selectedShop.qr_code}`}
                                         alt="QR Code"
@@ -1189,7 +1189,7 @@ function Customer() {
 
                         {/* อัปโหลดสลิป */}
                         <div className="mb-2">
-                            <label className="form-label fw-bold small mb-1">📎 แนบสลิปการโอน</label>
+                            <label className="form-label fw-bold small mb-1">แนบสลิปการโอน</label>
                             <input
                                 type="file"
                                 className="form-control form-control-sm mb-2"
@@ -1211,7 +1211,7 @@ function Customer() {
                         <div className="d-flex gap-2 mt-3">
                             <button className="btn btn-secondary flex-fill" onClick={() => setShowPaymentPopup(false)}>ยกเลิก</button>
                             <button className="btn btn-success flex-fill" disabled={!slipFile} onClick={handleSubmitSlip}>
-                                ✅ ส่งสลิปและยืนยัน
+                                ส่งสลิปและยืนยัน
                             </button>
                         </div>
                     </div>

@@ -448,12 +448,12 @@ function Merchant() {
 
     const getOrderStatusBadge = (status) => {
         const map = {
-            pending:    ['bg-secondary', '⏳ รอร้านรับ'],
-            accepted:   ['bg-primary',   '✅ รับออเดอร์แล้ว'],
-            cooking:    ['bg-warning text-dark', '🍳 กำลังปรุง'],
-            delivering: ['bg-info text-dark',    '🛵 กำลังส่ง'],
-            completed:  ['bg-success',   '✅ สำเร็จ'],
-            cancelled:  ['bg-danger',    '❌ ยกเลิก'],
+            pending:    ['bg-secondary', 'รอร้านรับ'],
+            accepted:   ['bg-primary',   'รับออเดอร์แล้ว'],
+            cooking:    ['bg-warning text-dark', 'กำลังปรุง'],
+            delivering: ['bg-info text-dark',    'กำลังส่ง'],
+            completed:  ['bg-success',   'สำเร็จ'],
+            cancelled:  ['bg-danger',    'ยกเลิก'],
         };
         const [cls, label] = map[status] || ['bg-secondary', status];
         return <span className={`badge ${cls}`}>{label}</span>;
@@ -461,13 +461,13 @@ function Merchant() {
 
     const getPaymentBadge = (o) => {
         if (o.slip_image) {
-            return <span className="badge bg-success">💚 ชำระแล้ว</span>;
+            return <span className="badge bg-success">ชำระแล้ว</span>;
         }
         if (o.payment_method === 'เงินสด ปลายทาง') {
-            return <span className="badge bg-danger">🔴 ยังไม่ชำระ (เงินสด)</span>;
+            return <span className="badge bg-danger">ยังไม่ชำระ (เงินสด)</span>;
         }
         if (o.payment_method === 'ธนาคาร/QR-code ปลายทาง') {
-            return <span className="badge bg-danger">🔴 ยังไม่ชำระ (โอน)</span>;
+            return <span className="badge bg-danger">ยังไม่ชำระ (โอน)</span>;
         }
         return null;
     };
@@ -650,7 +650,7 @@ function Merchant() {
                                                             className="btn btn-sm btn-outline-primary py-0"
                                                             onClick={() => setViewingSlipMerchant(`${o.slip_image}`)}
                                                         >
-                                                            🧾 ดูสลิป
+                                                            ดูสลิป
                                                         </button>
                                                     )}
                                                 </div>
@@ -776,8 +776,8 @@ function Merchant() {
                                                 <small className="text-muted">{o.order_time?.split(' ')[0]} {o.order_time?.split(' ')[1]?.substring(0,5)}</small>
                                             </div>
                                             {o.status === 'completed'
-                                                ? <span className="badge bg-success rounded-pill px-3 py-2">✅ สำเร็จ</span>
-                                                : <span className="badge bg-danger rounded-pill px-3 py-2">❌ ยกเลิก</span>
+                                                ? <span className="badge bg-success rounded-pill px-3 py-2">สำเร็จ</span>
+                                                : <span className="badge bg-danger rounded-pill px-3 py-2">ยกเลิก</span>
                                             }
                                         </div>
 
@@ -811,7 +811,7 @@ function Merchant() {
                                                         className="btn btn-sm btn-outline-primary"
                                                         onClick={() => setViewingSlipMerchant(`${o.slip_image}`)}
                                                     >
-                                                        🧾 ดูสลิป
+                                                        ดูสลิป
                                                     </button>
                                                 )}
                                                 {/* ปุ่มรายงาน */}
@@ -1014,7 +1014,7 @@ function Merchant() {
                     <hr className="my-5"/>
 
                     <div className="bg-soft-danger p-3 rounded border border-danger">
-                        <h5 className="text-danger">⚠️ โซนอันตราย: ลบบัญชีร้านค้าถาวร</h5>
+                        <h5 className="text-danger">⚠️ ลบบัญชีร้านค้าถาวร</h5>
                         <p className="text-muted small">หากลบบัญชี ข้อมูลร้านค้า, เมนู, และประวัติทั้งหมดจะหายไปและกู้คืนไม่ได้</p>
                         <div className="mb-3">
                             <label className="form-label small">พิมพ์ Username <strong>"{shopSettings.username}"</strong> เพื่อยืนยัน</label>
