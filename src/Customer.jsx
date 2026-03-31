@@ -1032,7 +1032,9 @@ function Customer() {
             {/* TAB: Settings */}
             {activeTab === 'settings' && (
                 <div className="card shadow-sm p-4 mx-auto" style={{maxWidth: '800px'}}>
-                    <h3 className="mb-4 text-primary">⚙️ ตั้งค่าบัญชี</h3>
+                    <h3 className="mb-4 text-primary d-flex align-items-center gap-2">
+                        <span className="material-icons">settings</span> ตั้งค่าบัญชี
+                    </h3>
                     
                     <div className="row mb-3">
                         <div className="col-md-6 mb-3">
@@ -1059,7 +1061,9 @@ function Customer() {
                     <hr className="my-4"/>
 
                     <div className="d-flex justify-content-between align-items-center mb-3">
-                        <h5 className="mb-0">📍 จัดการที่อยู่จัดส่ง</h5>
+                        <h5 className="mb-0 d-flex align-items-center gap-2">
+                            <span className="material-icons text-danger">location_on</span> จัดการที่อยู่จัดส่ง
+                        </h5>
                         <button className="btn btn-sm btn-soft-primary" onClick={handleAddAddress}>+ เพิ่มที่อยู่ใหม่</button>
                     </div>
 

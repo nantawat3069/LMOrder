@@ -925,7 +925,9 @@ function Merchant() {
             {/* TAB: Settings */}
             {activeTab === 'settings' && (
                 <div className="card shadow-sm p-4 mx-auto" style={{maxWidth: '800px'}}>
-                    <h3 className="mb-4 text-primary">⚙️ ตั้งค่าบัญชีร้านค้า</h3>
+                    <h3 className="mb-4 text-primary d-flex align-items-center gap-2">
+                        <span className="material-icons">settings</span> ตั้งค่าบัญชีร้านค้า
+                    </h3>
                     
                     <div className="text-center mb-4">
                         <div style={{width: '120px', height: '120px', margin: '0 auto', position: 'relative'}}>
@@ -967,7 +969,9 @@ function Merchant() {
                     </div>
 
                     <hr className="my-4"/>
-                    <h5 className="mb-3 text-muted">👤 ข้อมูลเจ้าของร้าน</h5>
+                    <h5 className="mb-3 text-muted d-flex align-items-center gap-2">
+                        <span className="material-icons">person</span> ข้อมูลเจ้าของร้าน
+                    </h5>
 
                     <div className="row mb-3">
                         <div className="col-md-6 mb-3">
@@ -991,7 +995,9 @@ function Merchant() {
                     </div>
 
                     <hr className="my-4"/>
-                    <h5 className="mb-3 text-muted">💳 ข้อมูลการรับชำระเงิน</h5>
+                    <h5 className="mb-3 text-muted d-flex align-items-center gap-2">
+                        <span className="material-icons">credit_card</span> ข้อมูลการรับชำระเงิน
+                    </h5>
 
                     <div className="row mb-3">
                         <div className="col-md-4 mb-3">
@@ -1036,15 +1042,15 @@ function Merchant() {
                                     />
                                 ) : (
                                     <div className="d-flex flex-column align-items-center justify-content-center text-muted" style={{width: '120px', height: '120px'}}>
-                                        <span style={{fontSize: '2.5rem'}}>📷</span>
+                                        <span className="material-icons" style={{fontSize: '2.5rem'}}>photo_camera</span>
                                         <small>ยังไม่มีรูป</small>
                                     </div>
                                 )}
                             </div>
                             {/* ปุ่มอัปโหลด */}
                             <div>
-                                <label className="btn btn-outline-primary mb-2">
-                                    📁 เลือกรูป QR Code
+                                <label className="btn btn-outline-primary mb-2 d-inline-flex align-items-center gap-1">
+                                    <span className="material-icons" style={{fontSize: '20px'}}>upload_file</span> เลือกรูป QR Code
                                     <input type="file" hidden accept="image/*" onChange={handleQrCodeChange} />
                                 </label>
                                 <div className="text-muted small">รองรับ JPG, PNG — แนะนำให้ใช้รูปสี่เหลี่ยมจัตุรัส</div>
