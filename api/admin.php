@@ -348,26 +348,6 @@ elseif ($method == 'POST' && $action == 'update_ticket') {
     echo json_encode(["status" => "success"]);
 }
 
-// ดึง notifications ของ user พร้อม unread count
-elseif ($method == 'GET' && $action == 'get_my_notifications') {
-    $user_id = $_GET['user_id'];
-    $sql = "SELECT n.*, u.fullname as admin_name 
-            FROM notifications n 
-            LEFT JOIN users u ON n.admin_id = u.id 
-            WHERE n.user_id = '$user_id' 
-            ORDER BY n.created_at DESC 
-            LIMIT 50";
-    $result = $conn->query($sql);
-    $notifs = [];
-    while ($row = $result->fetch_assoc()) $notifs[] = $row;
-
-    // นับ unread
-    $unread_res = $conn->query("SELECT COUNT(*) as cnt FROM notifications WHERE user_id='$user_id' AND is_read=0");
-    $unread = $unread_res->fetch_assoc()['cnt'];
-
-    echo json_encode(["status" => "success", "notifications" => $notifs, "unread_count" => (int)$unread]);
-}
-
 // mark all read
 elseif ($method == 'POST' && $action == 'mark_notifications_read') {
     $user_id = $data->user_id;

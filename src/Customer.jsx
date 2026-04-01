@@ -1,6 +1,11 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { getStatusBadge } from './utils/badges';
+import { useModal } from './hooks/useModal';
+import ModalDialog from './components/ModalDialog';
+import { useNotifications } from './hooks/useNotifications';
+import BanOverlay from './components/BanOverlay';
 
 function Customer() {
     const navigate = useNavigate();
@@ -53,7 +58,7 @@ function Customer() {
     const [slipPreview, setSlipPreview] = useState('');
 
     // General Modal System
-    const [modal, setModal] = useState({ show: false, type: 'alert', title: '', message: '', onConfirm: null });
+    const { modal, setModal, showAlert, confirmAction, closeModal } = useModal();
 
     // Report & Ban States
     const [showReportModal, setShowReportModal] = useState(false);
@@ -65,54 +70,10 @@ function Customer() {
     const [appealTicketId, setAppealTicketId] = useState(null);
 
     // Notifications
-    const [myNotifications, setMyNotifications] = useState([]);
-    const [unreadCount, setUnreadCount] = useState(0);
-
-    const [newNotifIds, setNewNotifIds] = useState(new Set());
+    const { myNotifications, unreadCount, newNotifIds, fetchMyNotifications, markNotificationsRead } = useNotifications();
 
     // เก็บ URL สลิป
     const [viewingSlip, setViewingSlip] = useState(null);
-
-    const fetchMyNotifications = async (uid) => {
-        try {
-            const res = await axios.get(`https://lmorder-production.up.railway.app/admin.php?action=get_my_notifications&user_id=${uid}`);
-            if (res.data.status === 'success') {
-                // ตรวจจับ notification ใหม่ที่ยังไม่เคยเห็น
-                setMyNotifications(prev => {
-                    const prevIds = new Set(prev.map(n => n.id));
-                    const incoming = res.data.notifications;
-                    const brandNew = incoming.filter(n => !prevIds.has(n.id) && n.is_read == '0');
-                    
-                    if (brandNew.length > 0) {
-                        const newIds = new Set(brandNew.map(n => n.id));
-                        setNewNotifIds(prev => new Set([...prev, ...newIds]));
-                        // ลบออกหลัง 5 วิ
-                        setTimeout(() => {
-                            setNewNotifIds(prev => {
-                                const updated = new Set(prev);
-                                newIds.forEach(id => updated.delete(id));
-                                return updated;
-                            });
-                        }, 5000);
-                    }
-                    return incoming;
-                });
-                setUnreadCount(res.data.unread_count);
-            }
-        } catch (err) { console.error(err); }
-    };
-
-    const markNotificationsRead = async () => {
-        if (!user || unreadCount === 0) return;
-        try {
-            await axios.post('https://lmorder-production.up.railway.app/admin.php', {
-                action: 'mark_notifications_read',
-                user_id: user.id
-            });
-            setUnreadCount(0);
-            setMyNotifications(prev => prev.map(n => ({ ...n, is_read: '1' })));
-        } catch (err) { console.error(err); }
-    };
 
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
@@ -213,11 +174,7 @@ function Customer() {
 
     // ...
 
-    const showAlert = (title, message) => setModal({ show: true, type: 'alert', title, message, onConfirm: () => setModal({ ...modal, show: false }) });
-    const confirmAction = (title, message, action) => setModal({ show: true, type: 'confirm', title, message, onConfirm: () => { action(); setModal({ ...modal, show: false }); } });
-    const closeModal = () => setModal({ ...modal, show: false });
-
-    //  API Functions 
+    //  API Functions
     const fetchShops = async () => {
         try {
             const res = await axios.get('https://lmorder-production.up.railway.app/customer.php?action=get_shops');
@@ -596,18 +553,6 @@ function Customer() {
         await doPlaceOrder(slipFile);
     };
 
-    const getStatusBadge = (status) => {
-        switch(status) {
-            case 'pending': return <span className="badge bg-secondary">รอร้านรับ</span>;
-            case 'accepted': return <span className="badge bg-primary">รับออเดอร์แล้ว</span>;
-            case 'cooking': return <span className="badge bg-warning text-dark">กำลังปรุง</span>;
-            case 'delivering': return <span className="badge bg-info text-white">กำลังส่ง</span>;
-            case 'completed': return <span className="badge bg-success">สำเร็จ</span>;
-            case 'cancelled': return <span className="badge bg-danger">ยกเลิก</span>;
-            default: return status;
-        }
-    };
-
     // Helper: กรองออเดอร์ที่จะแสดงในแถบแจ้งเตือน
     const activeNotifications = myOrders.filter(o => {
         const isFinished = ['completed', 'cancelled'].includes(o.status);
@@ -636,7 +581,7 @@ function Customer() {
                         </button>
                         <button
                             className={`btn position-relative d-inline-flex align-items-center gap-1 ${activeTab === 'notifications' ? 'btn-primary' : 'btn-outline-primary'}`}
-                            onClick={() => { setActiveTab('notifications'); markNotificationsRead(); }}
+                            onClick={() => { setActiveTab('notifications'); markNotificationsRead(user?.id); }}
                         >
                             <span className="material-icons" style={{fontSize: '18px'}}>notifications</span> แจ้งเตือน
                             {unreadCount > 0 && (
@@ -1324,88 +1269,15 @@ function Customer() {
             )}
 
             {/* Popup แจ้งโดนแบน */}
-                {isBanned && (
-                    <div className="modal-overlay" style={{zIndex: 99999}}>
-                        <div className="modal-box" style={{maxWidth: '480px'}}>
-                            <div className="text-center mb-3">
-                                <div style={{fontSize: '3rem'}}>🔨</div>
-                                <h3 className="text-danger mb-1">บัญชีถูกระงับ</h3>
-                                <p className="text-muted mb-0">บัญชีของคุณถูกแอดมินระงับการใช้งาน</p>
-                            </div>
-
-                            {/* เหตุผลการแบน — แสดงตลอด ไม่หาย */}
-                            <div className="alert alert-danger py-2 mb-3 text-start">
-                                <strong>เหตุผล:</strong> {banInfo.reason || 'ไม่ระบุ'}
-                                {banInfo.message && <div className="mt-1 small">{banInfo.message}</div>}
-                            </div>
-
-                            {/* สถานะคำร้อง */}
-                                {appealStatus && (
-                                    <div className={`alert py-2 mb-3 text-center fw-bold d-flex align-items-center justify-content-center gap-2 ${
-                                        appealStatus === 'open'        ? 'alert-secondary' :
-                                        appealStatus === 'in_progress' ? 'alert-warning'   :
-                                        appealStatus === 'resolved'    ? 'alert-success'   :
-                                        appealStatus === 'rejected'    ? 'alert-danger'    : 'alert-secondary'
-                                    }`}>
-                                        {{
-                                            open:        (<><span className="material-icons text-secondary" style={{fontSize: '20px'}}>schedule</span> รอแอดมินรับเรื่อง</>),
-                                            in_progress: (<><span className="material-icons text-dark" style={{fontSize: '20px'}}>sync</span> แอดมินกำลังดำเนินการ</>),
-                                            resolved:    (<><span className="material-icons text-success" style={{fontSize: '20px'}}>check_circle</span> คำร้องเสร็จสิ้น</>),
-                                            rejected:    (<><span className="material-icons text-danger" style={{fontSize: '20px'}}>cancel</span> คำร้องถูกปฏิเสธ</>),
-                                        }[appealStatus]}
-                                    </div>
-                                )}
-
-                            {/* ฟอร์มส่งคำร้อง — ล็อคถ้า open/in_progress */}
-                            {(appealStatus === null || appealStatus === 'resolved' || appealStatus === 'rejected') ? (
-                                <div className="mb-3">
-                                    <label className="form-label fw-bold d-flex align-items-center gap-1">
-                                        <span className="material-icons text-primary" style={{fontSize: '20px'}}>edit_document</span> คำร้องขออุทธรณ์
-                                    </label>
-                                    {appealStatus === 'resolved' && (
-                                        <div className="small text-muted mb-2">คำร้องก่อนหน้าเสร็จสิ้นแล้ว สามารถส่งใหม่ได้</div>
-                                    )}
-                                    {appealStatus === 'rejected' && (
-                                        <div className="small text-muted mb-2">คำร้องก่อนหน้าถูกปฏิเสธ สามารถส่งใหม่ได้</div>
-                                    )}
-                                    <textarea
-                                        className="form-control"
-                                        rows="3"
-                                        placeholder="อธิบายเหตุผลที่ควรได้รับการปลดแบน..."
-                                        value={banAppealMessage}
-                                        onChange={e => setBanAppealMessage(e.target.value)}
-                                    />
-                                </div>
-                            ) : (
-                                <div className="alert alert-light border mb-3 small text-muted text-center">
-                                    <div className="d-flex align-items-center justify-content-center gap-1 mb-1">
-                                        <span className="material-icons text-secondary" style={{fontSize: '18px'}}>lock</span>
-                                        <span>ไม่สามารถส่งคำร้องได้ในขณะนี้</span>
-                                    </div>
-                                    กรุณารอแอดมินพิจารณาคำร้องที่ส่งไปแล้ว
-                                </div>
-                            )}
-
-                            <div className="d-flex gap-2">
-                                <button
-                                    className="btn btn-outline-danger flex-fill"
-                                    onClick={() => { localStorage.removeItem('user'); navigate('/'); }}
-                                >
-                                    ออกจากระบบ
-                                </button>
-                                {(appealStatus === null || appealStatus === 'resolved' || appealStatus === 'rejected') && (
-                                    <button
-                                        className="btn btn-primary flex-fill"
-                                        disabled={!banAppealMessage.trim()}
-                                        onClick={handleAppeal}
-                                    >
-                                        ส่งคำร้อง
-                                    </button>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                )}
+            <BanOverlay
+                isBanned={isBanned}
+                banInfo={banInfo}
+                appealStatus={appealStatus}
+                banAppealMessage={banAppealMessage}
+                setBanAppealMessage={setBanAppealMessage}
+                handleAppeal={handleAppeal}
+                onLogout={() => { localStorage.removeItem('user'); navigate('/'); }}
+            />
 
             {/* แสดงเฉพาะตอนมีของในตะกร้า + อยู่หน้าร้านค้า + และเป็นหน้าจอมือถือ */}
             {cart.length > 0 && activeTab === 'shops' && selectedShop && (
@@ -1522,7 +1394,7 @@ function Customer() {
                         {activeOrdersCount > 0 && <span className="position-absolute top-0 start-70 translate-middle badge rounded-pill bg-danger" style={{fontSize: '0.6rem'}}>{activeOrdersCount}</span>}
                     </button>
                     <button className={`btn border-0 position-relative ${activeTab === 'notifications' ? 'text-primary' : 'text-muted'}`}
-                        onClick={() => { setActiveTab('notifications'); markNotificationsRead(); }}>
+                        onClick={() => { setActiveTab('notifications'); markNotificationsRead(user?.id); }}>
                         <div style={{fontSize: '1.5rem'}}>🔔</div>
                         <small style={{fontSize: '0.7rem'}}>แจ้งเตือน</small>
                         {unreadCount > 0 && (
@@ -1545,29 +1417,7 @@ function Customer() {
             */}
             <div className="d-block d-md-none" style={{ height: '60px' }}></div>
 
-            {modal.show && (
-                <div className="modal-overlay">
-                    <div className="modal-box">
-                        <h4 className="mb-3">{modal.title}</h4>
-                        <p className="text-muted mb-4">{modal.message}</p>
-                        <div className="d-flex justify-content-center gap-2">
-                            {modal.type === 'confirm' && (
-                                <button 
-                                    className="btn btn-secondary flex-fill" 
-                                    // แก้ตรงนี้: ถ้ามี onCancel ให้ทำตามนั้น (เด้งกลับ) ถ้าไม่มีให้ปิดเฉยๆ
-                                    onClick={() => {
-                                        if (modal.onCancel) modal.onCancel();
-                                        else closeModal();
-                                    }}
-                                >
-                                    ยกเลิก
-                                </button>
-                            )}
-                            <button className="btn btn-primary flex-fill" onClick={modal.onConfirm}>ตกลง</button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <ModalDialog modal={modal} closeModal={closeModal} />
 
         </div> // <-- นี่คือปิด div className="container mt-4 pb-5"
         

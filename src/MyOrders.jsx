@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { getStatusBadge } from './utils/badges';
 
 function MyOrders() {
     const navigate = useNavigate();
@@ -24,18 +25,6 @@ function MyOrders() {
         if(!confirm("ต้องการยกเลิกออเดอร์นี้ใช่ไหม?")) return;
         await axios.post('https://lmorder-production.up.railway.app/order.php', { action: 'update_status', order_id: oid, status: 'cancelled' });
         fetchOrders(user.id);
-    };
-
-    const getStatusBadge = (status) => {
-        switch(status) {
-            case 'pending': return <span className="badge bg-secondary">รอร้านรับออเดอร์</span>;
-            case 'accepted': return <span className="badge bg-primary">รับออเดอร์แล้ว</span>;
-            case 'cooking': return <span className="badge bg-warning text-dark">กำลังปรุง</span>;
-            case 'delivering': return <span className="badge bg-info text-dark">กำลังไปส่ง</span>;
-            case 'completed': return <span className="badge bg-success">ได้รับอาหารแล้ว</span>;
-            case 'cancelled': return <span className="badge bg-danger">ยกเลิกแล้ว</span>;
-            default: return status;
-        }
     };
 
     return (

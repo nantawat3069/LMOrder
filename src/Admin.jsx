@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { useModal } from './hooks/useModal';
+import ModalDialog from './components/ModalDialog';
 
 const API = 'https://lmorder-production.up.railway.app';
 
@@ -280,8 +282,8 @@ function Admin() {
     const [logSearch, setLogSearch] = useState('');
     const [logActionFilter, setLogActionFilter] = useState('all');
 
-    //  Modal 
-    const [modal, setModal] = useState({ show: false, type: 'alert', title: '', message: '', onConfirm: null });
+    //  Modal
+    const { modal, showAlert, confirmAction, closeModal } = useModal();
 
     // Ticket View Mode
     const [ticketViewingUser, setTicketViewingUser] = useState(null); // null = ดูคำร้อง, 'sender'/'target' = ดู profile
@@ -517,10 +519,6 @@ function Admin() {
             setSelectedTicket(null);
         });
     };
-
-    //  Modal helpers
-    const showAlert = (title, message) => setModal({ show: true, type: 'alert', title, message, onConfirm: () => setModal(m => ({ ...m, show: false })) });
-    const confirmAction = (title, message, action) => setModal({ show: true, type: 'confirm', title, message, onConfirm: () => { action(); setModal(m => ({ ...m, show: false })); } });
 
     //  Badge helpers
     const getRoleBadge = (role) => {
@@ -1379,20 +1377,7 @@ function Admin() {
             )}
 
             {/* Modal */}
-            {modal.show && (
-                <div className="modal-overlay">
-                    <div className="modal-box">
-                        <h4 className="mb-3">{modal.title}</h4>
-                        <p className="text-muted mb-4">{modal.message}</p>
-                        <div className="d-flex justify-content-center gap-2">
-                            {modal.type === 'confirm' && (
-                                <button className="btn btn-secondary flex-fill" onClick={() => setModal(m => ({ ...m, show: false }))}>ยกเลิก</button>
-                            )}
-                            <button className="btn btn-danger flex-fill" onClick={modal.onConfirm}>ตกลง</button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <ModalDialog modal={modal} closeModal={closeModal} confirmBtnClass="btn-danger" />
         </div>
     );
 }
