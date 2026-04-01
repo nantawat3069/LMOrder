@@ -3,8 +3,10 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useModal } from './hooks/useModal';
 import ModalDialog from './components/ModalDialog';
+import OrderFilterBar from './components/OrderFilterBar';
+import { API_BASE_URL } from './config';
 
-const API = 'https://lmorder-production.up.railway.app';
+
 
 function OrderRow({ order, role }) {
     const [open, setOpen] = useState(false);
@@ -356,21 +358,21 @@ function Admin() {
             const params = new URLSearchParams({ action: 'get_users' });
             if (userSearch) params.append('search', userSearch);
             if (userRoleFilter !== 'all') params.append('role', userRoleFilter);
-            const res = await axios.get(`${API}/admin.php?${params}`);
+            const res = await axios.get(`${API_BASE_URL}/admin.php?${params}`);
             if (res.data.status === 'success') setUsers(res.data.users);
         } catch (e) { console.error(e); }
     };
 
     const fetchPendingTicketsCount = async () => {
         try {
-            const res = await axios.get(`${API}/admin.php?action=get_pending_tickets_count`);
+            const res = await axios.get(`${API_BASE_URL}/admin.php?action=get_pending_tickets_count`);
             if (res.data.status === 'success') setPendingTicketsCount(res.data.count);
         } catch (e) { console.error(e); }
     };
 
     const fetchUserNotifs = async (uid) => {
         try {
-            const res = await axios.get(`${API}/admin.php?action=get_notifications&user_id=${uid}`);
+            const res = await axios.get(`${API_BASE_URL}/admin.php?action=get_notifications&user_id=${uid}`);
             if (res.data.status === 'success') setUserNotifs(res.data.notifications);
         } catch (e) { console.error(e); }
     };
@@ -383,7 +385,7 @@ function Admin() {
                 order_search: orderSearchRef.current,
                 order_status: orderStatusFilterRef.current
             });
-            const res = await axios.get(`${API}/admin.php?${params}`);
+            const res = await axios.get(`${API_BASE_URL}/admin.php?${params}`);
             if (res.data.status === 'success') {
                 setUserDetail(res.data);
                 setEditForm({
@@ -402,7 +404,7 @@ function Admin() {
             const params = new URLSearchParams({ action: 'get_tickets' });
             if (ticketSearchRef.current) params.append('search', ticketSearchRef.current);
             if (ticketStatusFilterRef.current !== 'all') params.append('status', ticketStatusFilterRef.current);
-            const res = await axios.get(`${API}/admin.php?${params}`);
+            const res = await axios.get(`${API_BASE_URL}/admin.php?${params}`);
             if (res.data.status === 'success') setTickets(res.data.tickets);
         } catch (e) { console.error(e); }
     };
@@ -412,7 +414,7 @@ function Admin() {
             const params = new URLSearchParams({ action: 'get_logs' });
             if (logSearchRef.current) params.append('search', logSearchRef.current);
             if (logActionFilterRef.current !== 'all') params.append('action_filter', logActionFilterRef.current);
-            const res = await axios.get(`${API}/admin.php?${params}`);
+            const res = await axios.get(`${API_BASE_URL}/admin.php?${params}`);
             if (res.data.status === 'success') setLogs(res.data.logs);
         } catch (e) { console.error(e); }
     };
@@ -422,7 +424,7 @@ function Admin() {
         if (targetUser.is_banned == 1) {
             // ปลดแบน ไม่ต้องเลือก reason
             confirmAction('ปลดแบนผู้ใช้', `ยืนยันปลดแบน "${targetUser.fullname}" ใช่หรือไม่?`, async () => {
-                await axios.post(`${API}/admin.php`, {
+                await axios.post(`${API_BASE_URL}/admin.php`, {
                     action: 'toggle_ban',
                     admin_id: admin.id,
                     target_id: targetUser.id,
@@ -442,7 +444,7 @@ function Admin() {
 
     const handleConfirmBan = async () => {
         if (!banForm.category) { showAlert('แจ้งเตือน', 'กรุณาเลือกหมวดหมู่การแบน'); return; }
-        await axios.post(`${API}/admin.php`, {
+        await axios.post(`${API_BASE_URL}/admin.php`, {
             action: 'toggle_ban',
             admin_id: admin.id,
             target_id: banTargetUser.id,
@@ -459,7 +461,7 @@ function Admin() {
     const handleSendNotification = async () => {
         if (!notifForm.category) { showAlert('แจ้งเตือน', 'กรุณาเลือกหมวดหมู่'); return; }
         if (!notifForm.message.trim()) { showAlert('แจ้งเตือน', 'กรุณาพิมพ์ข้อความ'); return; }
-        await axios.post(`${API}/admin.php`, {
+        await axios.post(`${API_BASE_URL}/admin.php`, {
             action: 'send_notification',
             admin_id: admin.id,
             user_id: selectedUser.id,
@@ -477,7 +479,7 @@ function Admin() {
             'ลบบัญชีถาวร',
             `คุณแน่ใจหรือไม่? บัญชี "${targetUser.username}" และข้อมูลทั้งหมดจะถูกลบถาวรและกู้คืนไม่ได้!`,
             async () => {
-                await axios.post(`${API}/admin.php`, {
+                await axios.post(`${API_BASE_URL}/admin.php`, {
                     action: 'delete_user',
                     admin_id: admin.id,
                     target_id: targetUser.id
@@ -492,7 +494,7 @@ function Admin() {
 
     const handleSaveEdit = () => {
         confirmAction('บันทึกการแก้ไข', 'ยืนยันการแก้ไขข้อมูลผู้ใช้นี้?', async () => {
-            await axios.post(`${API}/admin.php`, {
+            await axios.post(`${API_BASE_URL}/admin.php`, {
                 action: 'edit_user',
                 admin_id: admin.id,
                 target_id: selectedUser.id,
@@ -509,7 +511,7 @@ function Admin() {
     const handleUpdateTicket = (ticket, status) => {
         const labels = { resolved: 'แก้ไขแล้ว', rejected: 'ปฏิเสธ', in_progress: 'กำลังดำเนินการ' };
         confirmAction('อัปเดตคำร้อง', `เปลี่ยนสถานะเป็น "${labels[status]}" ใช่หรือไม่?`, async () => {
-            await axios.post(`${API}/admin.php`, {
+            await axios.post(`${API_BASE_URL}/admin.php`, {
                 action: 'update_ticket',
                 admin_id: admin.id,
                 ticket_id: ticket.id,
@@ -795,29 +797,10 @@ function Admin() {
                                                         />
                                                     </div>
                                                 </div>
-                                                <div className="d-flex gap-1 mb-3 flex-wrap">
-                                                    {['all', 'pending', 'accepted', 'cooking', 'delivering', 'completed', 'cancelled'].map(s => (
-                                                        <button
-                                                            key={s}
-                                                            className={`btn btn-sm ${orderStatusFilter === s ? 'btn-danger' : 'btn-outline-secondary'} d-inline-flex align-items-center gap-0`}
-                                                            style={{fontSize: '0.75rem', padding: '2px 8px'}}
-                                                            onClick={() => {
-                                                                setOrderStatusFilter(s);
-                                                                orderStatusFilterRef.current = s;
-                                                            }}
-                                                        >
-                                                            {{
-                                                                all: (<><span className={`material-icons ${orderStatusFilter === s ? '' : 'text-primary'}`} style={{fontSize: '14px'}}>list</span> ทั้งหมด</>),
-                                                                pending: (<><span className={`material-icons ${orderStatusFilter === s ? '' : 'text-warning'}`} style={{fontSize: '14px'}}>schedule</span> รอรับ</>),
-                                                                accepted: (<><span className={`material-icons ${orderStatusFilter === s ? '' : 'text-primary'}`} style={{fontSize: '14px'}}>check_circle</span> รับแล้ว</>),
-                                                                cooking: (<><span className={`material-icons ${orderStatusFilter === s ? '' : 'text-warning'}`} style={{fontSize: '14px'}}>soup_kitchen</span> ปรุง</>),
-                                                                delivering: (<><span className={`material-icons ${orderStatusFilter === s ? '' : 'text-info'}`} style={{fontSize: '14px'}}>delivery_dining</span> ส่ง</>),
-                                                                completed: (<><span className={`material-icons ${orderStatusFilter === s ? '' : 'text-success'}`} style={{fontSize: '14px'}}>task_alt</span> สำเร็จ</>),
-                                                                cancelled: (<><span className={`material-icons ${orderStatusFilter === s ? '' : 'text-danger'}`} style={{fontSize: '14px'}}>cancel</span> ยกเลิก</>)
-                                                            }[s]}
-                                                        </button>
-                                                    ))}
-                                                </div>
+                                                <OrderFilterBar
+                                                    value={orderStatusFilter}
+                                                    onChange={s => { setOrderStatusFilter(s); orderStatusFilterRef.current = s; }}
+                                                />
                                                 {userDetail.orders.length === 0 ? (
                                                     <div className="text-center text-muted small py-3">ไม่พบออเดอร์</div>
                                                 ) : (
@@ -1128,29 +1111,10 @@ function Admin() {
                                                         />
                                                     </div>
                                                 </div>
-                                                <div className="d-flex gap-1 mb-3 flex-wrap">
-                                                    {['all', 'pending', 'accepted', 'cooking', 'delivering', 'completed', 'cancelled'].map(s => (
-                                                        <button
-                                                            key={s}
-                                                            className={`btn btn-sm ${orderStatusFilter === s ? 'btn-danger' : 'btn-outline-secondary'} d-inline-flex align-items-center gap-0`}
-                                                            style={{fontSize: '0.75rem', padding: '2px 8px'}}
-                                                            onClick={() => {
-                                                                setOrderStatusFilter(s);
-                                                                orderStatusFilterRef.current = s;
-                                                            }}
-                                                        >
-                                                            {{
-                                                                all: (<><span className={`material-icons ${orderStatusFilter === s ? '' : 'text-primary'}`} style={{fontSize: '14px'}}>list</span> ทั้งหมด</>),
-                                                                pending: (<><span className={`material-icons ${orderStatusFilter === s ? '' : 'text-warning'}`} style={{fontSize: '14px'}}>schedule</span> รอรับ</>),
-                                                                accepted: (<><span className={`material-icons ${orderStatusFilter === s ? '' : 'text-primary'}`} style={{fontSize: '14px'}}>check_circle</span> รับแล้ว</>),
-                                                                cooking: (<><span className={`material-icons ${orderStatusFilter === s ? '' : 'text-warning'}`} style={{fontSize: '14px'}}>soup_kitchen</span> ปรุง</>),
-                                                                delivering: (<><span className={`material-icons ${orderStatusFilter === s ? '' : 'text-info'}`} style={{fontSize: '14px'}}>delivery_dining</span> ส่ง</>),
-                                                                completed: (<><span className={`material-icons ${orderStatusFilter === s ? '' : 'text-success'}`} style={{fontSize: '14px'}}>task_alt</span> สำเร็จ</>),
-                                                                cancelled: (<><span className={`material-icons ${orderStatusFilter === s ? '' : 'text-danger'}`} style={{fontSize: '14px'}}>cancel</span> ยกเลิก</>)
-                                                            }[s]}
-                                                        </button>
-                                                    ))}
-                                                </div>
+                                                <OrderFilterBar
+                                                    value={orderStatusFilter}
+                                                    onChange={s => { setOrderStatusFilter(s); orderStatusFilterRef.current = s; }}
+                                                />
                                                 {userDetail.orders.length === 0 ? (
                                                     <div className="text-center text-muted small py-3">ไม่พบออเดอร์</div>
                                                 ) : (

@@ -6,6 +6,8 @@ import { useModal } from './hooks/useModal';
 import ModalDialog from './components/ModalDialog';
 import { useNotifications } from './hooks/useNotifications';
 import BanOverlay from './components/BanOverlay';
+import NotificationItem from './components/NotificationItem';
+import { API_BASE_URL } from './config';
 
 function Customer() {
     const navigate = useNavigate();
@@ -149,7 +151,7 @@ function Customer() {
         // เช็คครั้งแรกทันที
         const checkBan = async () => {
             try {
-                const res = await axios.get(`https://lmorder-production.up.railway.app/customer.php?action=check_ban&user_id=${user.id}`);
+                const res = await axios.get(`${API_BASE_URL}/customer.php?action=check_ban&user_id=${user.id}`);
                 if (res.data.is_banned == 1) {
                     setIsBanned(true);
                     // อัปเดตทุกครั้งเลย ไม่ต้องเช็คก่อน
@@ -177,7 +179,7 @@ function Customer() {
     //  API Functions
     const fetchShops = async () => {
         try {
-            const res = await axios.get('https://lmorder-production.up.railway.app/customer.php?action=get_shops');
+            const res = await axios.get(`${API_BASE_URL}/customer.php?action=get_shops`);
             if (res.data.status === 'success') {
                 const sortedShops = res.data.shops.sort((a, b) => b.is_open - a.is_open);
                 setShops(sortedShops);
@@ -195,14 +197,14 @@ function Customer() {
 
     const updateMenuData = async (shopId) => {
         try {
-            const res = await axios.get(`https://lmorder-production.up.railway.app/order.php?action=get_shop_menu&shop_id=${shopId}`);
+            const res = await axios.get(`${API_BASE_URL}/order.php?action=get_shop_menu&shop_id=${shopId}`);
             if (res.data.status === 'success') setProducts(res.data.products);
         } catch (err) { console.error(err); }
     };
 
     const fetchMyOrders = async (cid) => {
         try {
-            const res = await axios.get(`https://lmorder-production.up.railway.app/order.php?action=get_my_orders&customer_id=${cid}`);
+            const res = await axios.get(`${API_BASE_URL}/order.php?action=get_my_orders&customer_id=${cid}`);
             if (res.data.status === 'success') {
                 setMyOrders(res.data.orders);
                 setActiveOrdersCount(res.data.orders.filter(o => o.status !== 'completed' && o.status !== 'cancelled').length);
@@ -212,7 +214,7 @@ function Customer() {
 
     const fetchAddresses = async (uid) => {
         try {
-            const res = await axios.get(`https://lmorder-production.up.railway.app/customer.php?action=get_profile&user_id=${uid}`);
+            const res = await axios.get(`${API_BASE_URL}/customer.php?action=get_profile&user_id=${uid}`);
             if (res.data.status === 'success') {
                 setSavedAddresses(res.data.addresses);
             }
@@ -221,7 +223,7 @@ function Customer() {
 
     const fetchProfileData = async () => {
         try {
-            const res = await axios.get(`https://lmorder-production.up.railway.app/customer.php?action=get_profile&user_id=${user.id}`);
+            const res = await axios.get(`${API_BASE_URL}/customer.php?action=get_profile&user_id=${user.id}`);
             if (res.data.status === 'success') {
                 const u = res.data.user;
                 setProfileForm({
@@ -260,7 +262,7 @@ function Customer() {
     const handleSaveProfile = async () => {
         confirmAction('บันทึกการตั้งค่า', 'ต้องการยืนยันการแก้ไขข้อมูลหรือไม่?', async () => {
             try {
-                await axios.post('https://lmorder-production.up.railway.app/customer.php', {
+                await axios.post(`${API_BASE_URL}/customer.php`, {
                     action: 'update_profile',
                     user_id: user.id,
                     fullname: profileForm.fullname,
@@ -283,7 +285,7 @@ function Customer() {
             showAlert('ผิดพลาด', 'ชื่อผู้ใช้งาน (Username) ไม่ตรงกัน'); return;
         }
         confirmAction('ลบบัญชีถาวร', '⚠️ ยืนยันที่จะลบหรือไม่?', async () => {
-            const res = await axios.post('https://lmorder-production.up.railway.app/customer.php', {
+            const res = await axios.post(`${API_BASE_URL}/customer.php`, {
                 action: 'delete_account',
                 user_id: user.id,
                 username_confirmation: deleteConfirmUsername
@@ -370,7 +372,7 @@ function Customer() {
     // ฟังก์ชันจริงที่ยิง API สั่งออเดอร์
     const doPlaceOrder = async (slipFileToUpload = null) => {
         try {
-            const res = await axios.post('https://lmorder-production.up.railway.app/order.php', {
+            const res = await axios.post(`${API_BASE_URL}/order.php`, {
                 action: 'place_order',
                 customer_id: user.id,
                 shop_id: selectedShop.id,
@@ -387,7 +389,7 @@ function Customer() {
                     formData.append('action', 'upload_slip');
                     formData.append('order_id', res.data.order_id);
                     formData.append('slip', slipFileToUpload);
-                    await axios.post('https://lmorder-production.up.railway.app/order.php', formData);
+                    await axios.post(`${API_BASE_URL}/order.php`, formData);
                 }
 
                 showAlert('สำเร็จ', 'สั่งซื้อเรียบร้อย!');
@@ -429,7 +431,7 @@ function Customer() {
             // กรณีตอบตกลง ลบจริง
             onConfirm: async () => {
                 try {
-                    await axios.post('https://lmorder-production.up.railway.app/order.php', {
+                    await axios.post(`${API_BASE_URL}/order.php`, {
                         action: 'update_status', 
                         order_id: order.id, 
                         status: 'cancelled' 
@@ -452,7 +454,7 @@ function Customer() {
         e.stopPropagation();
         try {
             // ยิง API ไปบอก Server ว่าปิดแจ้งเตือนออเดอร์นี้แล้วนะ
-            await axios.post('https://lmorder-production.up.railway.app/order.php', {
+            await axios.post(`${API_BASE_URL}/order.php`, {
                 action: 'close_notification',
                 order_id: orderId
             });
@@ -465,7 +467,7 @@ function Customer() {
     const handleSubmitReport = async () => {
         if (!reportForm.category) { showAlert('แจ้งเตือน', 'กรุณาเลือกหมวดหมู่การรายงาน'); return; }
         try {
-            await axios.post('https://lmorder-production.up.railway.app/admin.php', {
+            await axios.post(`${API_BASE_URL}/admin.php`, {
                 action: 'submit_ticket',
                 sender_id: user.id,
                 target_id: selectedShop?.id_owner ?? null,
@@ -476,7 +478,7 @@ function Customer() {
             setShowReportModal(false);
             setReportForm({ category: '', message: '' });
             
-            await axios.post('https://lmorder-production.up.railway.app/admin.php', {
+            await axios.post(`${API_BASE_URL}/admin.php`, {
                 action: 'send_notification',
                 admin_id: user.id,
                 user_id: user.id,
@@ -492,7 +494,7 @@ function Customer() {
     // ดึงสถานะคำร้องอุทธรณ์ล่าสุดของ user
     const fetchAppealStatus = async (uid, bannedAt = null) => {
         try {
-            let url = `https://lmorder-production.up.railway.app/admin.php?action=get_my_appeal&user_id=${uid}`;
+            let url = `${API_BASE_URL}/admin.php?action=get_my_appeal&user_id=${uid}`;
             if (bannedAt) url += `&banned_at=${encodeURIComponent(bannedAt)}`;
             const res = await axios.get(url);
             if (res.data.status === 'success' && res.data.ticket) {
@@ -509,7 +511,7 @@ function Customer() {
     const handleAppeal = async () => {
         if (!banAppealMessage.trim()) return;
         try {
-            await axios.post('https://lmorder-production.up.railway.app/admin.php', {
+            await axios.post(`${API_BASE_URL}/admin.php`, {
                 action: 'submit_ticket',
                 sender_id: user.id,
                 target_id: null,
@@ -518,7 +520,7 @@ function Customer() {
                 message: banAppealMessage
             });
             setBanAppealMessage('');
-            await axios.post('https://lmorder-production.up.railway.app/admin.php', {
+            await axios.post(`${API_BASE_URL}/admin.php`, {
                 action: 'send_notification',
                 admin_id: user.id,
                 user_id: user.id,
@@ -910,65 +912,9 @@ function Customer() {
                         </div>
                     ) : (
                         <div>
-                            {myNotifications.map((n, i) => {
-                                // กำหนดชื่อไอคอนตามเงื่อนไข
-                                const typeIconIcon = {
-                                    ban: 'gavel',
-                                    unban: 'task_alt',
-                                    ticket_update: 'assignment',
-                                    admin_message: 'campaign'
-                                }[n.type] || 'notifications';
-
-                                // กำหนดคลาสสีของไอคอน
-                                const typeIconColor = {
-                                    ban: 'text-danger',
-                                    unban: 'text-success',
-                                    ticket_update: 'text-warning',
-                                    admin_message: 'text-info'
-                                }[n.type] || 'text-warning';
-
-                                // สีพื้นหลังและสีเส้นขอบ
-                                const typeBg = {
-                                    ban: '#fff5f5',
-                                    unban: '#f0fff4',
-                                    ticket_update: '#fffbeb',
-                                    admin_message: '#f0f8ff'
-                                }[n.type] || '#ffffff';
-
-                                const typeBorder = {
-                                    ban: '#fc8181',
-                                    unban: '#68d391',
-                                    ticket_update: '#f6ad55',
-                                    admin_message: '#63b3ed'
-                                }[n.type] || '#e2e8f0';
-
-                                return (
-                                    <div
-                                        key={i}
-                                        className="mb-3 p-3 rounded border"
-                                        style={{
-                                            background: typeBg,
-                                            borderColor: typeBorder,
-                                            borderLeft: `4px solid ${typeBorder}`,
-                                            opacity: n.is_read == '1' ? 0.75 : 1
-                                        }}
-                                    >
-                                        <div className="d-flex justify-content-between align-items-start mb-1">
-                                            <div className="d-flex align-items-center gap-2">
-                                                {/* ใส่คลาสสีเข้าไปตรงนี้ */}
-                                                <span className={`material-icons ${typeIconColor}`} style={{fontSize: '1.2rem'}}>{typeIconIcon}</span>
-                                                <strong className="small">{n.category}</strong>
-                                                {(n.is_read == '0' || newNotifIds.has(n.id)) && (
-                                                    <span className="badge bg-danger" style={{fontSize: '0.6rem'}}>ใหม่</span>
-                                                )}
-                                            </div>
-                                            <small className="text-muted">{n.created_at?.split(' ')[0]} {n.created_at?.split(' ')[1]?.substring(0,5)}</small>
-                                        </div>
-                                        <p className="mb-1 small">{n.message}</p>
-                                        {n.admin_name && <small className="text-muted">โดย: {n.admin_name}</small>}
-                                    </div>
-                                );
-                            })}
+                            {myNotifications.map((n, i) => (
+                                <NotificationItem key={i} n={n} newNotifIds={newNotifIds} />
+                            ))}
                         </div>
                     )}
                 </div>

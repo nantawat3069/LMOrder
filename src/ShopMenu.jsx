@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from './config';
 
 function ShopMenu() {
     const { id } = useParams();
@@ -30,7 +31,7 @@ function ShopMenu() {
 
     const fetchMenu = async () => {
         try {
-            const res = await axios.get(`https://lmorder-production.up.railway.app/customer.php?action=get_shop_menu&shop_id=${id}`);
+            const res = await axios.get(`${API_BASE_URL}/customer.php?action=get_shop_menu&shop_id=${id}`);
             if (res.data.status === 'success') {
                 setShop(res.data.shop);
                 setProducts(res.data.products);
@@ -113,7 +114,7 @@ function ShopMenu() {
         if (!address.trim()) { setError("กรุณากรอกที่อยู่จัดส่ง"); return; }
 
         try {
-            const res = await axios.post('https://lmorder-production.up.railway.app/order.php', {
+            const res = await axios.post(`${API_BASE_URL}/order.php`, {
                 action: 'place_order',
                 customer_id: user.id,
                 shop_id: shop.id,

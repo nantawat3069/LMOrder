@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { getStatusBadge } from './utils/badges';
+import { API_BASE_URL } from './config';
 
 function MyOrders() {
     const navigate = useNavigate();
@@ -17,13 +18,13 @@ function MyOrders() {
     }, []);
 
     const fetchOrders = async (cid) => {
-        const res = await axios.get(`https://lmorder-production.up.railway.app/order.php?action=get_my_orders&customer_id=${cid}`);
+        const res = await axios.get(`${API_BASE_URL}/order.php?action=get_my_orders&customer_id=${cid}`);
         if (res.data.status === 'success') setOrders(res.data.orders);
     };
 
     const handleCancel = async (oid) => {
         if(!confirm("ต้องการยกเลิกออเดอร์นี้ใช่ไหม?")) return;
-        await axios.post('https://lmorder-production.up.railway.app/order.php', { action: 'update_status', order_id: oid, status: 'cancelled' });
+        await axios.post(`${API_BASE_URL}/order.php`, { action: 'update_status', order_id: oid, status: 'cancelled' });
         fetchOrders(user.id);
     };
 

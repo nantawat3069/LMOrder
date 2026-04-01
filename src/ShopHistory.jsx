@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from './config';
 
 function ShopHistory() {
     const navigate = useNavigate();
@@ -15,13 +16,13 @@ function ShopHistory() {
         if(u.shop_id) fetchHistory(u.shop_id);
         else {
 
-             axios.get(`https://lmorder-production.up.railway.app/shop.php?action=get_shop_data&owner_id=${u.id}`)
+             axios.get(`${API_BASE_URL}/shop.php?action=get_shop_data&owner_id=${u.id}`)
                 .then(res => fetchHistory(res.data.shop.id));
         }
     }, []);
 
     const fetchHistory = async (sid) => {
-        const res = await axios.get(`https://lmorder-production.up.railway.app/order.php?action=get_shop_orders&shop_id=${sid}&type=history`);
+        const res = await axios.get(`${API_BASE_URL}/order.php?action=get_shop_orders&shop_id=${sid}&type=history`);
         if (res.data.status === 'success') setOrders(res.data.orders);
     };
 

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 
 export function useNotifications() {
     const [myNotifications, setMyNotifications] = useState([]);
@@ -8,7 +9,7 @@ export function useNotifications() {
 
     const fetchMyNotifications = async (uid) => {
         try {
-            const res = await axios.get(`https://lmorder-production.up.railway.app/admin.php?action=get_my_notifications&user_id=${uid}`);
+            const res = await axios.get(`${API_BASE_URL}/admin.php?action=get_my_notifications&user_id=${uid}`);
             if (res.data.status === 'success') {
                 setMyNotifications(prev => {
                     const prevIds = new Set(prev.map(n => n.id));
@@ -37,7 +38,7 @@ export function useNotifications() {
     const markNotificationsRead = async (userId) => {
         if (!userId || unreadCount === 0) return;
         try {
-            await axios.post('https://lmorder-production.up.railway.app/admin.php', {
+            await axios.post(`${API_BASE_URL}/admin.php`, {
                 action: 'mark_notifications_read',
                 user_id: userId
             });

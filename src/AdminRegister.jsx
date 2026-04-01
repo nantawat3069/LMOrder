@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
+import { API_BASE_URL } from './config';
 
 function AdminRegister() {
     const navigate = useNavigate();
@@ -23,7 +24,7 @@ function AdminRegister() {
         e.preventDefault();
         setLoading(true);
         try {
-            const res = await axios.post('https://lmorder-production.up.railway.app/auth.php', {
+            const res = await axios.post(`${API_BASE_URL}/auth.php`, {
                 action: 'register_admin',
                 ...inputs
             });

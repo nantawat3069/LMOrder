@@ -1,6 +1,16 @@
 <?php
 include 'db.php';
 
+function insertNotification($conn, $user_id, $admin_id, $category, $message, $type = null) {
+    $type_val = $type ? "'$type'" : 'NULL';
+    $conn->query("INSERT INTO notifications (user_id, admin_id, category, type, message) VALUES ('$user_id', '$admin_id', '$category', $type_val, '$message')");
+}
+
+function insertAdminLog($conn, $admin_id, $action, $target_id, $detail) {
+    $target_val = ($target_id !== null && $target_id !== '') ? "'$target_id'" : 'NULL';
+    $conn->query("INSERT INTO admin_logs (admin_id, action, target_user_id, detail) VALUES ('$admin_id', '$action', $target_val, '$detail')");
+}
+
 $json_input = file_get_contents("php://input");
 $data = json_decode($json_input);
 $action = $_GET['action'] ?? ($data->action ?? '');
@@ -143,16 +153,16 @@ elseif ($method == 'POST' && $action == 'toggle_ban') {
         $conn->query("UPDATE users SET is_banned=1, ban_reason='$ban_reason', ban_message='$ban_message', banned_at=NOW() WHERE id='$target_id'");
         // บันทึก notification แบน
         $notif_msg = "บัญชีของคุณถูกระงับ เหตุผล: $ban_reason" . ($ban_message ? " — $ban_message" : "");
-        $conn->query("INSERT INTO notifications (user_id, admin_id, category, type, message) VALUES ('$target_id', '$admin_id', 'การแบน', 'ban', '$notif_msg')");
+        insertNotification($conn, $target_id, $admin_id, 'การแบน', $notif_msg, 'ban');
     } else {
         $conn->query("UPDATE users SET is_banned=0, ban_reason=NULL, ban_message=NULL, banned_at=NULL WHERE id='$target_id'");
         // บันทึก notification ปลดแบน
-        $conn->query("INSERT INTO notifications (user_id, admin_id, category, type, message) VALUES ('$target_id', '$admin_id', 'การปลดแบน', 'unban', 'บัญชีของคุณได้รับการปลดแบนแล้ว สามารถใช้งานได้ตามปกติ')");
+        insertNotification($conn, $target_id, $admin_id, 'การปลดแบน', 'บัญชีของคุณได้รับการปลดแบนแล้ว สามารถใช้งานได้ตามปกติ', 'unban');
     }
 
     $action_type = $ban_status == 1 ? 'ban' : 'unban';
     $detail = $ban_status == 1 ? "แบนผู้ใช้: $ban_reason" : 'ปลดแบนผู้ใช้';
-    $conn->query("INSERT INTO admin_logs (admin_id, action, target_user_id, detail) VALUES ('$admin_id', '$action_type', '$target_id', '$detail')");
+    insertAdminLog($conn, $admin_id, $action_type, $target_id, $detail);
 
     echo json_encode(["status" => "success"]);
 }
@@ -164,10 +174,10 @@ elseif ($method == 'POST' && $action == 'send_notification') {
     $category = $conn->real_escape_string($data->category);
     $message  = $conn->real_escape_string($data->message);
 
-    $conn->query("INSERT INTO notifications (user_id, admin_id, category, message) VALUES ('$user_id', '$admin_id', '$category', '$message')");
+    insertNotification($conn, $user_id, $admin_id, $category, $message);
 
     $detail = "แจ้งเตือนผู้ใช้ ID:$user_id หมวด: $category";
-    $conn->query("INSERT INTO admin_logs (admin_id, action, target_user_id, detail) VALUES ('$admin_id', 'edit_user', '$user_id', '$detail')");
+    insertAdminLog($conn, $admin_id, 'edit_user', $user_id, $detail);
 
     echo json_encode(["status" => "success"]);
 }
@@ -254,7 +264,7 @@ elseif ($method == 'POST' && $action == 'delete_user') {
 
     $conn->query("SET FOREIGN_KEY_CHECKS = 1");
 
-    $conn->query("INSERT INTO admin_logs (admin_id, action, target_user_id, detail) VALUES ('$admin_id', 'delete_user', NULL, '$detail')");
+    insertAdminLog($conn, $admin_id, 'delete_user', null, $detail);
 
     echo json_encode(["status" => "success"]);
 }
@@ -284,7 +294,7 @@ elseif ($method == 'POST' && $action == 'edit_user') {
     }
 
     $detail = "แก้ไขข้อมูลผู้ใช้ ID: $target_id";
-    $conn->query("INSERT INTO admin_logs (admin_id, action, target_user_id, detail) VALUES ('$admin_id', 'edit_user', '$target_id', '$detail')");
+    insertAdminLog($conn, $admin_id, 'edit_user', $target_id, $detail);
 
     echo json_encode(["status" => "success"]);
 }
@@ -339,11 +349,11 @@ elseif ($method == 'POST' && $action == 'update_ticket') {
     $label = $status_labels[$status] ?? $status;
     $notif_msg = "คำร้องของคุณ \"{$t['subject']}\" อัปเดตสถานะเป็น: $label";
     $sender_id = $t['sender_id'];
-    $conn->query("INSERT INTO notifications (user_id, admin_id, category, type, message) VALUES ('$sender_id', '$admin_id', 'อัปเดตคำร้อง', 'ticket_update', '$notif_msg')");
+    insertNotification($conn, $sender_id, $admin_id, 'อัปเดตคำร้อง', $notif_msg, 'ticket_update');
 
     $action_type = ($status === 'resolved') ? 'resolve_ticket' : 'reject_ticket';
     $detail = "อัปเดต Ticket #$ticket_id เป็น $status";
-    $conn->query("INSERT INTO admin_logs (admin_id, action, target_user_id, detail) VALUES ('$admin_id', '$action_type', NULL, '$detail')");
+    insertAdminLog($conn, $admin_id, $action_type, null, $detail);
 
     echo json_encode(["status" => "success"]);
 }
