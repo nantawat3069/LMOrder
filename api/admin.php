@@ -1,9 +1,8 @@
 <?php
 include 'db.php';
 
-function insertNotification($conn, $user_id, $admin_id, $category, $message, $type = null) {
-    $type_val = $type ? "'$type'" : 'NULL';
-    $conn->query("INSERT INTO notifications (user_id, admin_id, category, type, message) VALUES ('$user_id', '$admin_id', '$category', $type_val, '$message')");
+function insertNotification($conn, $user_id, $admin_id, $category, $message, $type = 'admin_message') {
+    $conn->query("INSERT INTO notifications (user_id, admin_id, category, type, message) VALUES ('$user_id', '$admin_id', '$category', '$type', '$message')");
 }
 
 function insertAdminLog($conn, $admin_id, $action, $target_id, $detail) {
