@@ -896,8 +896,8 @@ function Customer() {
                                             </div>
                                         ))}
                                     </div>
-                                    <div className="d-flex flex-column flex-md-row justify-content-md-between align-items-start align-items-md-end mt-auto pt-2 gap-2 gap-md-0">
-                                        <div>
+                                    <div className="d-flex flex-column flex-md-row justify-content-md-between align-items-md-end mt-auto pt-2 gap-2 gap-md-0">
+                                        <div className="flex-shrink-0">
                                             <small className="d-block text-muted">ราคารวม</small>
                                             <h5 className="mb-0">{parseInt(o.total_price).toLocaleString()} บ.</h5>
                                             {/* แสดงวิธีชำระ */}
@@ -907,14 +907,14 @@ function Customer() {
                                                 </small>
                                             )}
                                         </div>
-                                        <div className="d-flex gap-2 w-100 w-md-auto flex-wrap flex-md-nowrap">
+                                        <div className="d-flex gap-2 flex-wrap flex-md-nowrap">
                                             {/* ปุ่มดูสลิป (เฉพาะที่มีสลิป) */}
                                             {o.slip_image && (
                                                 <button
                                                     className="btn btn-sm btn-outline-primary"
                                                     onClick={() => setViewingSlip(`${o.slip_image}`)}
                                                 >
-                                                    สลิป
+                                                    ดูสลิป
                                                 </button>
                                             )}
                                             {/* ปุ่มสั่งอีกครั้ง */}
@@ -930,7 +930,7 @@ function Customer() {
                                                     }
                                                 }}
                                             >
-                                                <span className="material-icons" style={{fontSize: '16px'}}>refresh</span> <span className="d-none d-md-inline">สั่งอีกครั้ง</span>
+                                                <span className="material-icons" style={{fontSize: '16px'}}>refresh</span> สั่งอีกครั้ง
                                             </button>
                                             {/* ปุ่มรายงาน */}
                                             <button
@@ -940,7 +940,7 @@ function Customer() {
                                                     if (shop) { setSelectedShop(shop); setShowReportModal(true); }
                                                 }}
                                             >
-                                                <span className="material-icons" style={{fontSize: '16px'}}>report</span> <span className="d-none d-md-inline">รายงาน</span>
+                                                <span className="material-icons" style={{fontSize: '16px'}}>report</span> รายงาน
                                             </button>
                                         </div>
                                     </div>
