@@ -1311,25 +1311,25 @@ function Merchant() {
                 <div className="d-flex justify-content-around py-2">
                     <button className={`btn border-0 position-relative ${activeTab === 'orders' ? 'text-primary' : 'text-muted'}`} onClick={() => handleTabChange('orders')}>
                         <div style={{fontSize: '1.5rem'}}>📜</div>
-                        <small style={{fontSize: '0.7rem'}}>ออเดอร์</small>
+                        <small style={{fontSize: '0.5rem'}}>ออเดอร์</small>
                         {orders.length > 0 && <span className="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-danger" style={{fontSize: '0.6rem'}}>{orders.length}</span>}
                     </button>
                     <button className={`btn border-0 ${activeTab === 'menu' ? 'text-primary' : 'text-muted'}`} onClick={() => handleTabChange('menu')}>
                         <div style={{fontSize: '1.5rem'}}>🍽️</div>
-                        <small style={{fontSize: '0.7rem'}}>เมนู</small>
+                        <small style={{fontSize: '0.5rem'}}>เมนู</small>
                     </button>
                     <button className={`btn border-0 ${activeTab === 'history' ? 'text-primary' : 'text-muted'}`} onClick={() => handleTabChange('history')}>
                         <div style={{fontSize: '1.5rem'}}>📋</div>
-                        <small style={{fontSize: '0.7rem'}}>ประวัติ</small>
+                        <small style={{fontSize: '0.5rem'}}>ประวัติ</small>
                     </button>
                     <button className={`btn border-0 position-relative ${activeTab === 'notifications' ? 'text-primary' : 'text-muted'}`} onClick={() => { handleTabChange('notifications'); markNotificationsRead(); }}>
                         <div style={{fontSize: '1.5rem'}}>🔔</div>
-                        <small style={{fontSize: '0.7rem'}}>แจ้งเตือน</small>
+                        <small style={{fontSize: '0.5rem'}}>แจ้งเตือน</small>
                         {unreadCount > 0 && <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning text-dark" style={{fontSize: '0.6rem'}}>{unreadCount}</span>}
                     </button>
                     <button className={`btn border-0 ${activeTab === 'settings' ? 'text-primary' : 'text-muted'}`} onClick={() => handleTabChange('settings')}>
                         <div style={{fontSize: '1.5rem'}}>⚙️</div>
-                        <small style={{fontSize: '0.7rem'}}>ตั้งค่า</small>
+                        <small style={{fontSize: '0.5rem'}}>ตั้งค่า</small>
                     </button>
                 </div>
             </div>
