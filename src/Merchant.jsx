@@ -58,7 +58,6 @@ function Merchant() {
     const [modal, setModal] = useState({ show: false, type: 'alert', title: '', message: '', onConfirm: null });
 
     const [copiedOrderId, setCopiedOrderId] = useState(null);
-    const [showMobileMenu, setShowMobileMenu] = useState(false);
 
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
@@ -524,7 +523,7 @@ function Merchant() {
                 </div>
             </div>
 
-            {/* Mobile Header with Dropdown Menu */}
+            {/* Mobile Header */}
             <div className="d-block d-md-none mb-3 pt-2">
                 <div className="card shadow-sm p-2 sticky-top" style={{top: '10px', zIndex: 1000}}>
                     <div className="d-flex justify-content-between align-items-center">
@@ -536,61 +535,7 @@ function Merchant() {
                             )}
                             <h5 className="mb-0 text-primary fw-bold">{shop.shop_name}</h5>
                         </div>
-                        <button 
-                            className="btn border-0" 
-                            onClick={() => setShowMobileMenu(!showMobileMenu)}
-                            style={{fontSize: '1.5rem'}}
-                        >
-                            ☰
-                        </button>
                     </div>
-                    {/* Mobile Dropdown Menu */}
-                    {showMobileMenu && (
-                        <div className="mt-2 pt-2 border-top">
-                            <button 
-                                className={`btn w-100 text-start mb-2 position-relative ${activeTab === 'orders' ? 'btn-primary' : 'btn-outline-primary'}`} 
-                                onClick={() => { handleTabChange('orders'); setShowMobileMenu(false); }}
-                            >
-                                🔔 ออเดอร์
-                                {orders.length > 0 && <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">{orders.length}</span>}
-                            </button>
-                            <button 
-                                className={`btn w-100 text-start mb-2 ${activeTab === 'menu' ? 'btn-primary' : 'btn-outline-primary'}`} 
-                                onClick={() => { handleTabChange('menu'); setShowMobileMenu(false); }}
-                            >
-                                🍽️ จัดการเมนู
-                            </button>
-                            <button 
-                                className={`btn w-100 text-start mb-2 ${activeTab === 'history' ? 'btn-primary' : 'btn-outline-primary'}`} 
-                                onClick={() => { handleTabChange('history'); setShowMobileMenu(false); }}
-                            >
-                                📜 ประวัติ
-                            </button>
-                            <button
-                                className={`btn w-100 text-start mb-2 position-relative ${activeTab === 'notifications' ? 'btn-primary' : 'btn-outline-primary'}`}
-                                onClick={() => { handleTabChange('notifications'); markNotificationsRead(); setShowMobileMenu(false); }}
-                            >
-                                🔔 แจ้งเตือน
-                                {unreadCount > 0 && (
-                                <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning text-dark">
-                                    {unreadCount}
-                                </span>
-                            )}
-                            </button>
-                            <button 
-                                className={`btn w-100 text-start mb-2 ${activeTab === 'settings' ? 'btn-primary' : 'btn-outline-primary'}`} 
-                                onClick={() => { handleTabChange('settings'); setShowMobileMenu(false); }}
-                            >
-                                ⚙️ ตั้งค่าร้าน
-                            </button>
-                            <button 
-                                className="btn w-100 text-start btn-outline-danger" 
-                                onClick={() => { confirmAction('ออกจากระบบ', 'ยืนยัน?', () => { localStorage.removeItem('user'); navigate('/'); }); setShowMobileMenu(false); }}
-                            >
-                                ออก
-                            </button>
-                        </div>
-                    )}
                 </div>
             </div>
 
@@ -628,8 +573,13 @@ function Merchant() {
                                         {/* โทร + เบอร์ */}
                                         <div className="d-flex gap-2 mb-2">
                                             <button
-                                                className="btn btn-sm btn-outline-success py-0 px-2"
-                                                style={{fontSize: '0.9rem'}}
+                                                className="btn btn-sm btn-outline-success py-1 px-3"
+                                                style={{
+                                                    fontSize: '0.9rem',
+                                                    fontWeight: '500',
+                                                    border: '2px solid #198754',
+                                                    cursor: 'pointer'
+                                                }}
                                                 onClick={() => {
                                                     const phoneNumber = o.customer_phone
                                                         .replace(/^0/, '') // Remove leading 0
@@ -638,18 +588,24 @@ function Merchant() {
                                                     window.location.href = `tel:${formattedPhone}`;
                                                 }}
                                             >
-                                                โทร
+                                                📞 โทร
                                             </button>
                                             <button
-                                                className="btn btn-sm btn-outline-secondary py-0 px-2"
-                                                style={{fontSize: '0.9rem'}}
+                                                className="btn btn-sm btn-outline-primary py-1 px-3 flex-grow-1"
+                                                style={{
+                                                    fontSize: '0.9rem',
+                                                    fontWeight: '500',
+                                                    border: '2px solid #0d6efd',
+                                                    cursor: 'pointer',
+                                                    textAlign: 'center'
+                                                }}
                                                 onClick={() => {
                                                     navigator.clipboard.writeText(o.customer_phone);
                                                     setCopiedOrderId(o.id);
                                                     setTimeout(() => setCopiedOrderId(null), 2000);
                                                 }}
                                             >
-                                                {copiedOrderId === o.id ? 'คัดลอกแล้ว' : ` : ${o.customer_phone}`}
+                                                {copiedOrderId === o.id ? '✓ คัดลอกแล้ว' : `📋 ${o.customer_phone}`}
                                             </button>
                                         </div>
 
@@ -1261,6 +1217,37 @@ function Merchant() {
                     </div>
                 </div>
             )}
+
+            {/* Bottom Navigation Bar - Mobile Only */}
+            <div className="d-block d-md-none fixed-bottom bg-white border-top shadow-lg" style={{zIndex: 1050}}>
+                <div className="d-flex justify-content-around py-2">
+                    <button className={`btn border-0 position-relative ${activeTab === 'orders' ? 'text-primary' : 'text-muted'}`} onClick={() => handleTabChange('orders')}>
+                        <div style={{fontSize: '1.5rem'}}>📜</div>
+                        <small style={{fontSize: '0.7rem'}}>ออเดอร์</small>
+                        {orders.length > 0 && <span className="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-danger" style={{fontSize: '0.6rem'}}>{orders.length}</span>}
+                    </button>
+                    <button className={`btn border-0 ${activeTab === 'menu' ? 'text-primary' : 'text-muted'}`} onClick={() => handleTabChange('menu')}>
+                        <div style={{fontSize: '1.5rem'}}>🍽️</div>
+                        <small style={{fontSize: '0.7rem'}}>เมนู</small>
+                    </button>
+                    <button className={`btn border-0 ${activeTab === 'history' ? 'text-primary' : 'text-muted'}`} onClick={() => handleTabChange('history')}>
+                        <div style={{fontSize: '1.5rem'}}>📋</div>
+                        <small style={{fontSize: '0.7rem'}}>ประวัติ</small>
+                    </button>
+                    <button className={`btn border-0 position-relative ${activeTab === 'notifications' ? 'text-primary' : 'text-muted'}`} onClick={() => { handleTabChange('notifications'); markNotificationsRead(); }}>
+                        <div style={{fontSize: '1.5rem'}}>🔔</div>
+                        <small style={{fontSize: '0.7rem'}}>แจ้งเตือน</small>
+                        {unreadCount > 0 && <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning text-dark" style={{fontSize: '0.6rem'}}>{unreadCount}</span>}
+                    </button>
+                    <button className={`btn border-0 ${activeTab === 'settings' ? 'text-primary' : 'text-muted'}`} onClick={() => handleTabChange('settings')}>
+                        <div style={{fontSize: '1.5rem'}}>⚙️</div>
+                        <small style={{fontSize: '0.7rem'}}>ตั้งค่า</small>
+                    </button>
+                </div>
+            </div>
+
+            {/* Spacer for mobile bottom navigation */}
+            <div className="d-block d-md-none" style={{ height: '80px' }}></div>
         </div>
     );
 }
