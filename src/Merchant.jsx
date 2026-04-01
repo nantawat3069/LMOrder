@@ -58,6 +58,7 @@ function Merchant() {
     const [modal, setModal] = useState({ show: false, type: 'alert', title: '', message: '', onConfirm: null });
 
     const [copiedOrderId, setCopiedOrderId] = useState(null);
+    const [showMobileMenuForm, setShowMobileMenuForm] = useState(false);
 
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
@@ -667,6 +668,7 @@ function Merchant() {
             {/* TAB: Menu */}
             {activeTab === 'menu' && (
                 <div className="row">
+                    {/* Desktop View - Show 8 col with form */}
                     <div className="col-md-8">
                         <h4>รายการเมนู</h4>
                         <div className="row">
@@ -698,7 +700,8 @@ function Merchant() {
                             ))}
                         </div>
                     </div>
-                    <div className="col-md-4">
+                    {/* Desktop Sidebar - Hidden on mobile */}
+                    <div className="col-md-4 d-none d-md-block">
                         <div className="card p-4 shadow-sm sticky-top" style={{top: '80px'}}>
                             <div className="d-flex justify-content-between align-items-center mb-3">
                                 <h5 className="mb-0">{editingProduct ? `✏️ แก้ไข: ${editingProduct.name}` : '➕ เพิ่มเมนู'}</h5>
@@ -736,6 +739,72 @@ function Merchant() {
                                 </div>
                             </form>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Mobile Menu Add Button - Fixed on bottom left */}
+            {activeTab === 'menu' && (
+                <button
+                    className="d-block d-md-none btn btn-primary rounded-circle position-fixed"
+                    style={{
+                        width: '56px',
+                        height: '56px',
+                        bottom: '100px',
+                        left: '20px',
+                        zIndex: 1040,
+                        fontSize: '24px',
+                        padding: 0,
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                    }}
+                    onClick={() => { resetForm(); setShowMobileMenuForm(true); }}
+                >
+                    +
+                </button>
+            )}
+
+            {/* Mobile Menu Form Popup */}
+            {showMobileMenuForm && (
+                <div className="modal-overlay">
+                    <div className="modal-box" style={{maxWidth: '500px', maxHeight: '90vh', overflowY: 'auto'}}>
+                        <div className="d-flex justify-content-between align-items-center mb-3">
+                            <h5 className="mb-0">{editingProduct ? `✏️ แก้ไข: ${editingProduct.name}` : '➕ เพิ่มเมนู'}</h5>
+                            <button className="btn-close" onClick={() => { setShowMobileMenuForm(false); resetForm(); }}></button>
+                        </div>
+                        {editingProduct && (
+                            <button onClick={() => { handleDelete(editingProduct.id); setShowMobileMenuForm(false); }} className="btn btn-sm btn-outline-danger w-100 mb-3">ลบเมนู</button>
+                        )}
+                        <form onSubmit={(e) => { handleSaveProduct(e); setShowMobileMenuForm(false); }}>
+                            <div className="mb-2"><label>ชื่อ</label><input className="form-control" value={newMenu.name} onChange={e => setNewMenu({...newMenu, name: e.target.value})} required /></div>
+                            <div className="mb-2"><label>ราคา</label><input type="number" className="form-control" value={newMenu.price} onChange={e => setNewMenu({...newMenu, price: e.target.value})} required /></div>
+                            <div className="mb-3">
+                                <label>รูป {editingProduct && <small className="text-muted">(ไม่ต้องเลือกถ้าไม่เปลี่ยน)</small>}</label>
+                                <input id="fileInput" type="file" className="form-control" accept="image/*" onChange={e => setNewMenu({...newMenu, image: e.target.files[0]})} required={!editingProduct} />
+                            </div>
+                            <hr /><h6>ตัวเลือกเสริม</h6>
+                            {optionGroups.map((group, gIdx) => (
+                                <div key={gIdx} className="border p-2 mb-2 rounded bg-light">
+                                    <div className="d-flex gap-2 mb-2">
+                                        <input className="form-control form-control-sm" placeholder="ชื่อกลุ่ม" value={group.name} onChange={e => updateOptionGroup(gIdx, 'name', e.target.value)} required />
+                                        <select className="form-select form-select-sm" value={group.type} onChange={e => updateOptionGroup(gIdx, 'type', e.target.value)} style={{width: '160px'}}><option value="radio">เลือก 1</option><option value="checkbox">หลาย</option></select>
+                                        <button type="button" className="btn btn-sm btn-danger" onClick={() => removeOptionGroup(gIdx)}>X</button>
+                                    </div>
+                                    {group.choices.map((choice, cIdx) => (
+                                        <div key={cIdx} className="d-flex gap-2 mb-1 ps-3">
+                                            <input className="form-control form-control-sm" placeholder="ชื่อ" value={choice.name} onChange={e => updateChoice(gIdx, cIdx, 'name', e.target.value)} required />
+                                            <input type="number" className="form-control form-control-sm" placeholder="+ราคา" value={choice.price} onChange={e => updateChoice(gIdx, cIdx, 'price', e.target.value)} style={{width: '80px'}} />
+                                            <button type="button" className="btn btn-sm btn-outline-danger" onClick={() => removeChoice(gIdx, cIdx)}>-</button>
+                                        </div>
+                                    ))}
+                                    <button type="button" className="btn btn-sm btn-link pt-0" onClick={() => addChoice(gIdx)}>+ ตัวเลือก</button>
+                                </div>
+                            ))}
+                            <button type="button" className="btn btn-sm btn-outline-primary w-100 mb-3" onClick={addOptionGroup}>+ เพิ่มกลุ่มตัวเลือก</button>
+                            <div className="d-flex gap-2">
+                                <button type="button" className="btn btn-secondary flex-fill" onClick={() => { setShowMobileMenuForm(false); resetForm(); }}>ยกเลิก</button>
+                                <button type="submit" className="btn btn-primary flex-fill">{editingProduct ? 'บันทึกแก้ไข' : 'เพิ่มเมนู'}</button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}
