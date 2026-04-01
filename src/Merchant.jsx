@@ -743,15 +743,15 @@ function Merchant() {
                 </div>
             )}
 
-            {/* Mobile Menu Add Button - Fixed on bottom left */}
+            {/* Mobile Menu Add Button - Fixed on bottom right */}
             {activeTab === 'menu' && (
                 <button
-                    className="d-block d-md-none btn btn-primary rounded-circle position-fixed"
+                    className="d-block d-md-none btn btn-primary rounded-circle position-fixed my-3"
                     style={{
                         width: '56px',
                         height: '56px',
                         bottom: '100px',
-                        left: '20px',
+                        right: '20px',
                         zIndex: 1040,
                         fontSize: '24px',
                         padding: 0,
