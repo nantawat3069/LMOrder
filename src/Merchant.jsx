@@ -306,7 +306,13 @@ function Merchant() {
         setEditingProduct(product);
         setNewMenu({ name: product.name, price: product.price, image: null });
         setOptionGroups(product.options || []);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        
+        // Check if mobile by checking if window width is less than md breakpoint
+        if (window.innerWidth < 768) {
+            setShowMobileMenuForm(true);
+        } else {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
     };
 
     const handleSaveProduct = async (e) => {
