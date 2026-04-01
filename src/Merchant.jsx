@@ -542,11 +542,11 @@ function Merchant() {
             {/* TAB: Orders */}
             {activeTab === 'orders' && (
                 <div>
-                    <div className="d-flex justify-content-between align-items-center mb-3">
-                        <h4>รายการคำสั่งซื้อ</h4>
-                        <div className="d-flex align-items-center">
-                            <span className="me-3 fw-bold">สถานะ: {shop.is_open == 1 ? <span className="text-success">🟢 เปิดร้านอยู่</span> : <span className="text-secondary">🔴 ปิดร้านอยู่</span>}</span>
-                            <button onClick={toggleShop} className={`btn ${shop.is_open == 1 ? 'btn-warning' : 'btn-success'}`} style={{ minWidth: '120px' }}>{shop.is_open == 1 ? 'กดปิดร้าน' : 'กดเปิดร้าน'}</button>
+                    <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3 gap-2">
+                        <h4 className="mb-0">รายการคำสั่งซื้อ</h4>
+                        <div className="d-flex align-items-center gap-2 w-100 w-md-auto">
+                            <span className="fw-bold" style={{fontSize: '0.9rem'}}>สถานะ: {shop.is_open == 1 ? <span className="text-success">🟢 เปิดร้านอยู่</span> : <span className="text-secondary">🔴 ปิดร้านอยู่</span>}</span>
+                            <button onClick={toggleShop} className={`btn btn-sm ${shop.is_open == 1 ? 'btn-warning' : 'btn-success'}`} style={{ minWidth: '100px', fontSize: '0.85rem' }}>{shop.is_open == 1 ? 'ปิดร้าน' : 'เปิดร้าน'}</button>
                         </div>
                     </div>
                     {orders.length === 0 ?  <div className="alert alert-info text-center py-5">
@@ -1038,7 +1038,15 @@ function Merchant() {
 
                     <hr className="my-5"/>
 
-                    <div className="bg-soft-danger p-3 rounded border border-danger">
+                    <div className="d-grid gap-2">
+                        <button className="btn btn-outline-danger py-2 d-inline-flex align-items-center justify-content-center gap-1" onClick={() => confirmAction('ออกจากระบบ', 'ยืนยันการออกจากระบบ?', () => { localStorage.removeItem('user'); navigate('/'); })}>
+                            <span className="material-icons" style={{fontSize: '20px'}}>logout</span> ออกจากระบบ
+                        </button>
+                    </div>
+
+                    <hr className="my-5"/>
+
+                    <div className="bg-soft-danger p-3 rounded border border-danger mb-3">
                         <h5 className="text-danger d-flex align-items-center gap-2">
                             <span className="material-icons text-warning">warning</span> ลบบัญชีร้านค้าถาวร
                         </h5>
@@ -1049,6 +1057,8 @@ function Merchant() {
                         </div>
                         <button className="btn btn-danger w-100" disabled={deleteConfirmUsername !== shopSettings.username} onClick={handleDeleteAccount}>ยืนยันลบบัญชีถาวร</button>
                     </div>
+
+                    
                 </div>
             )}
 
