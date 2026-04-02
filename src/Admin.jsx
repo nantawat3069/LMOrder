@@ -481,19 +481,20 @@ function Admin() {
     const handleBroadcast = async () => {
         if (!broadcastForm.category) { showAlert('ประกาศ', 'กรุณาเลือกหมวดหมู่'); return; }
         if (!broadcastForm.message.trim()) { showAlert('ประกาศ', 'กรุณาพิมพ์ข้อความ'); return; }
-        const res = await axios.post(`${API_BASE_URL}/admin.php`, {
-            action: 'broadcast_notification',
-            admin_id: admin.id,
-            target: broadcastForm.target,
-            category: broadcastForm.category,
-            message: broadcastForm.message
-        });
-        setShowBroadcastModal(false);
-        setBroadcastForm({ target: 'all', category: '', message: '' });
-        if (res.data.status === 'success') {
-            showAlert('สำเร็จ', `ส่งประกาศถึง ${res.data.sent_to} คนเรียบร้อยแล้ว`);
-        } else {
-            showAlert('ผิดพลาด', 'ไม่สามารถส่งประกาศได้');
+        try {
+            const res = await axios.post(`${API_BASE_URL}/admin.php`, {
+                action: 'broadcast_notification',
+                admin_id: admin.id,
+                target: broadcastForm.target,
+                category: broadcastForm.category,
+                message: broadcastForm.message
+            });
+            setShowBroadcastModal(false);
+            setBroadcastForm({ target: 'all', category: '', message: '' });
+            const count = res.data?.sent_to;
+            showAlert('สำเร็จ', `ส่งประกาศถึง ${count ?? '?'} คนเรียบร้อยแล้ว`);
+        } catch (err) {
+            showAlert('ผิดพลาด', 'เกิดข้อผิดพลาดในการเชื่อมต่อ');
         }
     };
 
@@ -615,7 +616,7 @@ function Admin() {
                             </button>
                         ))}
                         <button
-                            className="btn btn-outline-warning d-inline-flex align-items-center gap-1"
+                            className="btn btn-outline-danger d-inline-flex align-items-center gap-1"
                             onClick={() => setShowBroadcastModal(true)}
                         >
                             <span className="material-icons" style={{ fontSize: '18px' }}>campaign</span> ประกาศ
@@ -1080,8 +1081,6 @@ function Admin() {
                                                 selectedUser={selectedUser}
                                                 setShowNotifModal={setShowNotifModal}
                                                 setNotifForm={setNotifForm}
-                                                showBackButton={true}
-                                                onBack={() => setTicketViewingUser(null)}
                                             />
 
                                         {/* Addresses */}
