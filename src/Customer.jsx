@@ -132,16 +132,40 @@ function Customer() {
         }
     }, [shops, selectedShop]); // ทำงานทุกครั้งที่รายชื่อร้านอัปเดต (ทุก 3 วิ)
 
-    // Real-time Check 2 ถ้ากำลังเลือกเมนูอยู่ แล้วของหมด -> ปิด Popup เมนูทันที
+    // Real-time Check 2: ถ้ากำลังเลือกเมนูอยู่ แล้วของหมด -> ปิด Popup เมนูทันที
+    // และตรวจสอบเมนูในตะกร้าด้วย ถ้ามีเมนูที่ถูกปิดอยู่ในตะกร้า ให้ลบออกและแจ้งเตือน
     useEffect(() => {
-        if (selectedProduct && products.length > 0) {
+        if (products.length === 0) return;
+
+        // เช็ค selectedProduct (กำลังเลือกอยู่)
+        if (selectedProduct) {
             const currentProduct = products.find(p => p.id === selectedProduct.id);
-            // ถ้าสินค้าหาไม่เจอ หรือ สถานะเปลี่ยนเป็นหมด (0)
             if (currentProduct && currentProduct.is_available == 0) {
-                setSelectedProduct(null); // ปิด Modal เลือกเมนู
+                setSelectedProduct(null);
                 showAlert('สินค้าหมด', '⚠️ ขออภัย สินค้ารายการนี้เพิ่งหมดหรือปิดรับชั่วคราวครับ');
             }
         }
+
+        // เช็คเมนูในตะกร้า
+        if (cart.length > 0) {
+            const unavailableInCart = cart.filter(cartItem => {
+                const product = products.find(p => p.id === cartItem.id);
+                return product && product.is_available == 0;
+            });
+
+            if (unavailableInCart.length > 0) {
+                // ลบเมนูที่ถูกปิดออกจากตะกร้า
+                setCart(prev => prev.filter(cartItem => {
+                    const product = products.find(p => p.id === cartItem.id);
+                    return !(product && product.is_available == 0);
+                }));
+
+                // แจ้งเตือน (รวมชื่อเมนูที่ถูกลบ)
+                const removedNames = unavailableInCart.map(item => item.name).join(', ');
+                showAlert('สินค้าหมด', `⚠️ ขออภัย "${removedNames}" เพิ่งหมดหรือปิดรับชั่วคราว และถูกลบออกจากตะกร้าแล้วครับ`);
+            }
+        }
+
     }, [products, selectedProduct]); // ทำงานทุกครั้งที่รายการสินค้าอัปเดต (ทุก 3 วิ)
 
     // useEffect check_ban

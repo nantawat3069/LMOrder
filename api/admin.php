@@ -448,4 +448,30 @@ elseif ($method == 'GET' && $action == 'get_my_appeal') {
     echo json_encode(["status" => "success", "ticket" => $ticket ?: null]);
 }
 
+// ประกาศถึงผู้ใช้เป็นกลุ่ม
+elseif ($method == 'POST' && $action == 'broadcast_notification') {
+    $admin_id = $data->admin_id;
+    $target   = $conn->real_escape_string($data->target ?? 'all');
+    $category = $conn->real_escape_string($data->category ?? '');
+    $message  = $conn->real_escape_string($data->message ?? '');
+
+    if ($target === 'all') {
+        $where = "role IN ('customer','merchant') AND is_banned = 0";
+    } else {
+        $where = "role = '$target' AND is_banned = 0";
+    }
+
+    $result = $conn->query("SELECT id FROM users WHERE $where");
+    $count = 0;
+    while ($row = $result->fetch_assoc()) {
+        insertNotification($conn, $row['id'], $admin_id, $category, $message);
+        $count++;
+    }
+
+    $target_label = $target === 'all' ? 'ทุกคน' : $target;
+    insertAdminLog($conn, $admin_id, 'broadcast', null, "ประกาศถึง: $target_label ($count คน) — $category");
+
+    echo json_encode(["status" => "success", "sent_to" => $count]);
+}
+
 ?>

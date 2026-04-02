@@ -301,6 +301,10 @@ function Admin() {
     const [banForm, setBanForm] = useState({ category: '', message: '' });
     const [banTargetUser, setBanTargetUser] = useState(null);
 
+    // Broadcast Modal
+    const [showBroadcastModal, setShowBroadcastModal] = useState(false);
+    const [broadcastForm, setBroadcastForm] = useState({ target: 'all', category: '', message: '' });
+
     const [pendingTicketsCount, setPendingTicketsCount] = useState(0);
 
     useEffect(() => {
@@ -474,6 +478,25 @@ function Admin() {
         fetchUserNotifs(selectedUser.id);
     };
 
+    const handleBroadcast = async () => {
+        if (!broadcastForm.category) { showAlert('ประกาศ', 'กรุณาเลือกหมวดหมู่'); return; }
+        if (!broadcastForm.message.trim()) { showAlert('ประกาศ', 'กรุณาพิมพ์ข้อความ'); return; }
+        const res = await axios.post(`${API_BASE_URL}/admin.php`, {
+            action: 'broadcast_notification',
+            admin_id: admin.id,
+            target: broadcastForm.target,
+            category: broadcastForm.category,
+            message: broadcastForm.message
+        });
+        setShowBroadcastModal(false);
+        setBroadcastForm({ target: 'all', category: '', message: '' });
+        if (res.data.status === 'success') {
+            showAlert('สำเร็จ', `ส่งประกาศถึง ${res.data.sent_to} คนเรียบร้อยแล้ว`);
+        } else {
+            showAlert('ผิดพลาด', 'ไม่สามารถส่งประกาศได้');
+        }
+    };
+
     const handleDeleteUser = (targetUser) => {
         confirmAction(
             'ลบบัญชีถาวร',
@@ -591,6 +614,12 @@ function Admin() {
                                 )}
                             </button>
                         ))}
+                        <button
+                            className="btn btn-outline-warning d-inline-flex align-items-center gap-1"
+                            onClick={() => setShowBroadcastModal(true)}
+                        >
+                            <span className="material-icons" style={{ fontSize: '18px' }}>campaign</span> ประกาศ
+                        </button>
                         <button
                             className="btn btn-outline-secondary d-inline-flex align-items-center gap-1"
                             onClick={() => confirmAction('ออกจากระบบ', 'ยืนยันออกจากระบบ?', () => { localStorage.removeItem('user'); navigate('/'); })}
@@ -1335,6 +1364,84 @@ function Admin() {
                         <div className="d-flex gap-2">
                             <button className="btn btn-secondary flex-fill" onClick={() => setShowBanModal(false)}>ยกเลิก</button>
                             <button className="btn btn-danger flex-fill" onClick={handleConfirmBan}>ยืนยันแบน</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Broadcast Modal */}
+            {showBroadcastModal && (
+                <div className="modal-overlay">
+                    <div className="modal-box" style={{ maxWidth: '520px' }}>
+                        <div className="d-flex justify-content-between align-items-center mb-3">
+                            <h4 className="mb-0 text-warning d-flex align-items-center gap-2">
+                                <span className="material-icons">campaign</span> ประกาศถึงผู้ใช้
+                            </h4>
+                            <button className="btn-close" onClick={() => setShowBroadcastModal(false)} />
+                        </div>
+
+                        {/* เลือกกลุ่มเป้าหมาย */}
+                        <div className="mb-3">
+                            <label className="form-label fw-bold">กลุ่มเป้าหมาย</label>
+                            <div className="d-flex gap-2">
+                                {[
+                                    { value: 'all', icon: 'groups', label: 'ทุกคน' },
+                                    { value: 'customer', icon: 'shopping_cart', label: 'ลูกค้า' },
+                                    { value: 'merchant', icon: 'storefront', label: 'ร้านค้า' },
+                                ].map(t => (
+                                    <button
+                                        key={t.value}
+                                        className={`btn flex-fill d-inline-flex align-items-center justify-content-center gap-1 ${broadcastForm.target === t.value ? 'btn-warning' : 'btn-outline-secondary'}`}
+                                        onClick={() => setBroadcastForm({ ...broadcastForm, target: t.value })}
+                                    >
+                                        <span className="material-icons" style={{ fontSize: '18px' }}>{t.icon}</span>
+                                        {t.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* เลือกหมวดหมู่ */}
+                        <div className="mb-3">
+                            <label className="form-label fw-bold">หมวดหมู่ <span className="text-danger">*</span></label>
+                            <div className="d-flex flex-wrap gap-2">
+                                {['ประกาศทั่วไป', 'แจ้งปิดปรับปรุง', 'โปรโมชัน', 'คำเตือน', 'ข่าวสาร'].map(cat => (
+                                    <button
+                                        key={cat}
+                                        className={`btn btn-sm ${broadcastForm.category === cat ? 'btn-warning' : 'btn-outline-secondary'}`}
+                                        onClick={() => setBroadcastForm({ ...broadcastForm, category: cat })}
+                                    >
+                                        {cat}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* ข้อความ */}
+                        <div className="mb-3">
+                            <label className="form-label fw-bold">ข้อความประกาศ <span className="text-danger">*</span></label>
+                            <textarea
+                                className="form-control"
+                                rows="3"
+                                placeholder="พิมพ์ข้อความประกาศ..."
+                                value={broadcastForm.message}
+                                onChange={e => setBroadcastForm({ ...broadcastForm, message: e.target.value })}
+                            />
+                        </div>
+
+                        {/* Preview */}
+                        <div className="alert alert-warning py-2 mb-4 small">
+                            <span className="material-icons align-middle me-1" style={{ fontSize: '16px' }}>info</span>
+                            จะส่งถึง: <strong>
+                                {broadcastForm.target === 'all' ? 'ผู้ใช้ทุกคน' : broadcastForm.target === 'customer' ? 'ลูกค้าทั้งหมด' : 'ร้านค้าทั้งหมด'}
+                            </strong>
+                        </div>
+
+                        <div className="d-flex gap-2">
+                            <button className="btn btn-secondary flex-fill" onClick={() => setShowBroadcastModal(false)}>ยกเลิก</button>
+                            <button className="btn btn-warning flex-fill d-inline-flex align-items-center justify-content-center gap-1" onClick={handleBroadcast}>
+                                <span className="material-icons" style={{ fontSize: '18px' }}>send</span> ส่งประกาศ
+                            </button>
                         </div>
                     </div>
                 </div>
