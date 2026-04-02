@@ -65,6 +65,7 @@ function Customer() {
     // Report & Ban States
     const [showReportModal, setShowReportModal] = useState(false);
     const [reportForm, setReportForm] = useState({ category: '', message: '' });
+    const [reportingShop, setReportingShop] = useState(null);
     const [isBanned, setIsBanned] = useState(false);
     const [banInfo, setBanInfo] = useState({ reason: null, message: null });
     const [banAppealMessage, setBanAppealMessage] = useState('');
@@ -494,9 +495,9 @@ function Customer() {
             await axios.post(`${API_BASE_URL}/admin.php`, {
                 action: 'submit_ticket',
                 sender_id: user.id,
-                target_id: selectedShop?.id_owner ?? null,
+                target_id: reportingShop?.id_owner ?? null,
                 type: 'report',
-                subject: `รายงานร้าน: ${selectedShop?.shop_name} — ${reportForm.category}`,
+                subject: `รายงานร้าน: ${reportingShop?.shop_name} — ${reportForm.category}`,
                 message: reportForm.message || '(ไม่มีข้อความเพิ่มเติม)'
             });
             setShowReportModal(false);
@@ -507,7 +508,7 @@ function Customer() {
                 admin_id: user.id,
                 user_id: user.id,
                 category: 'รายงานร้านค้า',
-                message: `ส่งรายงานร้าน "${selectedShop?.shop_name}" หมวด: ${reportForm.category} — รอแอดมินรับคำร้อง`
+                message: `ส่งรายงานร้าน "${reportingShop?.shop_name}" หมวด: ${reportForm.category} — รอแอดมินรับคำร้อง`
             });
             fetchMyNotifications(user.id);
 
@@ -722,7 +723,7 @@ function Customer() {
                                 </div>
                                 <button
                                     className="btn btn-sm btn-outline-danger d-inline-flex align-items-center gap-1"
-                                    onClick={() => setShowReportModal(true)}
+                                    onClick={() => { setReportingShop(selectedShop); setShowReportModal(true); }}
                                 >
                                     <span className="material-icons" style={{fontSize: '16px'}}>report</span> รายงานร้านนี้
                                 </button>
@@ -908,7 +909,7 @@ function Customer() {
                                                 className="btn btn-sm btn-outline-danger d-inline-flex align-items-center gap-1"
                                                 onClick={() => {
                                                     const shop = shops.find(s => s.shop_name === o.shop_name);
-                                                    if (shop) { setSelectedShop(shop); setShowReportModal(true); }
+                                                    if (shop) { setReportingShop(shop); setShowReportModal(true); }
                                                 }}
                                             >
                                                 <span className="material-icons" style={{fontSize: '16px'}}>report</span> รายงาน
@@ -1193,7 +1194,7 @@ function Customer() {
                             </h4>
                             <button className="btn-close" onClick={() => { setShowReportModal(false); setReportForm({ category: '', message: '' }); }}></button>
                         </div>
-                        <p className="text-muted small mb-3">ร้าน: <strong>{selectedShop?.shop_name}</strong></p>
+                        <p className="text-muted small mb-3">ร้าน: <strong>{reportingShop?.shop_name}</strong></p>
 
                         <div className="mb-3">
                             <label className="form-label fw-bold">หมวดหมู่การรายงาน <span className="text-danger">*</span></label>
