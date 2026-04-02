@@ -416,7 +416,7 @@ function Merchant() {
     return (
         <div className="container mt-4 pb-5">
             {/* Header / Navbar - Desktop Version */}
-            <div className="card shadow-sm p-3 mb-4 sticky-top d-none d-md-block" style={{top: '10px', zIndex: 1000}}>
+            <div className="card shadow-sm p-3 mb-4 sticky-top d-none d-md-block" style={{top: '10px', zIndex: 2000}}>
                 <div className="d-flex flex-wrap justify-content-between align-items-center">
                     <div className="d-flex align-items-center">
                         {shop.image ? (
