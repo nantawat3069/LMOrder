@@ -482,7 +482,7 @@ function Admin() {
         if (!broadcastForm.category) { showAlert('ประกาศ', 'กรุณาเลือกหมวดหมู่'); return; }
         if (!broadcastForm.message.trim()) { showAlert('ประกาศ', 'กรุณาพิมพ์ข้อความ'); return; }
         try {
-            const res = await axios.post(`${API_BASE_URL}/admin.php`, {
+            await axios.post(`${API_BASE_URL}/admin.php`, {
                 action: 'broadcast_notification',
                 admin_id: admin.id,
                 target: broadcastForm.target,
@@ -491,8 +491,7 @@ function Admin() {
             });
             setShowBroadcastModal(false);
             setBroadcastForm({ target: 'all', category: '', message: '' });
-            const count = res.data?.sent_to;
-            showAlert('สำเร็จ', `ส่งประกาศถึง ${count ?? '?'} คนเรียบร้อยแล้ว`);
+            showAlert('สำเร็จ', 'ส่งประกาศเรียบร้อยแล้ว');
         } catch (err) {
             showAlert('ผิดพลาด', 'เกิดข้อผิดพลาดในการเชื่อมต่อ');
         }
