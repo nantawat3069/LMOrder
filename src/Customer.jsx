@@ -752,7 +752,7 @@ function Customer() {
                                                     ))}
                                                 </div>
                                             ))}
-                                            <input className="form-control mb-3" placeholder="Note (เช่น ไม่ใส่ผัก)" value={note} onChange={e => setNote(e.target.value)} />
+                                            <input className="form-control mb-3" placeholder="Note" value={note} onChange={e => setNote(e.target.value)} />
                                             <button onClick={confirmAddToCart} className="btn btn-primary w-100">ใส่ตะกร้า - {calculateCurrentPrice().toLocaleString()} บ.</button>
                                         </div>
                                     ) : (
